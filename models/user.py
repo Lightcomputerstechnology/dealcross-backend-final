@@ -1,7 +1,9 @@
+# File: models/user.py
+
 from sqlalchemy import Column, Integer, String, DateTime
 from sqlalchemy.orm import relationship
 from datetime import datetime
-from database import Base
+from core.database import Base  # FIXED: proper path to avoid circular import
 
 class User(Base):
     __tablename__ = "users"
@@ -13,6 +15,6 @@ class User(Base):
     hashed_password = Column(String, nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow)
 
-    # Optional: if you plan to reference user in related tables
+    # Optional relationships (only if needed in the future)
     # deals = relationship("Deal", back_populates="user")
     # shares = relationship("Share", back_populates="user")
