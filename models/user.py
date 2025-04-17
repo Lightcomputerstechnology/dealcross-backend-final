@@ -1,3 +1,5 @@
+# File: models/user.py
+
 from sqlalchemy import Column, Integer, String, DateTime
 from datetime import datetime
 from core.database import Base
