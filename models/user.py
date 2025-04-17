@@ -11,7 +11,3 @@ class User(Base):
     full_name = Column(String, nullable=True)
     hashed_password = Column(String, nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow)
-
-    # Optional: if you want reverse relationships (not necessary for now)
-    # deals_created = relationship("Deal", foreign_keys='Deal.creator_id')
-    # deals_received = relationship("Deal", foreign_keys='Deal.counterparty_id')
