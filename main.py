@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from routers import auth, wallet, deals, disputes, admin
-from database import Base, engine
+from core.database import get_db, engine
 
 # Create all tables in the database
 Base.metadata.create_all(bind=engine)
