@@ -3,28 +3,23 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from routers import auth, wallet, deals, disputes, admin
 from database import Base, engine
-from core.config import settings
 
-# Create all tables
+# Create all tables in the database
 Base.metadata.create_all(bind=engine)
 
-app = FastAPI(
-    title="Dealcross API",
-    description="Backend for the Dealcross platform.",
-    version="1.0.0"
-)
+app = FastAPI()
 
-# CORS setup
+# Middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.ALLOWED_ORIGINS,
+    allow_origins=["*"],  # You can restrict this in production
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Include routers
-app.include_router(auth.router, prefix="/auth", tags=["Auth"])
+# Routers
+app.include_router(auth.router, prefix="/auth", tags=["Authentication"])
 app.include_router(wallet.router, prefix="/wallet", tags=["Wallet"])
 app.include_router(deals.router, prefix="/deals", tags=["Deals"])
 app.include_router(disputes.router, prefix="/disputes", tags=["Disputes"])
