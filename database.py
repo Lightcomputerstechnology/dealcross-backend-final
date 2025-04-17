@@ -1,21 +1,25 @@
-# database.py
-
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
-import os
+from config import settings
 
-DATABASE_URL = os.getenv("DATABASE_URL")
+SQLALCHEMY_DATABASE_URL = settings.DATABASE_URL
 
-engine = create_engine(DATABASE_URL)
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+engine = create_engine(SQLALCHEMY_DATABASE_URL)
+SessionLocal = sessionmaker(bind=engine, autocommit=False, autoflush=False)
 
 Base = declarative_base()
 
-# Dependency for getting a DB session
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
+# IMPORT ALL MODELS HERE
+from models.user import User
+from models.deal import Deal
+from models.share import Share
+from models.wallet import Wallet
+from models.admin import Admin
+from models.escrow_tracker import EscrowTracker
+from models.dispute import Dispute
+from models.settings import AppSettings
+from models.aiinsight import AIInsight
+
+# Now create all tables
+Base.metadata.create_all(bind=engine)
