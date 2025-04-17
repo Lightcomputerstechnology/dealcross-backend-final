@@ -8,3 +8,4 @@ class User(Base):
     hashed_password = Column(String)
     name = Column(String)
     role = Column(String, default="user")
+    wallet_balance = Column(Integer, default=0)
