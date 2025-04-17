@@ -1,41 +1,38 @@
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
-from models.user import User
-from schemas.user_schema import UserCreate, UserLogin
-from core.database import SessionLocal
-from core.security import create_token, verify_password, get_password_hash
 from fastapi.security import OAuth2PasswordRequestForm
 
-router = APIRouter()
+from core.security import verify_password, get_password_hash, get_current_user
+from models import User
+from database import get_db
+from schemas import UserCreate, UserOut
 
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
+authrouter = APIRouter()
 
-@router.post("/signup")
-def signup(user: UserCreate, db: Session = Depends(get_db)):
-    if db.query(User).filter(User.email == user.email).first():
+
+@authrouter.post("/signup", response_model=UserOut)
+def signup(user_data: UserCreate, db: Session = Depends(get_db)):
+    user = db.query(User).filter(User.email == user_data.email).first()
+    if user:
         raise HTTPException(status_code=400, detail="Email already registered")
     
-    new_user = User(
-        email=user.email,
-        hashed_password=get_password_hash(user.password),
-        name=user.name,
-        role="user"
-    )
+    hashed_password = get_password_hash(user_data.password)
+    new_user = User(email=user_data.email, hashed_password=hashed_password)
     db.add(new_user)
     db.commit()
     db.refresh(new_user)
-    return {"message": "Signup successful"}
+    return new_user
 
-@router.post("/login")
+
+@authrouter.post("/login")
 def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
     user = db.query(User).filter(User.email == form_data.username).first()
     if not user or not verify_password(form_data.password, user.hashed_password):
         raise HTTPException(status_code=401, detail="Invalid credentials")
+    
+    return {"message": "Login successful", "user_id": user.id}
 
-    token = create_token({"sub": user.email})
-    return {"access_token": token, "token_type": "bearer"}
+
+@authrouter.get("/me", response_model=UserOut)
+def read_users_me(current_user: User = Depends(get_current_user)):
+    return current_user
