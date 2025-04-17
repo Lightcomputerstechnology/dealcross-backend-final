@@ -1,33 +1,19 @@
 from sqlalchemy import create_engine
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
-from config import settings
+from sqlalchemy.orm import sessionmaker, declarative_base
+from contextlib import contextmanager
+import os
 
-SQLALCHEMY_DATABASE_URL = settings.DATABASE_URL
+# ▶ 1.  read the DATABASE_URL from Render’s env‑vars
+SQLALCHEMY_DATABASE_URL = os.getenv("DATABASE_URL")
 
-engine = create_engine(SQLALCHEMY_DATABASE_URL)
-SessionLocal = sessionmaker(bind=engine, autocommit=False, autoflush=False)
-
+# ▶ 2.  SQLAlchemy boiler‑plate
+engine = create_engine(SQLALCHEMY_DATABASE_URL, pool_pre_ping=True)
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
-# IMPORT ALL MODELS HERE
-from models.user import User
-from models.deal import Deal
-from models.share import Share
-from models.wallet import Wallet
-from models.admin import Admin
-from models.escrow_tracker import EscrowTracker
-from models.dispute import Dispute
-from models.settings import AppSettings
-from models.ainsight import AIInsight
-
-# Create all tables
-Base.metadata.create_all(bind=engine)
-
-# ✅ Add this to fix get_db import error
-from typing import Generator
-
-def get_db() -> Generator:
+# ▶ 3.  FastAPI dependency for DB sessions
+@contextmanager
+def get_db():
     db = SessionLocal()
     try:
         yield db
