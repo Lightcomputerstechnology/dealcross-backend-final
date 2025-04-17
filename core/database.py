@@ -1,18 +1,35 @@
-# core/database.py
-
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
-import os
-from dotenv import load_dotenv
+from config import settings
 
-load_dotenv()  # Load environment variables from .env file
+SQLALCHEMY_DATABASE_URL = settings.DATABASE_URL
 
-DATABASE_URL = os.getenv("DATABASE_URL")
-
-if not DATABASE_URL:
-    raise Exception("DATABASE_URL not set in .env or Render environment")
-
-engine = create_engine(DATABASE_URL)
+engine = create_engine(SQLALCHEMY_DATABASE_URL)
 SessionLocal = sessionmaker(bind=engine, autocommit=False, autoflush=False)
+
 Base = declarative_base()
+
+# IMPORT ALL MODELS HERE
+from models.user import User
+from models.deal import Deal
+from models.share import Share
+from models.wallet import Wallet
+from models.admin import Admin
+from models.escrow_tracker import EscrowTracker
+from models.dispute import Dispute
+from models.settings import AppSettings
+from models.ainsight import AIInsight
+
+# Create all tables
+Base.metadata.create_all(bind=engine)
+
+# ✅ Add this to fix get_db import error
+from typing import Generator
+
+def get_db() -> Generator:
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
