@@ -4,7 +4,7 @@ from fastapi.security import OAuth2PasswordRequestForm
 
 from core.security import verify_password, get_password_hash, get_current_user
 from models import User
-from database import get_db
+from core.database import get_db
 from schemas import UserCreate, UserOut
 
 authrouter = APIRouter()
