@@ -1,18 +1,15 @@
 from pydantic import BaseModel
+from datetime import datetime
 
-class AIInsightCreate(BaseModel):
-    user_id: int
-    query: str
-    result: str
+class AIInsightBase(BaseModel):
+    content: str
 
-    model_config = {"from_attributes": True}
+class AIInsightCreate(AIInsightBase):
+    pass
 
-
-class AIInsightOut(BaseModel):
+class AIInsightOut(AIInsightBase):
     id: int
-    user_id: int
-    query: str
-    result: str
-    created_at: str  # ISO format
+    created_at: datetime
 
-    model_config = {"from_attributes": True}
+    class Config:
+        orm_mode = True
