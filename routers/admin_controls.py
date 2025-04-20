@@ -1,36 +1,58 @@
 # File: routers/admin_controls.py
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from core.database import get_db
 from models.user import User
 from models.deal import Deal
+from schemas.admin_controls import BlockAction, DealApproval
 
 router = APIRouter()
 
-# Approve Deal Endpoint
-@router.post("/deal/{deal_id}/approve")
-def approve_deal(deal_id: int, db: Session = Depends(get_db)):
-    deal = db.query(Deal).filter(Deal.id == deal_id).first()
+# GET all users
+@router.get("/users")
+def get_users(db: Session = Depends(get_db)):
+    return db.query(User).all()
+
+# Block a user
+@router.post("/users/block")
+def block_user(data: BlockAction, db: Session = Depends(get_db)):
+    user = db.query(User).filter(User.id == data.user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    user.is_blocked = True
+    user.block_reason = data.reason
+    db.commit()
+    return {"message": "User blocked successfully."}
+
+# Unblock a user
+@router.post("/users/unblock")
+def unblock_user(data: BlockAction, db: Session = Depends(get_db)):
+    user = db.query(User).filter(User.id == data.user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    user.is_blocked = False
+    user.block_reason = None
+    db.commit()
+    return {"message": "User unblocked successfully."}
+
+# Approve a deal
+@router.post("/deals/approve")
+def approve_deal(data: DealApproval, db: Session = Depends(get_db)):
+    deal = db.query(Deal).filter(Deal.id == data.deal_id).first()
     if not deal:
         raise HTTPException(status_code=404, detail="Deal not found")
     deal.status = "approved"
+    deal.approval_note = data.note
     db.commit()
-    return {"message": "Deal approved successfully."}
+    return {"message": "Deal approved."}
 
-# Ban User Endpoint
-@router.post("/user/{user_id}/ban")
-def ban_user(user_id: int, db: Session = Depends(get_db)):
-    user = db.query(User).filter(User.id == user_id).first()
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
-    user.status = "banned"
+# Reject a deal
+@router.post("/deals/reject")
+def reject_deal(data: DealApproval, db: Session = Depends(get_db)):
+    deal = db.query(Deal).filter(Deal.id == data.deal_id).first()
+    if not deal:
+        raise HTTPException(status_code=404, detail="Deal not found")
+    deal.status = "rejected"
+    deal.approval_note = data.note
     db.commit()
-    return {"message": "User has been banned."}
-
-# Admin Audit Logs Endpoint
-@router.get("/admin/audit-logs")
-def get_audit_logs(db: Session = Depends(get_db)):
-    from models.admin_log import AdminAuditLog  # import inline to avoid circular imports
-    logs = db.query(AdminAuditLog).order_by(AdminAuditLog.timestamp.desc()).limit(100).all()
-    return logs
-                            
+    return {"message": "Deal rejected."}
