@@ -1,19 +1,14 @@
 # File: schemas/chart.py
 
+from datetime import datetime
 from pydantic import BaseModel
 from typing import List
-from datetime import datetime
-
 
 class ChartPoint(BaseModel):
-    label: str
-    value: int
+    label: str         # e.g. "Mon", "Tue"
+    value: int         # count (e.g. number of users/deals)
     timestamp: datetime
 
-
 class ChartDataResponse(BaseModel):
-    chart_type: str
+    chart_type: str                  # e.g. "user_vs_deal"
     data: List[ChartPoint]
-
-    class Config:
-        orm_mode = True
