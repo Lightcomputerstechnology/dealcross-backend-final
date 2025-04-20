@@ -1,13 +1,20 @@
-# File: schemas/metric.py
+# File: schemas/metrics.py
 
-from pydantic import BaseModel
 from datetime import datetime
+from pydantic import BaseModel
 
-class MetricOut(BaseModel):
+# For individual metric entries (e.g. chart points)
+class MetricEntry(BaseModel):
     id: int
     type: str
-    value: float
+    value: int
     timestamp: datetime
 
     class Config:
         from_attributes = True
+
+# For chart series data (bar/line chart)
+class ChartSeriesData(BaseModel):
+    label: str
+    data: list[int]
+    timestamps: list[str]
