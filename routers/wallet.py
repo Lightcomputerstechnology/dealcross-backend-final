@@ -1,10 +1,12 @@
 # File: routers/wallet.py
 
-from fastapi import APIRouter, Depends, HTTPException, Body
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from core.database import SessionLocal
-from models.user import User
 from core.security import get_current_user
+from models.wallet import Wallet
+from models.user import User
+from schemas.wallet import WalletCreate, WalletOut
 
 router = APIRouter()
 
@@ -15,16 +17,22 @@ def get_db():
     finally:
         db.close()
 
-@router.post("/fund")
-def fund_wallet(amount: float = Body(...), db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
-    if amount <= 0:
-        raise HTTPException(status_code=400, detail="Amount must be greater than zero")
+@router.get("/my-wallet", response_model=WalletOut)
+def get_my_wallet(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    wallet = db.query(Wallet).filter(Wallet.user_id == current_user.id).first()
+    if not wallet:
+        raise HTTPException(status_code=404, detail="Wallet not found")
+    return wallet
 
-    current_user.wallet_balance += amount
+@router.post("/fund", response_model=WalletOut)
+def fund_wallet(payload: WalletCreate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    wallet = db.query(Wallet).filter(Wallet.user_id == current_user.id).first()
+    if not wallet:
+        wallet = Wallet(user_id=current_user.id, balance=payload.amount)
+        db.add(wallet)
+    else:
+        wallet.balance += payload.amount
+
     db.commit()
-    db.refresh(current_user)
-    return {"message": "Wallet funded", "new_balance": current_user.wallet_balance}
-
-@router.get("/balance")
-def get_wallet_balance(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
-    return {"balance": current_user.wallet_balance}
+    db.refresh(wallet)
+    return wallet
