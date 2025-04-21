@@ -3,20 +3,25 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from core.database import get_db
+from core.security import get_current_user
 from models.kyc import KYC
 from models.user import User
+from models.audit import AuditLog  # if logging admin decisions
 from schemas.kyc import KYCUpload, KYCOut
 from typing import List
 from datetime import datetime
 
 router = APIRouter()
 
-# === User uploads KYC document ===
+# === User submits KYC (auth enforced) ===
 @router.post("/submit", response_model=KYCOut)
-def submit_kyc(payload: KYCUpload, db: Session = Depends(get_db)):
-    user = db.query(User).filter(User.id == payload.user_id).first()
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
+def submit_kyc(
+    payload: KYCUpload,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    if current_user.id != payload.user_id:
+        raise HTTPException(status_code=403, detail="You can only submit your own KYC.")
 
     kyc = KYC(
         user_id=payload.user_id,
@@ -31,15 +36,30 @@ def submit_kyc(payload: KYCUpload, db: Session = Depends(get_db)):
     return kyc
 
 
-# === Admin fetches all pending KYC ===
+# === Admin views all pending KYC ===
 @router.get("/pending", response_model=List[KYCOut])
-def get_pending_kyc(db: Session = Depends(get_db)):
+def get_pending_kyc(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    if not current_user.is_admin:
+        raise HTTPException(status_code=403, detail="Admin access only.")
+    
     return db.query(KYC).filter(KYC.status == "pending").order_by(KYC.submitted_at.desc()).all()
 
 
-# === Admin approves or rejects KYC ===
+# === Admin approves or rejects ===
 @router.put("/review/{kyc_id}", response_model=KYCOut)
-def review_kyc(kyc_id: int, status: str, note: str = "", db: Session = Depends(get_db)):
+def review_kyc(
+    kyc_id: int,
+    status: str,
+    note: str = "",
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    if not current_user.is_admin:
+        raise HTTPException(status_code=403, detail="Admin access only.")
+    
     kyc = db.query(KYC).filter(KYC.id == kyc_id).first()
     if not kyc:
         raise HTTPException(status_code=404, detail="KYC record not found")
@@ -49,12 +69,30 @@ def review_kyc(kyc_id: int, status: str, note: str = "", db: Session = Depends(g
 
     kyc.status = status
     kyc.review_note = note
+    kyc.reviewed_by = current_user.id  # optional field
     db.commit()
     db.refresh(kyc)
+
+    # Optional: log admin decision
+    log = AuditLog(
+        admin_id=current_user.id,
+        action=f"KYC {status.upper()}",
+        target_type="KYC",
+        target_id=kyc_id,
+    )
+    db.add(log)
+    db.commit()
+
+    # Placeholder: send user notification (email, SMS, etc.)
+    # notify_user(kyc.user_id, f"KYC status updated: {status}")
+
     return kyc
 
 
-# === User fetches their KYC status ===
-@router.get("/user/{user_id}", response_model=List[KYCOut])
-def get_user_kyc(user_id: int, db: Session = Depends(get_db)):
-    return db.query(KYC).filter(KYC.user_id == user_id).order_by(KYC.submitted_at.desc()).all()
+# === User views own KYC status ===
+@router.get("/user", response_model=List[KYCOut])
+def get_my_kyc(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    return db.query(KYC).filter(KYC.user_id == current_user.id).order_by(KYC.submitted_at.desc()).all()
