@@ -1,12 +1,25 @@
 # File: app/api/routes/admin/fraud.py
-from fastapi import APIRouter
+
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy.orm import Session
+from typing import List
+from core.database import get_db
+from models.fraud import FraudAlert
+from schemas.fraud_schema import FraudAlertOut
 
 router = APIRouter()
 
-@router.get("/fraud-reports")
-async def get_fraud_reports():
-    return [
-        {"id": 1, "message": "Unusual withdrawal by user A", "timestamp": "2025-04-20T15:30:00Z"},
-        {"id": 2, "message": "Multiple login attempts from different IPs - user B", "timestamp": "2025-04-20T15:25:00Z"},
-        {"id": 3, "message": "Transaction reversal flagged - user C", "timestamp": "2025-04-20T15:20:00Z"}
-    ]
+@router.get("/fraud-reports", response_model=List[FraudAlertOut])
+def get_fraud_reports(db: Session = Depends(get_db)):
+    """
+    Return latest fraud alerts in descending order of creation.
+    """
+    try:
+        return (
+            db.query(FraudAlert)
+            .order_by(FraudAlert.created_at.desc())
+            .limit(10)
+            .all()
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to fetch fraud reports: {str(e)}")
