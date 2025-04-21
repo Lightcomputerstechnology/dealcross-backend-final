@@ -5,7 +5,7 @@ from typing import Optional
 from datetime import datetime
 
 
-# === Base Deal Schema ===
+# === Shared Deal Structure ===
 class DealBase(BaseModel):
     title: str
     amount: float
@@ -21,9 +21,11 @@ class DealCreate(DealBase):
     role: Optional[str] = "buyer"
 
 
-# === For Output/Response ===
+# === For Returning Deal Data (User/Admin Use) ===
 class DealOut(DealBase):
     id: int
+    creator_id: Optional[int]
+    counterparty_id: Optional[int]
     created_at: datetime
 
     model_config = {
@@ -31,7 +33,7 @@ class DealOut(DealBase):
     }
 
 
-# === Admin Update Schema ===
+# === For Admin to Update Deal Status ===
 class DealAdminUpdate(BaseModel):
     status: Optional[str] = None
     approval_note: Optional[str] = None
