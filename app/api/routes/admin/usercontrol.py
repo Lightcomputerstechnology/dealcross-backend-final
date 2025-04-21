@@ -1,6 +1,4 @@
-# File: app/api/routes/admin/usercontrol.py
-
-from fastapi import APIRouter, Depends, HTTPException, Path, Body
+from fastapi import APIRouter, Depends, HTTPException, Body
 from sqlalchemy.orm import Session
 from core.database import get_db
 from models.user import User
@@ -8,6 +6,7 @@ from schemas.user import UserOut, UserAdminUpdate
 from typing import List, Optional
 
 router = APIRouter()
+
 
 @router.get("/all-users", response_model=List[UserOut])
 def list_all_users(db: Session = Depends(get_db)):
@@ -40,34 +39,42 @@ def update_user_admin(
     return user
 
 
-@router.post("/ban-user/{user_id}")
-def ban_user(user_id: int, db: Session = Depends(get_db), reason: Optional[str] = Body(None, embed=True)):
+@router.put("/ban-user/{user_id}")
+def ban_user(
+    user_id: int,
+    db: Session = Depends(get_db),
+    reason: Optional[str] = Body(None, embed=True)
+):
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
 
-    user.status = "banned"
     user.is_banned = True
-    user.ban_reason = reason or "No reason specified"
+    user.status = "banned"
+    user.ban_reason = reason or "Banned by admin"
     db.commit()
     return {"message": f"User {user.username} has been banned."}
 
 
-@router.post("/unban-user/{user_id}")
+@router.put("/unban-user/{user_id}")
 def unban_user(user_id: int, db: Session = Depends(get_db)):
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
 
-    user.status = "active"
     user.is_banned = False
+    user.status = "active"
     user.ban_reason = None
     db.commit()
     return {"message": f"User {user.username} has been unbanned."}
 
 
 @router.post("/approve-user/{user_id}")
-def approve_user(user_id: int, db: Session = Depends(get_db), note: Optional[str] = Body(None, embed=True)):
+def approve_user(
+    user_id: int,
+    db: Session = Depends(get_db),
+    note: Optional[str] = Body(None, embed=True)
+):
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
