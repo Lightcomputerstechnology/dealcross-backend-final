@@ -1,16 +1,17 @@
-from fastapi import APIRouter, Depends, HTTPException, Path
+# File: app/api/routes/admin/usercontrol.py
+
+from fastapi import APIRouter, Depends, HTTPException, Path, Body
 from sqlalchemy.orm import Session
 from core.database import get_db
 from models.user import User
 from schemas.user import UserOut, UserAdminUpdate
-from typing import List
+from typing import List, Optional
 
 router = APIRouter()
 
 @router.get("/all-users", response_model=List[UserOut])
 def list_all_users(db: Session = Depends(get_db)):
-    users = db.query(User).order_by(User.created_at.desc()).all()
-    return users
+    return db.query(User).order_by(User.created_at.desc()).all()
 
 
 @router.put("/update-user/{user_id}", response_model=UserOut)
@@ -24,9 +25,11 @@ def update_user_admin(
         raise HTTPException(status_code=404, detail="User not found")
 
     if update.is_active is not None:
-        user.is_active = update.is_active
+        user.status = "active" if update.is_active else "inactive"
     if update.is_banned is not None:
         user.is_banned = update.is_banned
+        if update.is_banned:
+            user.status = "banned"
     if update.ban_reason is not None:
         user.ban_reason = update.ban_reason
     if update.approval_note is not None:
@@ -37,22 +40,39 @@ def update_user_admin(
     return user
 
 
-@router.put("/ban-user/{user_id}")
-def ban_user(user_id: int, db: Session = Depends(get_db)):
+@router.post("/ban-user/{user_id}")
+def ban_user(user_id: int, db: Session = Depends(get_db), reason: Optional[str] = Body(None, embed=True)):
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
+
+    user.status = "banned"
     user.is_banned = True
+    user.ban_reason = reason or "No reason specified"
     db.commit()
-    return {"message": f"User {user_id} has been banned."}
+    return {"message": f"User {user.username} has been banned."}
 
 
-@router.put("/unban-user/{user_id}")
+@router.post("/unban-user/{user_id}")
 def unban_user(user_id: int, db: Session = Depends(get_db)):
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
+
+    user.status = "active"
     user.is_banned = False
     user.ban_reason = None
     db.commit()
-    return {"message": f"User {user_id} has been unbanned."}
+    return {"message": f"User {user.username} has been unbanned."}
+
+
+@router.post("/approve-user/{user_id}")
+def approve_user(user_id: int, db: Session = Depends(get_db), note: Optional[str] = Body(None, embed=True)):
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    user.status = "active"
+    user.approval_note = note or "Approved by admin"
+    db.commit()
+    return {"message": f"User {user.username} has been approved."}
