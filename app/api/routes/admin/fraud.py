@@ -5,14 +5,14 @@ from sqlalchemy.orm import Session
 from typing import List
 from core.database import get_db
 from models.fraud import FraudAlert
-from schemas.fraud_schema import FraudAlertOut
+from schemas.fraud import FraudAlertOut
 
 router = APIRouter()
 
 @router.get("/fraud-reports", response_model=List[FraudAlertOut])
 def get_fraud_reports(db: Session = Depends(get_db)):
     """
-    Return latest fraud alerts in descending order of creation.
+    Fetch the 10 most recent fraud alerts.
     """
     try:
         return (
@@ -22,4 +22,4 @@ def get_fraud_reports(db: Session = Depends(get_db)):
             .all()
         )
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to fetch fraud reports: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to retrieve fraud reports: {str(e)}")
