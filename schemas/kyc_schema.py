@@ -1,5 +1,6 @@
 from pydantic import BaseModel
 from typing import Optional
+from datetime import datetime
 
 
 class KYCUpload(BaseModel):
@@ -17,6 +18,12 @@ class KYCOut(BaseModel):
     document_type: str
     document_url: str
     status: str
-    submitted_at: str  # ISO format
+    submitted_at: datetime
+    review_note: Optional[str] = None
 
     model_config = {"from_attributes": True}
+
+
+class KYCUpdate(BaseModel):
+    status: str  # e.g., "approved", "rejected"
+    review_note: Optional[str] = None
