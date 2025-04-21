@@ -16,6 +16,7 @@ from app.api.routes import (
     dealcontrol,
     usercontrol
 )
+from routers import secure_admin  # ✅ NEW router for protected admin features
 
 # Initialize DB tables (auto-create)
 Base.metadata.create_all(bind=engine)
@@ -50,3 +51,4 @@ app.include_router(fraud.router,        prefix="/admin", tags=["Fraud Reports"])
 app.include_router(auditlog.router,     prefix="/admin", tags=["Audit Logs"])
 app.include_router(dealcontrol.router,  prefix="/admin", tags=["Pending Deals"])
 app.include_router(usercontrol.router,  prefix="/admin", tags=["User Controls"])
+app.include_router(secure_admin.router, prefix="/admin", tags=["Admin Secure"])  # ✅ Added here
