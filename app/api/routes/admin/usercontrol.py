@@ -1,46 +1,58 @@
-# File: app/api/routes/admin/dealcontrol.py
-
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Path
 from sqlalchemy.orm import Session
-from typing import List
 from core.database import get_db
-from models.deal import Deal
-from schemas.deal import DealOut, DealAdminUpdate
+from models.user import User
+from schemas.user import UserOut, UserAdminUpdate
+from typing import List
 
 router = APIRouter()
 
-
-@router.get("/pending-deals", response_model=List[DealOut])
-def get_pending_deals(db: Session = Depends(get_db)):
-    deals = db.query(Deal).filter(Deal.status == "Pending").order_by(Deal.created_at.desc()).all()
-    return deals
-
-
-@router.put("/approve-deal/{deal_id}", response_model=DealOut)
-def approve_deal(deal_id: int, update: DealAdminUpdate = None, db: Session = Depends(get_db)):
-    deal = db.query(Deal).filter(Deal.id == deal_id).first()
-    if not deal:
-        raise HTTPException(status_code=404, detail="Deal not found")
-
-    deal.status = "Approved"
-    if update and update.approval_note:
-        deal.approval_note = update.approval_note
-
-    db.commit()
-    db.refresh(deal)
-    return deal
+@router.get("/all-users", response_model=List[UserOut])
+def list_all_users(db: Session = Depends(get_db)):
+    users = db.query(User).order_by(User.created_at.desc()).all()
+    return users
 
 
-@router.put("/reject-deal/{deal_id}", response_model=DealOut)
-def reject_deal(deal_id: int, update: DealAdminUpdate = None, db: Session = Depends(get_db)):
-    deal = db.query(Deal).filter(Deal.id == deal_id).first()
-    if not deal:
-        raise HTTPException(status_code=404, detail="Deal not found")
+@router.put("/update-user/{user_id}", response_model=UserOut)
+def update_user_admin(
+    user_id: int,
+    update: UserAdminUpdate,
+    db: Session = Depends(get_db)
+):
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
 
-    deal.status = "Rejected"
-    if update and update.approval_note:
-        deal.approval_note = update.approval_note
+    if update.is_active is not None:
+        user.is_active = update.is_active
+    if update.is_banned is not None:
+        user.is_banned = update.is_banned
+    if update.ban_reason is not None:
+        user.ban_reason = update.ban_reason
+    if update.approval_note is not None:
+        user.approval_note = update.approval_note
 
     db.commit()
-    db.refresh(deal)
-    return deal
+    db.refresh(user)
+    return user
+
+
+@router.put("/ban-user/{user_id}")
+def ban_user(user_id: int, db: Session = Depends(get_db)):
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    user.is_banned = True
+    db.commit()
+    return {"message": f"User {user_id} has been banned."}
+
+
+@router.put("/unban-user/{user_id}")
+def unban_user(user_id: int, db: Session = Depends(get_db)):
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    user.is_banned = False
+    user.ban_reason = None
+    db.commit()
+    return {"message": f"User {user_id} has been unbanned."}
