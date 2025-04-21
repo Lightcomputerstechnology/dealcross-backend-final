@@ -1,31 +1,38 @@
 # File: schemas/deal.py
 
-from datetime import datetime
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr
 from typing import Optional
+from datetime import datetime
+
 
 # === Base Deal Schema ===
 class DealBase(BaseModel):
     title: str
     amount: float
-    status: Optional[str] = "pending"
-    counterparty_email: Optional[str]
+    status: str
+    counterparty_email: EmailStr
     description: Optional[str] = None
-    public_deal: Optional[bool] = False
-    escrow_type: Optional[str] = "default"
+    public_deal: bool = False
+
+
+# === For Creating New Deals ===
+class DealCreate(DealBase):
+    escrow_type: Optional[str] = "standard"
     role: Optional[str] = "buyer"
 
-# === Output Deal Schema for APIs ===
+
+# === For Output/Response ===
 class DealOut(DealBase):
     id: int
-    creator_id: Optional[int]
-    counterparty_id: Optional[int]
     created_at: datetime
 
     model_config = {
         "from_attributes": True
     }
 
-# === Deal Creation Payload ===
-class DealCreate(DealBase):
-    pass
+
+# === Admin Update Schema ===
+class DealAdminUpdate(BaseModel):
+    status: Optional[str] = None
+    approval_note: Optional[str] = None
+    is_flagged: Optional[bool] = None
