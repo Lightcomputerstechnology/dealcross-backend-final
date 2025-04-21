@@ -102,7 +102,12 @@ def review_kyc(
         send_email(
             to=user.email,
             subject=f"KYC {status.title()} Notification",
-            body=f"Hello {user.full_name},\n\nYour KYC submission has been {status.upper()}.\nNote: {note}\n\nThank you,\nDealcross Team"
+            body=(
+                f"Hello {user.full_name or 'User'},\n\n"
+                f"Your KYC submission has been {status.upper()}.\n"
+                f"Note: {note or 'No remarks'}\n\n"
+                f"Thank you,\nDealcross Team"
+            )
         )
 
     return kyc
