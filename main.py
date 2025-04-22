@@ -2,10 +2,11 @@
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from core.database import Base, engine
 
 # Core routers
-from routers import auth, wallet, deals, disputes, admin, kyc  # ✅ Added kyc
+from routers import auth, wallet, deals, disputes, admin, kyc, upload  # ✅ Added upload
 
 # Admin feature routers
 from app.api.routes import (
@@ -18,10 +19,10 @@ from app.api.routes import (
 )
 from routers import secure_admin  # ✅ Admin-protected route
 
-# Initialize all tables
+# Initialize database tables
 Base.metadata.create_all(bind=engine)
 
-# FastAPI app configuration
+# Initialize FastAPI app
 app = FastAPI(
     title="Dealcross Backend",
     version="1.0.0",
@@ -42,7 +43,8 @@ app.include_router(auth.router,       prefix="/auth",     tags=["Authentication"
 app.include_router(wallet.router,     prefix="/wallet",   tags=["Wallet"])
 app.include_router(deals.router,      prefix="/deals",    tags=["Deals"])
 app.include_router(disputes.router,   prefix="/disputes", tags=["Disputes"])
-app.include_router(kyc.router,        prefix="/kyc",      tags=["KYC Verification"])  # ✅ NEW
+app.include_router(kyc.router,        prefix="/kyc",      tags=["KYC Verification"])
+app.include_router(upload.router,     prefix="/files",    tags=["File Uploads"])  # ✅ NEW
 
 # === Admin API Routes ===
 app.include_router(admin.router,        prefix="/admin", tags=["Admin Core"])
@@ -52,7 +54,32 @@ app.include_router(fraud.router,        prefix="/admin", tags=["Fraud Reports"])
 app.include_router(auditlog.router,     prefix="/admin", tags=["Audit Logs"])
 app.include_router(dealcontrol.router,  prefix="/admin", tags=["Pending Deals"])
 app.include_router(usercontrol.router,  prefix="/admin", tags=["User Controls"])
-app.include_router(secure_admin.router, prefix="/admin", tags=["Admin Secure"])  # ✅ Verified
+app.include_router(secure_admin.router, prefix="/admin", tags=["Admin Secure"])
+
+# === Global Exception Handling ===
+from fastapi.exceptions import RequestValidationError
+from starlette.exceptions import HTTPException as StarletteHTTPException
+
+@app.exception_handler(StarletteHTTPException)
+async def http_exception_handler(request, exc):
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={"error": True, "code": exc.status_code, "message": exc.detail},
+    )
+
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request, exc):
+    return JSONResponse(
+        status_code=400,
+        content={"error": True, "code": 400, "message": "Validation error", "details": exc.errors()},
+    )
+
+@app.exception_handler(Exception)
+async def unhandled_exception_handler(request, exc):
+    return JSONResponse(
+        status_code=500,
+        content={"error": True, "code": 500, "message": "Internal server error"},
+    )
 
 # === Future Ready ===
 # from routers import notifications, subscriptions
