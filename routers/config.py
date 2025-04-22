@@ -1,3 +1,5 @@
+fro# File: routers/config.py
+
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from core.database import get_db
@@ -8,13 +10,13 @@ from typing import List
 
 router = APIRouter()
 
-# === Get all configs ===
-@router.get("/settings", response_model=List[ConfigOut])
+# === Get all settings ===
+@router.get("/settings", response_model=List[ConfigOut], tags=["Admin Settings"])
 def get_all_settings(db: Session = Depends(get_db), admin=Depends(require_admin)):
     return db.query(Config).all()
 
 # === Update a setting ===
-@router.put("/settings/{key}", response_model=ConfigOut)
+@router.put("/settings/{key}", response_model=ConfigOut, tags=["Admin Settings"])
 def update_setting(
     key: str,
     value: str,
