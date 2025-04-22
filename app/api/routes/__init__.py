@@ -3,14 +3,10 @@
 from fastapi import APIRouter
 
 def include_all_routes():
-    """
-    Dynamically imports all routers to avoid circular import issues.
-    """
     from app.api.routes import auth, wallet, deals, disputes, kyc, upload, notifications
     from app.api.routes.admin import analytics, charts, fraud, auditlog, dealcontrol, usercontrol
 
-    # Combine all routers
-    return [
+    routes = [
         auth.router,
         wallet.router,
         deals.router,
@@ -25,6 +21,6 @@ def include_all_routes():
         dealcontrol.router,
         usercontrol.router,
     ]
+    return routes
 
-# Expose only the function
 __all__ = ["include_all_routes"]
