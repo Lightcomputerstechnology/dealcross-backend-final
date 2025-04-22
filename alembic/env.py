@@ -5,6 +5,9 @@ import sys
 import os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
 from sqlalchemy import engine_from_config
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 from sqlalchemy import pool
 from logging.config import fileConfig
 from alembic import context
