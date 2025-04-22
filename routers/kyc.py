@@ -10,9 +10,9 @@ from models.audit import AuditLog
 from schemas.kyc import KYCUpload, KYCOut
 from datetime import datetime
 from typing import List
-from utils.notifications import send_email  # NEW
+from utils.notifications import send_email  # ✅
 
-router = APIRouter()
+router = APIRouter(prefix="/kyc", tags=["KYC Verification"])  # ✅ Tag added
 
 # === File Validation Settings ===
 ALLOWED_EXTENSIONS = {"jpg", "jpeg", "png", "pdf"}
@@ -27,11 +27,17 @@ def validate_kyc_file(file: UploadFile):
         )
 
 # === KYC File Upload ===
-@router.post("/upload-file")
+@router.post("/upload-file", summary="Upload KYC file (image or PDF)")
 async def upload_kyc_file(
     file: UploadFile = File(...),
     current_user: User = Depends(get_current_user)
 ):
+    """
+    Uploads a KYC document (image or PDF) for the current user.  
+    - **Allowed file types**: jpg, jpeg, png, pdf.  
+    - **Max size**: 5MB.  
+    - Returns a **mocked URL** for the uploaded file.
+    """
     validate_kyc_file(file)
     
     contents = await file.read()
@@ -41,18 +47,23 @@ async def upload_kyc_file(
             detail=f"File too large. Max size is {MAX_FILE_SIZE // (1024 * 1024)}MB."
         )
 
-    # Placeholder: In production, save to cloud storage or disk
     document_url = f"https://mock-storage/dealcross/kyc/{file.filename}"
 
     return {"message": "File uploaded successfully", "document_url": document_url}
 
 # === User submits KYC ===
-@router.post("/submit", response_model=KYCOut)
+@router.post("/submit", response_model=KYCOut, summary="Submit KYC details for review")
 def submit_kyc(
     payload: KYCUpload,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
+    """
+    Submits KYC details (document type and URL) for the logged-in user.
+
+    - **document_type**: Type of document (e.g., ID, passport).
+    - **document_url**: Link to the uploaded document.
+    """
     if current_user.id != payload.user_id:
         raise HTTPException(status_code=403, detail="You can only submit your own KYC.")
 
@@ -69,26 +80,32 @@ def submit_kyc(
     return kyc
 
 # === User views their own KYC history ===
-@router.get("/user", response_model=List[KYCOut])
+@router.get("/user", response_model=List[KYCOut], summary="View your KYC submissions")
 def get_my_kyc(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
+    """
+    Retrieves the logged-in user's KYC submission history.
+    """
     return db.query(KYC).filter(KYC.user_id == current_user.id).order_by(KYC.submitted_at.desc()).all()
 
 # === Admin views all pending KYCs ===
-@router.get("/pending", response_model=List[KYCOut])
+@router.get("/pending", response_model=List[KYCOut], summary="Admin: View all pending KYC submissions")
 def get_pending_kyc(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    if not current_user.is_admin:
+    """
+    Allows an admin to view all pending KYC submissions.
+    """
+    if current_user.role != "admin":
         raise HTTPException(status_code=403, detail="Admin access only.")
 
     return db.query(KYC).filter(KYC.status == "pending").order_by(KYC.submitted_at.desc()).all()
 
 # === Admin reviews (approve or reject) KYC ===
-@router.put("/review/{kyc_id}", response_model=KYCOut)
+@router.put("/review/{kyc_id}", response_model=KYCOut, summary="Admin: Review (approve/reject) KYC submission")
 def review_kyc(
     kyc_id: int,
     status: str,
@@ -96,7 +113,13 @@ def review_kyc(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    if not current_user.is_admin:
+    """
+    Allows an admin to **approve or reject** a KYC submission.
+
+    - **status**: Must be either 'approved' or 'rejected'.
+    - **note**: Optional note for the decision (sent to the user via email).
+    """
+    if current_user.role != "admin":
         raise HTTPException(status_code=403, detail="Admin access only.")
 
     if status not in ["approved", "rejected"]:
