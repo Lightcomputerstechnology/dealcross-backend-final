@@ -1,45 +1,32 @@
 # File: routers/admin.py
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
-from core.database import SessionLocal
+from core.database import get_db  # ✅ Use shared DB dependency
 from models.user import User
 from models.deal import Deal
 from models.dispute import Dispute
-from core.security import get_current_user
+from core.dependencies import require_admin  # ✅ Admin check
 
 router = APIRouter()
 
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
-
 @router.get("/users")
-def list_all_users(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
-    if current_user.role != "admin":
-        raise HTTPException(status_code=403, detail="Access denied")
-
+def list_all_users(db: Session = Depends(get_db), admin: User = Depends(require_admin)):  # ✅ Protect with require_admin
     users = db.query(User).all()
     return [
         {
-            "name": u.name,
+            "username": u.username,
             "email": u.email,
-            "role": u.role,
-            "status": "active"
+            "is_admin": u.is_admin,
+            "status": u.status
         } for u in users
     ]
 
 @router.get("/analytics")
-def analytics_summary(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
-    if current_user.role != "admin":
-        raise HTTPException(status_code=403, detail="Access denied")
-
+def analytics_summary(db: Session = Depends(get_db), admin: User = Depends(require_admin)):  # ✅ Protect with require_admin
     return {
         "users": db.query(User).count(),
         "deals": db.query(Deal).count(),
-        "wallets_funded": db.query(User).filter(User.wallet_balance > 0).count(),
+        "wallets_funded": db.query(User).filter(User.wallet_balance > 0).count() if hasattr(User, "wallet_balance") else "N/A",
         "disputes": db.query(Dispute).count()
     }
