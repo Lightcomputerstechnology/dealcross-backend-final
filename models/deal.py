@@ -1,7 +1,17 @@
 # File: models/deal.py
 
-from sqlalchemy import Column, String, Integer, Float, Boolean
+from sqlalchemy import Column, Integer, String, Float, ForeignKey, Enum, Boolean, DateTime
+from sqlalchemy.orm import relationship
 from core.database import Base
+import enum
+from datetime import datetime
+
+class DealStatus(str, enum.Enum):
+    pending = "pending"
+    active = "active"
+    completed = "completed"
+    disputed = "disputed"
+    cancelled = "cancelled"
 
 class Deal(Base):
     __tablename__ = 'deals'
@@ -9,7 +19,14 @@ class Deal(Base):
     id = Column(Integer, primary_key=True, index=True)
     title = Column(String, index=True, nullable=False)
     amount = Column(Float, nullable=False)
-    status = Column(String, default='pending')
-    counterparty_email = Column(String, nullable=False)
+    status = Column(Enum(DealStatus), default=DealStatus.pending)
     description = Column(String, nullable=True)
-    public_deal = Column(Boolean, default=False)  # NEW: Public visibility flag
+    public_deal = Column(Boolean, default=False)
+
+    creator_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    counterparty_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    creator = relationship("User", foreign_keys=[creator_id])
+    counterparty = relationship("User", foreign_keys=[counterparty_id])
