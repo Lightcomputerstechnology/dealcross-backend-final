@@ -18,8 +18,15 @@ router = APIRouter(prefix="/auth", tags=["Authentication"])
 
 
 # ───────────────────────────  Sign‑up  ────────────────────────────
-@router.post("/signup", response_model=UserOut)
+@router.post("/signup", response_model=UserOut, summary="Register a new user account")
 def signup(user_data: UserCreate, db: Session = Depends(get_db)):
+    """
+    Registers a new user in the system.
+
+    - **email**: Unique email address of the user.
+    - **username**: Unique username for the account.
+    - **password**: Secure password for login.
+    """
     if db.query(User).filter(User.email == user_data.email).first():
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -38,9 +45,17 @@ def signup(user_data: UserCreate, db: Session = Depends(get_db)):
 
 
 # ───────────────────────────  Login  ──────────────────────────────
-@router.post("/login")
+@router.post("/login", summary="Authenticate user and log login attempt")
 def login(form_data: OAuth2PasswordRequestForm = Depends(),
           db: Session = Depends(get_db)):
+    """
+    Authenticates a user based on their email and password.
+
+    - **username**: The email address (used as username).
+    - **password**: The user's password.
+
+    Logs both successful and failed login attempts.
+    """
     user = db.query(User).filter(User.email == form_data.username).first()
 
     # Handle invalid login (log attempt)
@@ -61,7 +76,10 @@ def login(form_data: OAuth2PasswordRequestForm = Depends(),
     return {"message": "Login successful", "user_id": user.id}
 
 
-# ───────────────────  Get current (test) user  ────────────────────
-@router.get("/me", response_model=UserOut)
+# ───────────────────  Get current user  ────────────────────
+@router.get("/me", response_model=UserOut, summary="Retrieve current logged-in user profile")
 def read_users_me(current_user: User = Depends(get_current_user)):
+    """
+    Retrieves details of the currently logged-in user.
+    """
     return current_user
