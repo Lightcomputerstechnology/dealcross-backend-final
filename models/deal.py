@@ -22,6 +22,7 @@ class Deal(Base):
     status = Column(Enum(DealStatus), default=DealStatus.pending)
     description = Column(String, nullable=True)
     public_deal = Column(Boolean, default=False)
+    is_flagged = Column(Boolean, default=False)  # ✅ NEW: Fraud flag
 
     creator_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     counterparty_id = Column(Integer, ForeignKey("users.id"), nullable=False)
