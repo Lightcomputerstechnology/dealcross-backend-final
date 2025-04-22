@@ -4,9 +4,10 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from core.database import Base, engine
+from core.middleware import RateLimitMiddleware  # ✅ Rate limiting middleware
 
 # Core routers
-from routers import auth, wallet, deals, disputes, admin, kyc, upload  # ✅ Added upload
+from routers import auth, wallet, deals, disputes, admin, kyc, upload, notifications  # ✅ Notifications added
 
 # Admin feature routers
 from app.api.routes import (
@@ -17,7 +18,7 @@ from app.api.routes import (
     dealcontrol,
     usercontrol,
 )
-from routers import secure_admin  # ✅ Admin-protected route
+from routers import secure_admin
 
 # Initialize database tables
 Base.metadata.create_all(bind=engine)
@@ -28,6 +29,9 @@ app = FastAPI(
     version="1.0.0",
     description="FastAPI backend powering the Dealcross platform including escrow, analytics, fraud detection, admin controls, and more.",
 )
+
+# Middleware: Rate Limiting
+app.add_middleware(RateLimitMiddleware)
 
 # Middleware: CORS
 app.add_middleware(
@@ -40,11 +44,12 @@ app.add_middleware(
 
 # === Public API Routes ===
 app.include_router(auth.router,       prefix="/auth",     tags=["Authentication"])
-app.include_router(wallet.router,     prefix="/wallet",   tags=["Wallet"])
-app.include_router(deals.router,      prefix="/deals",    tags=["Deals"])
-app.include_router(disputes.router,   prefix="/disputes", tags=["Disputes"])
+app.include_router(wallet.router,     prefix="/wallet",   tags=["Wallet Management"])
+app.include_router(deals.router,      prefix="/deals",    tags=["Deals Management"])
+app.include_router(disputes.router,   prefix="/disputes", tags=["Dispute Management"])
 app.include_router(kyc.router,        prefix="/kyc",      tags=["KYC Verification"])
-app.include_router(upload.router,     prefix="/files",    tags=["File Uploads"])  # ✅ NEW
+app.include_router(upload.router,     prefix="/files",    tags=["File Uploads"])
+app.include_router(notifications.router, prefix="/notifications", tags=["Notifications"])  # ✅ Active notifications
 
 # === Admin API Routes ===
 app.include_router(admin.router,        prefix="/admin", tags=["Admin Core"])
@@ -82,5 +87,5 @@ async def unhandled_exception_handler(request, exc):
     )
 
 # === Future Ready ===
-# from routers import notifications, subscriptions
-# app.include_router(notifications.router, prefix="/admin", tags=["Notifications"])
+# from routers import subscriptions
+# app.include_router(subscriptions.router, prefix="/admin", tags=["Subscriptions"])
