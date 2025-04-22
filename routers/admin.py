@@ -2,28 +2,42 @@
 
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
-from core.database import get_db  # ✅ Use shared DB dependency
+from core.database import get_db
 from models.user import User
 from models.deal import Deal
 from models.dispute import Dispute
-from core.dependencies import require_admin  # ✅ Admin check
+from core.dependencies import require_admin  # ✅ Admin role check
 
-router = APIRouter()
+router = APIRouter(prefix="/admin", tags=["Admin Core"])  # ✅ Tag added
 
-@router.get("/users")
-def list_all_users(db: Session = Depends(get_db), admin: User = Depends(require_admin)):  # ✅ Protect with require_admin
+# === List all registered users ===
+@router.get("/users", summary="Admin: View all registered users")
+def list_all_users(db: Session = Depends(get_db), admin: User = Depends(require_admin)):
+    """
+    Allows an admin to view all registered users in the system,
+    including their roles and account status.
+    """
     users = db.query(User).all()
     return [
         {
             "username": u.username,
             "email": u.email,
-            "is_admin": u.is_admin,
+            "is_admin": getattr(u, "is_admin", False),  # fallback if not upgraded to role-based
             "status": u.status
         } for u in users
     ]
 
-@router.get("/analytics")
-def analytics_summary(db: Session = Depends(get_db), admin: User = Depends(require_admin)):  # ✅ Protect with require_admin
+# === Admin analytics summary ===
+@router.get("/analytics", summary="Admin: System-wide user and deal metrics")
+def analytics_summary(db: Session = Depends(get_db), admin: User = Depends(require_admin)):
+    """
+    Returns a summary of core platform metrics:
+
+    - **users**: Total number of registered users.
+    - **deals**: Total number of deals created.
+    - **wallets_funded**: Users with non-zero wallet balance (if tracked).
+    - **disputes**: Number of disputes raised.
+    """
     return {
         "users": db.query(User).count(),
         "deals": db.query(Deal).count(),
