@@ -5,10 +5,13 @@ from sqlalchemy.orm import Session
 from typing import List
 from core.database import get_db
 from core.security import get_current_user
+from core.dependencies import require_admin  # ✅ For admin checks
 from models.deal import Deal, DealStatus
 from models.user import User
+from models.audit import AuditLog  # ✅ For audit logs
 from schemas.deal import DealCreate, DealOut
-from utils.deal_status import is_valid_transition  # ✅ For status control
+from utils.deal_status import is_valid_transition
+from utils.fraud_detection import basic_fraud_check  # ✅ For auto-fraud detection
 
 router = APIRouter()
 
@@ -47,6 +50,17 @@ def create_deal(
         creator_id=current_user.id,
         counterparty_id=payload.counterparty_id
     )
+
+    # Auto-fraud detection
+    if basic_fraud_check(new_deal):
+        new_deal.is_flagged = True
+        # Log auto-fraud detection
+        db.add(AuditLog(
+            admin_id=None,  # Automated process
+            action="DEAL AUTO-FLAGGED (FRAUD RULE)",
+            target_type="DEAL",
+            target_id=new_deal.id
+        ))
 
     db.add(new_deal)
     db.commit()
@@ -102,3 +116,29 @@ def update_deal_status(
     db.refresh(deal)
 
     return {"message": f"Deal status updated to {new_status}.", "deal_id": deal.id}
+
+# === Admin manually flag/unflag deal ===
+@router.put("/flag/{deal_id}")
+def flag_deal(
+    deal_id: int,
+    flag: bool,
+    db: Session = Depends(get_db),
+    admin: User = Depends(require_admin)
+):
+    deal = db.query(Deal).filter(Deal.id == deal_id).first()
+    if not deal:
+        raise HTTPException(status_code=404, detail="Deal not found.")
+
+    deal.is_flagged = flag
+    db.commit()
+
+    # Log manual flagging
+    db.add(AuditLog(
+        admin_id=admin.id,
+        action=f"DEAL {'FLAGGED' if flag else 'UNFLAGGED'} (MANUAL)",
+        target_type="DEAL",
+        target_id=deal.id
+    ))
+    db.commit()
+
+    return {"message": f"Deal {'flagged' if flag else 'unflagged'} successfully."}
