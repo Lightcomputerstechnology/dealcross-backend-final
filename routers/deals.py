@@ -8,9 +8,11 @@ from core.security import get_current_user
 from models.deal import Deal, DealStatus
 from models.user import User
 from schemas.deal import DealCreate, DealOut
+from utils.deal_status import is_valid_transition  # ✅ For status control
 
 router = APIRouter()
 
+# === Create a new deal ===
 @router.post("/create", response_model=DealOut)
 def create_deal(
     payload: DealCreate,
@@ -52,6 +54,7 @@ def create_deal(
 
     return new_deal
 
+# === Get current user's deals ===
 @router.get("/tracker", response_model=List[DealOut])
 def get_my_deals(
     db: Session = Depends(get_db),
@@ -63,6 +66,39 @@ def get_my_deals(
     ).all()
     return deals
 
+# === Get public deals ===
 @router.get("/public", response_model=List[DealOut])
 def get_public_deals(db: Session = Depends(get_db)):
     return db.query(Deal).filter(Deal.public_deal == True).all()
+
+# === Update deal status with transition control ===
+@router.put("/update-status/{deal_id}")
+def update_deal_status(
+    deal_id: int,
+    new_status: DealStatus,
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user)
+):
+    deal = db.query(Deal).filter(Deal.id == deal_id).first()
+    if not deal:
+        raise HTTPException(status_code=404, detail="Deal not found.")
+
+    # Only creator, counterparty, or admin can update
+    if (current_user.id != deal.creator_id 
+        and current_user.id != deal.counterparty_id 
+        and not current_user.is_admin):
+        raise HTTPException(status_code=403, detail="Access denied.")
+
+    # Validate status transition
+    if not is_valid_transition(deal.status, new_status):
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid status transition from {deal.status} to {new_status}."
+        )
+
+    # Update deal status
+    deal.status = new_status
+    db.commit()
+    db.refresh(deal)
+
+    return {"message": f"Deal status updated to {new_status}.", "deal_id": deal.id}
