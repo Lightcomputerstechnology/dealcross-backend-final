@@ -9,10 +9,18 @@ from core.database import get_db
 from models.deal import Deal
 from models.user import User
 from models.fraud import FraudAlert
+from pydantic import BaseModel
 
 router = APIRouter()
 
-@router.get("/metrics/chart", response_model=List[Dict])
+# Define response schema
+class ChartData(BaseModel):
+    label: str
+    users: int
+    deals: int
+    frauds: int
+
+@router.get("/metrics/chart", response_model=List[ChartData])
 def get_chart_data(db: Session = Depends(get_db)):
     """
     Return chart data for the last 7 days:
@@ -25,7 +33,7 @@ def get_chart_data(db: Session = Depends(get_db)):
         today = datetime.utcnow().date()
         last_7_days = [today - timedelta(days=i) for i in range(6, -1, -1)]
 
-        def count_records(model):
+        def count_records(model) -> Dict[datetime.date, int]:
             rows = (
                 db.query(func.date(model.created_at), func.count())
                 .filter(model.created_at >= today - timedelta(days=6))
