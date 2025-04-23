@@ -18,7 +18,7 @@ def buy_shares(
     Buys shares by deducting buyer fee and crediting admin wallet.
     """
     if amount <= 0:
-        raise HTTPException(status_code=400, detail="Invalid share amount")
+        raise HTTPException(status_code=400, detail={"error": True, "message": "Invalid share amount."})
 
     net_amount, fee = apply_share_trade_fee(db, current_user, amount, role="buyer")
     fee_rate = "2%" if current_user.role.value == "basic" else "1.5%"
@@ -45,7 +45,7 @@ def sell_shares(
     Sells shares by deducting seller fee and updating cumulative sales.
     """
     if amount <= 0:
-        raise HTTPException(status_code=400, detail="Invalid share amount")
+        raise HTTPException(status_code=400, detail={"error": True, "message": "Invalid share amount."})
 
     net_amount, fee = apply_share_trade_fee(db, current_user, amount, role="seller")
     fee_rate = "1%" if current_user.role.value == "basic" else "0.75%"
@@ -80,4 +80,4 @@ def get_my_cumulative_sales(
         "seller_fee_threshold": 1000.00,
         "fee_applies": current_user.cumulative_sales >= 1000,
         "progress_percent": round(progress, 2)
-}
+    }
