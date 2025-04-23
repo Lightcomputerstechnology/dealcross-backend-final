@@ -1,4 +1,4 @@
-# main.py
+# File: main.py
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -7,31 +7,36 @@ from fastapi.responses import JSONResponse
 from core.database import Base, engine
 from core.middleware import RateLimitMiddleware
 
+# our one “master router”
 from app.api.routes import include_all_routes
 
-# create all tables (run Alembic separately)
+# 1) Create tables (we run Alembic migrations separately)
 Base.metadata.create_all(bind=engine)
 
+# 2) Initialize app
 app = FastAPI(
     title="Dealcross Backend",
     version="1.0.0",
-    description="FastAPI backend powering the Dealcross platform including escrow, analytics, fraud detection, admin controls, and more.",
+    description=(
+        "FastAPI backend powering the Dealcross platform "
+        "with escrow, analytics, fraud detection, admin controls, and more."
+    ),
 )
 
-# rate‐limit + CORS
+# 3) Middleware
 app.add_middleware(RateLimitMiddleware)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],    # tighten in prod!
+    allow_origins=["*"],    # tighten in production!
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# mount *all* of your routers in one go
+# 4) Mount every router in one go
 app.include_router(include_all_routes())
 
-# global exception handlers...
+# 5) Global exception handlers
 from fastapi.exceptions import RequestValidationError
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
@@ -46,7 +51,12 @@ async def http_exception_handler(request, exc):
 async def validation_exception_handler(request, exc):
     return JSONResponse(
         status_code=400,
-        content={"error": True, "code": 400, "message": "Validation error", "details": exc.errors()},
+        content={
+            "error": True,
+            "code": 400,
+            "message": "Validation error",
+            "details": exc.errors(),
+        },
     )
 
 @app.exception_handler(Exception)
