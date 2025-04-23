@@ -1,59 +1,64 @@
-from models.fee_transaction import FeeTransaction, FeeType
-from typing import Optional
-from datetime import datetime
-from fastapi import Query
-from sqlalchemy.orm import Session
-from fastapi import Depends
-from core.database import get_db
+from sqlalchemy import func
 from models.user import User
-from core.dependencies import require_admin
+from models.deal import Deal, DealStatus
+from models.dispute import Dispute
+from models.fee_transaction import FeeTransaction, FeeType
+from datetime import datetime, timedelta
 
-# === Admin: View fee transactions with totals ===
-@router.get("/fee-transactions", summary="Admin: View all fee transactions with metrics")
-def view_fee_transactions(
-    user_id: Optional[int] = None,
-    fee_type: Optional[FeeType] = Query(None),
-    start_date: Optional[datetime] = None,
-    end_date: Optional[datetime] = None,
+# === Admin: Dashboard metrics ===
+@router.get("/dashboard-metrics", summary="Admin: Platform-wide dashboard metrics")
+def admin_dashboard_metrics(
     db: Session = Depends(get_db),
     admin: User = Depends(require_admin)
 ):
     """
-    Allows admin to view all fee transactions, optionally filtering by:
+    Returns key platform-wide metrics:
 
-    - **user_id**: Specific user.
-    - **fee_type**: Enum ('funding', 'escrow', 'share_buy', 'share_sell').
-    - **start_date/end_date**: Time range.
-
-    Adds transaction count and total amount.
+    - Users (total, new last 7 days)
+    - Deals (total, active, completed, disputed, flagged)
+    - Disputes (total, resolved, unresolved)
+    - Fees collected (all time, this month)
     """
-    query = db.query(FeeTransaction)
+    # User metrics
+    total_users = db.query(User).count()
+    new_users_7d = db.query(User).filter(User.created_at >= datetime.utcnow() - timedelta(days=7)).count()
 
-    if user_id:
-        query = query.filter(FeeTransaction.user_id == user_id)
-    if fee_type:
-        query = query.filter(FeeTransaction.type == fee_type)
-    if start_date:
-        query = query.filter(FeeTransaction.timestamp >= start_date)
-    if end_date:
-        query = query.filter(FeeTransaction.timestamp <= end_date)
+    # Deal metrics
+    total_deals = db.query(Deal).count()
+    active_deals = db.query(Deal).filter(Deal.status == DealStatus.active).count()
+    completed_deals = db.query(Deal).filter(Deal.status == DealStatus.completed).count()
+    disputed_deals = db.query(Deal).filter(Deal.status == DealStatus.disputed).count()
+    flagged_deals = db.query(Deal).filter(Deal.is_flagged == True).count()
 
-    transactions = query.order_by(FeeTransaction.timestamp.desc()).all()
+    # Dispute metrics
+    total_disputes = db.query(Dispute).count()
+    resolved_disputes = db.query(Dispute).filter(Dispute.status == "resolved").count()
+    unresolved_disputes = total_disputes - resolved_disputes
 
-    total_amount = sum(float(tx.amount) for tx in transactions)
-    count = len(transactions)
-
-    formatted_transactions = [
-        {
-            "user_id": tx.user_id,
-            "type": tx.type.value,
-            "amount": float(tx.amount),
-            "timestamp": tx.timestamp.strftime("%B %d, %Y, %I:%M %p")  # Human-readable
-        } for tx in transactions
-    ]
+    # Fee metrics
+    total_fees = db.query(func.sum(FeeTransaction.amount)).scalar() or 0.00
+    start_of_month = datetime.utcnow().replace(day=1)
+    monthly_fees = db.query(func.sum(FeeTransaction.amount)).filter(FeeTransaction.timestamp >= start_of_month).scalar() or 0.00
 
     return {
-        "total_transactions": count,
-        "total_amount": total_amount,
-        "transactions": formatted_transactions
+        "users": {
+            "total": total_users,
+            "new_last_7_days": new_users_7d
+        },
+        "deals": {
+            "total": total_deals,
+            "active": active_deals,
+            "completed": completed_deals,
+            "disputed": disputed_deals,
+            "flagged": flagged_deals
+        },
+        "disputes": {
+            "total": total_disputes,
+            "resolved": resolved_disputes,
+            "unresolved": unresolved_disputes
+        },
+        "fees": {
+            "total_collected": total_fees,
+            "collected_this_month": monthly_fees
+        }
     }
