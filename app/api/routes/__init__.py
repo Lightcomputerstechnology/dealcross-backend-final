@@ -1,57 +1,37 @@
-# main.py
+# File: app/api/routes/__init__.py
+from fastapi import APIRouter
 
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+router = APIRouter()
 
-from core.database import Base, engine
-from core.middleware import RateLimitMiddleware
+def include_all_routes() -> APIRouter:
+    """
+    Import & mount every sub-router.  Called by main.py.
+    """
+    # — public endpoints (in routers/ folder)
+    from routers import auth, wallet, deals, disputes, kyc, upload, notifications
 
-from app.api.routes import include_all_routes
+    # — admin endpoints (in app/api/routes/admin)
+    from .admin import analytics, charts, fraud, auditlog, dealcontrol, usercontrol
 
-# create all tables (run Alembic separately)
-Base.metadata.create_all(bind=engine)
-
-app = FastAPI(
-    title="Dealcross Backend",
-    version="1.0.0",
-    description="FastAPI backend powering the Dealcross platform including escrow, analytics, fraud detection, admin controls, and more.",
-)
-
-# rate‐limit + CORS
-app.add_middleware(RateLimitMiddleware)
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],    # tighten in prod!
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-# mount *all* of your routers in one go
-app.include_router(include_all_routes())
-
-# global exception handlers...
-from fastapi.exceptions import RequestValidationError
-from starlette.exceptions import HTTPException as StarletteHTTPException
-
-@app.exception_handler(StarletteHTTPException)
-async def http_exception_handler(request, exc):
-    return JSONResponse(
-        status_code=exc.status_code,
-        content={"error": True, "code": exc.status_code, "message": exc.detail},
+    # mount public
+    router.include_router(auth.router,        prefix="/auth",     tags=["Authentication"])
+    router.include_router(wallet.router,      prefix="/wallet",   tags=["Wallet Management"])
+    router.include_router(deals.router,       prefix="/deals",    tags=["Deals Management"])
+    router.include_router(disputes.router,    prefix="/disputes", tags=["Dispute Management"])
+    router.include_router(kyc.router,         prefix="/kyc",      tags=["KYC Verification"])
+    router.include_router(upload.router,      prefix="/files",    tags=["File Uploads"])
+    router.include_router(
+      notifications.router,
+      prefix="/notifications",
+      tags=["Notifications"]
     )
 
-@app.exception_handler(RequestValidationError)
-async def validation_exception_handler(request, exc):
-    return JSONResponse(
-        status_code=400,
-        content={"error": True, "code": 400, "message": "Validation error", "details": exc.errors()},
-    )
+    # mount admin
+    router.include_router(analytics.router,   prefix="/admin/analytics", tags=["Admin Analytics"])
+    router.include_router(charts.router,      prefix="/admin/charts",    tags=["Admin Charts"])
+    router.include_router(fraud.router,       prefix="/admin/fraud",     tags=["Fraud Reports"])
+    router.include_router(auditlog.router,    prefix="/admin/auditlog",  tags=["Audit Logs"])
+    router.include_router(dealcontrol.router, prefix="/admin/deals",     tags=["Pending Deals"])
+    router.include_router(usercontrol.router, prefix="/admin/users",     tags=["User Controls"])
 
-@app.exception_handler(Exception)
-async def unhandled_exception_handler(request, exc):
-    return JSONResponse(
-        status_code=500,
-        content={"error": True, "code": 500, "message": "Internal server error"},
-                      )
+    return router
