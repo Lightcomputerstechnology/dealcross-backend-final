@@ -1,13 +1,14 @@
 from utils.fee_calculator import apply_escrow_fee
+from models.fee_transaction import FeeType  # Optional, if needed for clarity
 
-@router.post("/create", response_model=DealOut, summary="Create a new deal between users")
+@router.post("/create", summary="Create a new deal between users")
 def create_deal(
     payload: DealCreate,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
     """
-    Creates a deal with another user. Fee is deducted upfront and sent to admin wallet.
+    Creates a deal with another user. Escrow fee is deducted upfront and sent to admin wallet.
     """
     counterparty = db.query(User).filter(User.id == payload.counterparty_id).first()
     if not counterparty:
@@ -26,8 +27,9 @@ def create_deal(
             detail="A similar deal is already in progress with this counterparty."
         )
 
-    # ✅ Deduct escrow fee and credit admin wallet
+    # ✅ Deduct escrow fee
     net_amount, fee = apply_escrow_fee(db, current_user, payload.amount)
+    fee_rate = "3%" if current_user.role.value == "basic" else "2%"
 
     # ✅ Create deal with net amount
     new_deal = Deal(
@@ -52,4 +54,17 @@ def create_deal(
     db.add(new_deal)
     db.commit()
     db.refresh(new_deal)
-    return new_deal
+
+    # ✅ Enhanced response
+    return {
+        "message": "Deal created successfully",
+        "data": {
+            "deal_id": new_deal.id,
+            "title": new_deal.title,
+            "original_amount": payload.amount,
+            "fee": fee,
+            "fee_rate": fee_rate,
+            "user_tier": current_user.role.value,
+            "net_amount": net_amount
+        }
+    }
