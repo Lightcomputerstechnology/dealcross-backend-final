@@ -1,5 +1,6 @@
 from utils.fee_calculator import apply_escrow_fee
 from models.fee_transaction import FeeType  # Optional, if needed for clarity
+from fastapi import HTTPException, status
 
 @router.post("/create", summary="Create a new deal between users")
 def create_deal(
@@ -12,7 +13,7 @@ def create_deal(
     """
     counterparty = db.query(User).filter(User.id == payload.counterparty_id).first()
     if not counterparty:
-        raise HTTPException(status_code=404, detail="Counterparty not found")
+        raise HTTPException(status_code=404, detail={"error": True, "message": "Counterparty not found"})
 
     existing_deal = db.query(Deal).filter(
         Deal.creator_id == current_user.id,
@@ -24,7 +25,7 @@ def create_deal(
     if existing_deal:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="A similar deal is already in progress with this counterparty."
+            detail={"error": True, "message": "A similar deal is already in progress with this counterparty."}
         )
 
     # ✅ Deduct escrow fee
@@ -67,4 +68,4 @@ def create_deal(
             "user_tier": current_user.role.value,
             "net_amount": net_amount
         }
-    }
+            }
