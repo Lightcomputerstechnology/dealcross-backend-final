@@ -1,6 +1,7 @@
 """ Initial Alembic migration for Dealcross platform. Creates core tables: users, wallets, deals, kyc, disputes, fraud alerts, audit logs. """
 
-from alembic import op import sqlalchemy as sa from sqlalchemy.dialects import postgresql
+from alembic import op
+import sqlalchemy as sa
 
 Revision identifiers
 
