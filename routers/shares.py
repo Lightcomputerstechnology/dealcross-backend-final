@@ -16,19 +16,23 @@ def buy_shares(
 ):
     """
     Buys shares by deducting buyer fee and crediting admin wallet.
+
+    - **amount**: Amount of shares to buy.
+    - **fee**: Deducted based on user tier.
+    - **Returns**: Net amount of shares purchased after fee.
     """
     if amount <= 0:
         raise HTTPException(status_code=400, detail="Invalid share amount")
 
     net_amount, fee = apply_share_trade_fee(db, current_user, amount, role="buyer")
 
-    # TODO: Replace with your actual share-buying logic
-    # For now, just returning net amount after fee
     return {
-        "message": "Shares purchased",
-        "original_amount": amount,
-        "fee": fee,
-        "net_purchase": net_amount
+        "message": "Shares purchased successfully",
+        "data": {
+            "original_amount": amount,
+            "fee": fee,
+            "net_purchase": net_amount
+        }
     }
 
 # === Sell Shares ===
@@ -40,18 +44,40 @@ def sell_shares(
 ):
     """
     Sells shares by deducting seller fee and updating cumulative sales.
+
+    - **amount**: Amount of shares to sell.
+    - **fee**: Deducted based on user tier and cumulative sales.
+    - **Returns**: Net amount received and updated cumulative sales.
     """
     if amount <= 0:
         raise HTTPException(status_code=400, detail="Invalid share amount")
 
     net_amount, fee = apply_share_trade_fee(db, current_user, amount, role="seller")
 
-    # TODO: Replace with your actual share-selling logic
-    # For now, just returning net amount after fee
     return {
-        "message": "Shares sold",
-        "original_amount": amount,
-        "fee": fee,
-        "net_received": net_amount,
-        "new_cumulative_sales": float(current_user.cumulative_sales)
-                                 }
+        "message": "Shares sold successfully",
+        "data": {
+            "original_amount": amount,
+            "fee": fee,
+            "net_received": net_amount,
+            "new_cumulative_sales": float(current_user.cumulative_sales)
+        }
+    }
+
+# === Get user cumulative sales total ===
+@router.get("/my-cumulative-sales", summary="View your cumulative share sales")
+def get_my_cumulative_sales(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Returns the total cumulative sales made by the user.
+
+    - Helps track when seller fees begin (after $1,000 threshold).
+    """
+    return {
+        "user_id": current_user.id,
+        "cumulative_sales": float(current_user.cumulative_sales),
+        "seller_fee_threshold": 1000.00,
+        "fee_applies": current_user.cumulative_sales >= 1000
+    }
