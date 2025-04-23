@@ -2,13 +2,13 @@
 
 from fastapi import APIRouter
 
-# create a “master” router
+# This is your “master” router
 router = APIRouter()
 
 def include_all_routes() -> APIRouter:
     """
-    Import and include every sub‐router in your project.
-    Called by main.py → app.include_router(...)
+    Import and mount every sub-router in your project.
+    Called by main.py → app.include_router(include_all_routes()).
     """
 
     # — core, public endpoints live in your top-level `routers/` folder
@@ -32,7 +32,7 @@ def include_all_routes() -> APIRouter:
         usercontrol,
     )
 
-    # — include them onto our master router
+    # — mount them all onto our master router
     router.include_router(auth.router)
     router.include_router(wallet.router)
     router.include_router(deals.router)
@@ -50,4 +50,4 @@ def include_all_routes() -> APIRouter:
 
     return router
 
-__all__ = ["include_all_routes"]
+__all__ = ["include_all_routes", "router"]
