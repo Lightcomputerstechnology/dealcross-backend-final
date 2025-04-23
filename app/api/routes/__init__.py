@@ -1,26 +1,10 @@
 # File: app/api/routes/__init__.py
+# File: main.py
 
-from fastapi import APIRouter
+from fastapi import FastAPI
+from app.api.routes import include_all_routes
 
-def include_all_routes():
-    from app.api.routes import auth, wallet, deals, disputes, kyc, upload, notifications
-    from app.api.routes.admin import analytics, charts, fraud, auditlog, dealcontrol, usercontrol
+app = FastAPI()
 
-    routes = [
-        auth.router,
-        wallet.router,
-        deals.router,
-        disputes.router,
-        kyc.router,
-        upload.router,
-        notifications.router,
-        analytics.router,
-        charts.router,
-        fraud.router,
-        auditlog.router,
-        dealcontrol.router,
-        usercontrol.router,
-    ]
-    return routes
-
-__all__ = ["include_all_routes"]
+# Include all routes
+app.include_router(include_all_routes())
