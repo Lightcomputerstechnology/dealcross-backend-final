@@ -1,12 +1,13 @@
-from models.fee_transaction import FeeTransaction  # ✅ Import FeeTransaction
+from models.fee_transaction import FeeTransaction, FeeType  # ✅ Import FeeType Enum
 from typing import Optional
 from datetime import datetime
+from fastapi import Query
 
 # === Admin: View fee transactions ===
 @router.get("/fee-transactions", summary="Admin: View all fee transactions")
 def view_fee_transactions(
     user_id: Optional[int] = None,
-    fee_type: Optional[str] = None,  # 'funding', 'escrow', 'share_buy', 'share_sell'
+    fee_type: Optional[FeeType] = Query(None),  # ✅ Use Enum for fee_type filter
     start_date: Optional[datetime] = None,
     end_date: Optional[datetime] = None,
     db: Session = Depends(get_db),
@@ -16,7 +17,7 @@ def view_fee_transactions(
     Allows admin to view all fee transactions, optionally filtering by:
 
     - **user_id**: Specific user.
-    - **fee_type**: Type of fee ('funding', 'escrow', etc.).
+    - **fee_type**: Enum ('funding', 'escrow', 'share_buy', 'share_sell').
     - **start_date/end_date**: Time range.
     """
     query = db.query(FeeTransaction)
@@ -35,8 +36,8 @@ def view_fee_transactions(
     return [
         {
             "user_id": tx.user_id,
-            "type": tx.type,
+            "type": tx.type.value,  # ✅ Return Enum value
             "amount": float(tx.amount),
             "timestamp": tx.timestamp.isoformat()
         } for tx in transactions
-    ]
+        ]
