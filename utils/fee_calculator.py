@@ -1,3 +1,5 @@
+from models.fee_transaction import FeeType  # ✅ Import FeeType Enum
+
 def calculate_funding_fee(amount: float, user_tier: str) -> float:
     if user_tier == 'basic':
         return round(amount * 0.02, 2)  # 2% for basic users
@@ -35,7 +37,7 @@ def apply_escrow_fee(db, user, deal_amount):
 
     fee = calculate_escrow_fee(deal_amount, user.tier)
     credit_admin_wallet(db, fee)
-    log_fee_transaction(db, user.id, "escrow", fee)
+    log_fee_transaction(db, user.id, FeeType.escrow, fee)  # ✅ Use Enum
     return deal_amount - fee, fee
 
 
@@ -45,12 +47,12 @@ def apply_share_trade_fee(db, user, amount, role="buyer"):
 
     if role == "buyer":
         fee = calculate_share_buyer_fee(amount, user.tier)
-        log_type = "share_buy"
+        log_type = FeeType.share_buy  # ✅ Use Enum
     else:
         fee = calculate_share_seller_fee(amount, user.cumulative_sales, user.tier)
         user.cumulative_sales += amount
         db.commit()
-        log_type = "share_sell"
+        log_type = FeeType.share_sell  # ✅ Use Enum
 
     credit_admin_wallet(db, fee)
     log_fee_transaction(db, user.id, log_type, fee)
