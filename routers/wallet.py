@@ -1,74 +1,51 @@
-from utils.fee_calculator import calculate_funding_fee
-from utils.admin_wallet import credit_admin_wallet
-from utils.fee_logger import log_fee_transaction
-from models.fee_transaction import FeeType
+from models.wallet import Wallet
+from models.wallet_transaction import WalletTransaction
 from sqlalchemy import func
 
-@router.post("/fund", summary="Fund the user's wallet")
-def fund_wallet(payload: WalletCreate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+@router.get("/my-wallet", summary="Retrieve user's wallet balance and recent transactions")
+def get_my_wallet_summary(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
     """
-    Adds funds to the logged-in user's wallet.
-
-    - Fee deducted based on user tier (2% basic, 1.5% pro).
-    - Logs wallet and fee transactions.
-    - Returns funding summary.
+    Returns the current user's wallet balance, transaction summary, and recent transaction history.
     """
-    if payload.amount <= 0:
-        raise HTTPException(status_code=400, detail={"error": True, "message": "Invalid funding amount."})
-
     wallet = db.query(Wallet).filter(Wallet.user_id == current_user.id).first()
     if not wallet:
-        wallet = Wallet(user_id=current_user.id, balance=0.00)
-        db.add(wallet)
+        raise HTTPException(status_code=404, detail={"error": True, "message": "Wallet not found."})
 
-    # Calculate fee
-    fee = calculate_funding_fee(payload.amount, current_user.role.value)
-    fee_rate = "2%" if current_user.role.value == "basic" else "1.5%"
-    net_amount = payload.amount - fee
-
-    # Credit admin wallet
-    credit_admin_wallet(db, fee)
-
-    # Log fee transaction
-    log_fee_transaction(db, current_user.id, FeeType.funding, fee)
-
-    # Credit user wallet
-    wallet.balance += net_amount
-
-    # Log wallet transaction
-    db.add(WalletTransaction(
-        user_id=current_user.id,
-        amount=net_amount,
-        transaction_type="fund",
-        description="Wallet funded after fee deduction"
-    ))
-
-    db.commit()
-    db.refresh(wallet)
-
-    # Funding summary
+    # Wallet summary (funded & spent)
     total_funded = db.query(func.sum(WalletTransaction.amount)).filter(
         WalletTransaction.user_id == current_user.id,
         WalletTransaction.transaction_type == "fund"
     ).scalar() or 0.00
 
-    total_fees_paid = db.query(func.sum(FeeTransaction.amount)).filter(
-        FeeTransaction.user_id == current_user.id,
-        FeeTransaction.type == FeeType.funding
+    total_spent = db.query(func.sum(WalletTransaction.amount)).filter(
+        WalletTransaction.user_id == current_user.id,
+        WalletTransaction.transaction_type == "spend"
     ).scalar() or 0.00
 
+    # Recent 5 transactions
+    recent_transactions = db.query(WalletTransaction).filter(
+        WalletTransaction.user_id == current_user.id
+    ).order_by(WalletTransaction.timestamp.desc()).limit(5).all()
+
     return {
-        "message": "Wallet funded successfully",
+        "message": "Wallet summary retrieved successfully",
         "data": {
-            "original_amount": payload.amount,
-            "fee": fee,
-            "fee_rate": fee_rate,
-            "user_tier": current_user.role.value,
-            "net_amount": net_amount,
             "wallet_balance": float(wallet.balance),
-            "funding_summary": {
+            "summary": {
                 "total_funded": total_funded,
-                "total_fees_paid": total_fees_paid
-            }
+                "total_spent": total_spent,
+                "net_balance": float(wallet.balance)
+            },
+            "recent_transactions": [
+                {
+                    "amount": float(tx.amount),
+                    "type": tx.transaction_type,
+                    "description": tx.description,
+                    "timestamp": tx.timestamp.strftime("%B %d, %Y, %I:%M %p")
+                } for tx in recent_transactions
+            ]
         }
     }
