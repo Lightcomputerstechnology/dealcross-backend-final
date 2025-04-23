@@ -2,10 +2,8 @@
 
 from fastapi import APIRouter
 
-router = APIRouter()
-
 def include_all_routes():
-    # Import inside function to avoid circular imports
+    # Delayed imports to avoid circular dependencies
     from app.api.routes import (
         auth,
         wallet,
@@ -13,7 +11,7 @@ def include_all_routes():
         disputes,
         kyc,
         upload,
-        notifications
+        notifications,
     )
     from app.api.routes.admin import (
         analytics,
@@ -21,10 +19,13 @@ def include_all_routes():
         fraud,
         auditlog,
         dealcontrol,
-        usercontrol
+        usercontrol,
     )
 
-    # Include routers
+    # Create main router and include sub-routers
+    router = APIRouter()
+
+    # Public routes
     router.include_router(auth.router)
     router.include_router(wallet.router)
     router.include_router(deals.router)
@@ -33,6 +34,7 @@ def include_all_routes():
     router.include_router(upload.router)
     router.include_router(notifications.router)
 
+    # Admin routes
     router.include_router(analytics.router)
     router.include_router(charts.router)
     router.include_router(fraud.router)
@@ -40,6 +42,6 @@ def include_all_routes():
     router.include_router(dealcontrol.router)
     router.include_router(usercontrol.router)
 
-    return router
+    return router  # ✅ Return combined router
 
 __all__ = ["include_all_routes"]
