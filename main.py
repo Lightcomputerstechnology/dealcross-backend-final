@@ -64,4 +64,4 @@ async def unhandled_exception_handler(request, exc):
     return JSONResponse(
         status_code=500,
         content={"error": True, "code": 500, "message": "Internal server error"},
-)
+    )
