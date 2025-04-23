@@ -3,9 +3,9 @@
 from alembic import op
 import sqlalchemy as sa
 
-# Revision identifiers, used by Alembic.
-revision = 'down_revision = None'
-down_revision = None
+# Revision identifiers
+revision = '20250423_1245_3c1a2b4e6d7f'
+down_revision = None  # Set to None since this is the first revision
 branch_labels = None
 depends_on = None
 
@@ -20,7 +20,7 @@ def upgrade():
         sa.Column('created_at', sa.DateTime, server_default=sa.func.now()),
     )
 
-    # Wallets table
+    # Wallet table
     op.create_table(
         'wallets',
         sa.Column('id', sa.Integer, primary_key=True),
