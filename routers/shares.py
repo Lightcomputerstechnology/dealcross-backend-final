@@ -16,21 +16,20 @@ def buy_shares(
 ):
     """
     Buys shares by deducting buyer fee and crediting admin wallet.
-
-    - **amount**: Amount of shares to buy.
-    - **fee**: Deducted based on user tier.
-    - **Returns**: Net amount of shares purchased after fee.
     """
     if amount <= 0:
         raise HTTPException(status_code=400, detail="Invalid share amount")
 
     net_amount, fee = apply_share_trade_fee(db, current_user, amount, role="buyer")
+    fee_rate = "2%" if current_user.role.value == "basic" else "1.5%"
 
     return {
         "message": "Shares purchased successfully",
         "data": {
             "original_amount": amount,
             "fee": fee,
+            "fee_rate": fee_rate,
+            "user_tier": current_user.role.value,
             "net_purchase": net_amount
         }
     }
@@ -44,21 +43,22 @@ def sell_shares(
 ):
     """
     Sells shares by deducting seller fee and updating cumulative sales.
-
-    - **amount**: Amount of shares to sell.
-    - **fee**: Deducted based on user tier and cumulative sales.
-    - **Returns**: Net amount received and updated cumulative sales.
     """
     if amount <= 0:
         raise HTTPException(status_code=400, detail="Invalid share amount")
 
     net_amount, fee = apply_share_trade_fee(db, current_user, amount, role="seller")
+    fee_rate = "1%" if current_user.role.value == "basic" else "0.75%"
+    if current_user.cumulative_sales < 1000:
+        fee_rate = "0%"  # No fee under $1,000
 
     return {
         "message": "Shares sold successfully",
         "data": {
             "original_amount": amount,
             "fee": fee,
+            "fee_rate": fee_rate,
+            "user_tier": current_user.role.value,
             "net_received": net_amount,
             "new_cumulative_sales": float(current_user.cumulative_sales)
         }
@@ -72,12 +72,12 @@ def get_my_cumulative_sales(
 ):
     """
     Returns the total cumulative sales made by the user.
-
-    - Helps track when seller fees begin (after $1,000 threshold).
     """
+    progress = min(100, (current_user.cumulative_sales / 1000) * 100)
     return {
         "user_id": current_user.id,
         "cumulative_sales": float(current_user.cumulative_sales),
         "seller_fee_threshold": 1000.00,
-        "fee_applies": current_user.cumulative_sales >= 1000
-    }
+        "fee_applies": current_user.cumulative_sales >= 1000,
+        "progress_percent": round(progress, 2)
+}
