@@ -1,71 +1,37 @@
-from utils.fee_calculator import apply_escrow_fee
-from models.fee_transaction import FeeType  # Optional, if needed for clarity
-from fastapi import HTTPException, status
-
-@router.post("/create", summary="Create a new deal between users")
-def create_deal(
-    payload: DealCreate,
+@router.get("/tracker", summary="Get all your active and past deals")
+def get_my_deals(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
     """
-    Creates a deal with another user. Escrow fee is deducted upfront and sent to admin wallet.
+    Retrieves all deals involving the current user.
+    Adds status badges and readable timestamps.
     """
-    counterparty = db.query(User).filter(User.id == payload.counterparty_id).first()
-    if not counterparty:
-        raise HTTPException(status_code=404, detail={"error": True, "message": "Counterparty not found"})
+    deals = db.query(Deal).filter(
+        (Deal.creator_id == current_user.id) | 
+        (Deal.counterparty_id == current_user.id)
+    ).order_by(Deal.created_at.desc()).all()
 
-    existing_deal = db.query(Deal).filter(
-        Deal.creator_id == current_user.id,
-        Deal.counterparty_id == payload.counterparty_id,
-        Deal.title == payload.title,
-        Deal.status.in_([DealStatus.pending, DealStatus.active])
-    ).first()
+    def get_status_badge(status):
+        return {
+            "pending": {"label": "Pending", "color": "yellow"},
+            "active": {"label": "Active", "color": "blue"},
+            "completed": {"label": "Completed", "color": "green"},
+            "disputed": {"label": "Disputed", "color": "red"}
+        }.get(status.value, {"label": status.value, "color": "gray"})
 
-    if existing_deal:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail={"error": True, "message": "A similar deal is already in progress with this counterparty."}
-        )
-
-    # ✅ Deduct escrow fee
-    net_amount, fee = apply_escrow_fee(db, current_user, payload.amount)
-    fee_rate = "3%" if current_user.role.value == "basic" else "2%"
-
-    # ✅ Create deal with net amount
-    new_deal = Deal(
-        title=payload.title,
-        amount=net_amount,
-        description=payload.description,
-        public_deal=payload.public_deal,
-        creator_id=current_user.id,
-        counterparty_id=payload.counterparty_id
-    )
-
-    # ✅ Auto-fraud detection
-    if basic_fraud_check(new_deal):
-        new_deal.is_flagged = True
-        db.add(AuditLog(
-            admin_id=None,
-            action="DEAL AUTO-FLAGGED (FRAUD RULE)",
-            target_type="DEAL",
-            target_id=new_deal.id
-        ))
-
-    db.add(new_deal)
-    db.commit()
-    db.refresh(new_deal)
-
-    # ✅ Enhanced response
     return {
-        "message": "Deal created successfully",
-        "data": {
-            "deal_id": new_deal.id,
-            "title": new_deal.title,
-            "original_amount": payload.amount,
-            "fee": fee,
-            "fee_rate": fee_rate,
-            "user_tier": current_user.role.value,
-            "net_amount": net_amount
-        }
+        "message": "Deals retrieved successfully",
+        "data": [
+            {
+                "deal_id": deal.id,
+                "title": deal.title,
+                "amount": float(deal.amount),
+                "status": get_status_badge(deal.status),
+                "is_flagged": deal.is_flagged,
+                "created_at": deal.created_at.strftime("%B %d, %Y, %I:%M %p"),
+                "counterparty_id": deal.counterparty_id
             }
+            for deal in deals
+        ]
+                         }
