@@ -9,7 +9,7 @@ from core.middleware import RateLimitMiddleware
 from app.api.routes import router as api_router
 
 # Models
-from models.admin_wallet import AdminWallet  # ✅ Import AdminWallet model
+from models.admin_wallet import AdminWallet
 
 # 1) Create all tables
 Base.metadata.create_all(bind=engine)
@@ -43,27 +43,45 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# 4) Include every route from app/api/routes
+# 4) Include every route
 app.include_router(api_router)
 
 # 5) Exception handlers
 from fastapi.exceptions import RequestValidationError
 from starlette.exceptions import HTTPException as StarletteHTTPException
+from fastapi import HTTPException as FastAPIHTTPException
 
 @app.exception_handler(StarletteHTTPException)
 async def http_exc_handler(req, exc):
     return JSONResponse(status_code=exc.status_code,
-                        content={"error": True, "code": exc.status_code, "message": exc.detail})
+                        content=exc.detail if isinstance(exc.detail, dict) else {
+                            "error": True,
+                            "message": exc.detail,
+                            "code": exc.status_code
+                        })
+
+@app.exception_handler(FastAPIHTTPException)
+async def fastapi_http_exc_handler(req, exc):
+    return JSONResponse(status_code=exc.status_code,
+                        content=exc.detail if isinstance(exc.detail, dict) else {
+                            "error": True,
+                            "message": exc.detail,
+                            "code": exc.status_code
+                        })
 
 @app.exception_handler(RequestValidationError)
 async def val_exc_handler(req, exc):
-    return JSONResponse(status_code=400,
-                        content={"error": True, "code": 400,
-                                 "message": "Validation error",
-                                 "details": exc.errors()})
+    return JSONResponse(status_code=422,
+                        content={
+                            "error": True,
+                            "message": "Validation error",
+                            "details": exc.errors()
+                        })
 
 @app.exception_handler(Exception)
 async def uncaught_exc_handler(req, exc):
     return JSONResponse(status_code=500,
-                        content={"error": True, "code": 500,
-                                 "message": "Internal server error"})
+                        content={
+                            "error": True,
+                            "message": "Internal server error"
+                        })
