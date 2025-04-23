@@ -1,16 +1,30 @@
-# File: main.py
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
-from core.database import Base, engine
+from core.database import Base, engine, SessionLocal
 from core.middleware import RateLimitMiddleware
 
-# ← here is our ONE “master” router
+# Routers
 from app.api.routes import router as api_router
+
+# Models
+from models.admin_wallet import AdminWallet  # ✅ Import AdminWallet model
 
 # 1) Create all tables
 Base.metadata.create_all(bind=engine)
+
+# ✅ Ensure Admin Wallet exists
+def create_admin_wallet():
+    db = SessionLocal()
+    wallet = db.query(AdminWallet).first()
+    if not wallet:
+        wallet = AdminWallet(balance=0.00)
+        db.add(wallet)
+        db.commit()
+    db.close()
+
+create_admin_wallet()
 
 # 2) Init FastAPI
 app = FastAPI(
