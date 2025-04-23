@@ -13,7 +13,7 @@ class UserBase(BaseModel):
     }
 
 class UserCreate(UserBase):
-    password: str  # For registration
+    password: str
 
 class UserUpdate(BaseModel):
     username: str | None = None
@@ -28,6 +28,17 @@ class UserUpdate(BaseModel):
 class UserOut(UserBase):
     id: int
     created_at: datetime
+
+    model_config = {
+        "from_attributes": True
+    }
+
+# Admin-specific schema
+class UserAdminUpdate(BaseModel):
+    username: str | None = None
+    email: EmailStr | None = None
+    is_active: bool | None = None
+    is_admin: bool | None = None
 
     model_config = {
         "from_attributes": True
