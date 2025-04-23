@@ -1,14 +1,24 @@
-# File: routers/admin.py
-
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from core.database import get_db
 from models.user import User
 from models.deal import Deal
 from models.dispute import Dispute
+from models.admin_wallet import AdminWallet  # ✅ Import admin wallet
 from core.dependencies import require_admin  # ✅ Admin role check
 
 router = APIRouter(prefix="/admin", tags=["Admin Core"])  # ✅ Tag added
+
+# === Admin: Check wallet balance ===
+@router.get("/wallet-balance", summary="Admin: View admin wallet balance")
+def get_admin_wallet_balance(db: Session = Depends(get_db), admin: User = Depends(require_admin)):
+    """
+    Allows an admin to view the current balance of the admin wallet.
+    """
+    wallet = db.query(AdminWallet).first()
+    if not wallet:
+        return {"balance": 0.00}
+    return {"balance": float(wallet.balance)}
 
 # === List all registered users ===
 @router.get("/users", summary="Admin: View all registered users")
@@ -22,7 +32,7 @@ def list_all_users(db: Session = Depends(get_db), admin: User = Depends(require_
         {
             "username": u.username,
             "email": u.email,
-            "is_admin": getattr(u, "is_admin", False),  # fallback if not upgraded to role-based
+            "role": u.role.value if hasattr(u, "role") else "user",
             "status": u.status
         } for u in users
     ]
