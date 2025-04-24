@@ -1,15 +1,28 @@
-# File: models/share.py
-
-from sqlalchemy import Column, Integer, String, Float, ForeignKey, DateTime
-from sqlalchemy.sql import func
+from sqlalchemy import Column, Integer, String, DateTime, Enum, Numeric
+from datetime import datetime
 from core.database import Base
+import enum
+from sqlalchemy.orm import relationship
 
-class Share(Base):
-    __tablename__ = "shares"
+class UserRole(str, enum.Enum):
+    user = "user"
+    moderator = "moderator"
+    auditor = "auditor"
+    admin = "admin"
+
+class User(Base):
+    __tablename__ = "users"
 
     id = Column(Integer, primary_key=True, index=True)
-    name = Column(String, nullable=False)
-    symbol = Column(String, unique=True, index=True)
-    price = Column(Float, nullable=False)
-    owner_id = Column(Integer, ForeignKey("users.id"))
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    username = Column(String, unique=True, index=True, nullable=False)
+    email = Column(String, unique=True, index=True, nullable=False)
+    full_name = Column(String, nullable=True)
+    hashed_password = Column(String, nullable=False)
+    role = Column(Enum(UserRole), default=UserRole.user, nullable=False)
+    status = Column(String, default="active", nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    cumulative_sales = Column(Numeric(12, 2), default=0.00)
+
+    # Relationships
+    fee_transactions = relationship("FeeTransaction", back_populates="user")
+    fraud_alerts = relationship("FraudAlert", back_populates="user")
