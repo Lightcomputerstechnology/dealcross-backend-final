@@ -95,4 +95,4 @@ def get_my_wallet_summary(
                 } for tx in recent_transactions
             ]
         }
-        }
+    }
