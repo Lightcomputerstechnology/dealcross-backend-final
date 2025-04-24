@@ -1,5 +1,3 @@
-# File: models/deal.py
-
 from sqlalchemy import Column, Integer, String, Float, ForeignKey, Enum, Boolean, DateTime
 from sqlalchemy.orm import relationship
 from core.database import Base
@@ -22,12 +20,10 @@ class Deal(Base):
     status = Column(Enum(DealStatus), default=DealStatus.pending)
     description = Column(String, nullable=True)
     public_deal = Column(Boolean, default=False)
-    is_flagged = Column(Boolean, default=False)  # ✅ NEW: Fraud flag
-
+    is_flagged = Column(Boolean, default=False)  # Fraud flag
     creator_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     counterparty_id = Column(Integer, ForeignKey("users.id"), nullable=False)
-
     created_at = Column(DateTime, default=datetime.utcnow)
 
-    creator = relationship("User", foreign_keys=[creator_id])
-    counterparty = relationship("User", foreign_keys=[counterparty_id])
+    creator = relationship("User", foreign_keys=[creator_id], back_populates="created_deals")
+    counterparty = relationship("User", foreign_keys=[counterparty_id], back_populates="counterparty_deals")
