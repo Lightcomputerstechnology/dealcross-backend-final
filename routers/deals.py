@@ -1,3 +1,10 @@
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy.orm import Session
+from core.database import get_db
+from core.security import get_current_user
+from models.deal import Deal
+from models.user import User
+router = APIRouter(prefix="/deals", tags=["Deals"])
 @router.get("/tracker", summary="Get all your active and past deals")
 def get_my_deals(
     db: Session = Depends(get_db),
