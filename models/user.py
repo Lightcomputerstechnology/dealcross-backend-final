@@ -2,7 +2,7 @@ from sqlalchemy import Column, Integer, String, DateTime, Enum, Numeric
 from datetime import datetime
 from core.database import Base
 import enum
-from sqlalchemy.orm import relationship  # Added for relationship
+from sqlalchemy.orm import relationship
 
 class UserRole(str, enum.Enum):
     user = "user"
@@ -18,13 +18,12 @@ class User(Base):
     email = Column(String, unique=True, index=True, nullable=False)
     full_name = Column(String, nullable=True)
     hashed_password = Column(String, nullable=False)
-
-    role = Column(Enum(UserRole), default=UserRole.user)  # ✅ Replaces is_admin
-    status = Column(String, default="active")  # active, banned, pending, etc.
+    
+    role = Column(Enum(UserRole), default=UserRole.user)
+    status = Column(String, default="active")
     created_at = Column(DateTime, default=datetime.utcnow)
-
-    # ✅ Added for monetization tracking
     cumulative_sales = Column(Numeric(12, 2), default=0.00)
 
-    # ✅ Fee transactions relationship
+    # Relationships
     fee_transactions = relationship("FeeTransaction", back_populates="user")
+    fraud_alerts = relationship("FraudAlert", back_populates="user")  # ✅ Added
