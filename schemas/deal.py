@@ -1,5 +1,3 @@
-# File: schemas/deal.py
-
 from pydantic import BaseModel
 from typing import Optional
 from datetime import datetime
@@ -27,10 +25,9 @@ class DealOut(DealBase):
     counterparty_id: int
     status: DealStatus
     created_at: datetime
+    is_flagged: bool
 
-    model_config = {
-        "from_attributes": True
-    }
+    model_config = {"from_attributes": True}
 
 class DealAdminUpdate(BaseModel):
     status: Optional[DealStatus] = None
