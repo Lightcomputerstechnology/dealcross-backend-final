@@ -1,20 +1,22 @@
-# File: models/kyc.py
-
-from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Text
+from sqlalchemy import Column, Integer, String, ForeignKey, Enum, DateTime
 from sqlalchemy.orm import relationship
-from datetime import datetime
 from core.database import Base
+from datetime import datetime
+import enum
 
+class KYCStatus(str, enum.Enum):
+    pending = "pending"
+    approved = "approved"
+    rejected = "rejected"
 
-class KYC(Base):
-    __tablename__ = "kyc_documents"
+class KYCRequest(Base):
+    __tablename__ = "kyc_requests"
 
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
-    document_type = Column(String, nullable=False)  # e.g., passport, ID card
+    document_type = Column(String, nullable=False)
     document_url = Column(String, nullable=False)
-    status = Column(String, default="pending")  # pending, approved, rejected
-    review_note = Column(Text, nullable=True)
+    status = Column(Enum(KYCStatus), default=KYCStatus.pending)
     submitted_at = Column(DateTime, default=datetime.utcnow)
 
-    user = relationship("User", backref="kyc_documents")
+    user = relationship("User")
