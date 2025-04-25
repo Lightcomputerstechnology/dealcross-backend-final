@@ -1,22 +1,16 @@
-from sqlalchemy import Column, Integer, Numeric, String, DateTime, ForeignKey, func, Enum as SQLAlchemyEnum
+from sqlalchemy import Column, Integer, String, Numeric, DateTime, ForeignKey
 from sqlalchemy.orm import relationship
+from datetime import datetime
 from core.database import Base
-import enum
-
-# ✅ Define FeeType Enum
-class FeeType(str, enum.Enum):
-    funding = "funding"
-    escrow = "escrow"
-    share_buy = "share_buy"
-    share_sell = "share_sell"
 
 class FeeTransaction(Base):
-    __tablename__ = 'fee_transactions'
+    __tablename__ = "fee_transactions"
 
     id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.id"))
-    type = Column(SQLAlchemyEnum(FeeType), nullable=False)  # ✅ Use Enum for type
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="SET NULL"))
+    type = Column(String, nullable=False)  # funding, deal, share
     amount = Column(Numeric(12, 2), nullable=False)
-    timestamp = Column(DateTime, server_default=func.now())
+    description = Column(String, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
 
     user = relationship("User", back_populates="fee_transactions")
