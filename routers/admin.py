@@ -45,6 +45,11 @@ def update_user_role(user_id: int, new_role: UserRole, db: Session = Depends(get
 def view_audit_logs(db: Session = Depends(get_db), admin: User = Depends(require_admin)):
     return db.query(AuditLog).order_by(AuditLog.timestamp.desc()).all()
 
+# ─────────── USER ACTIVITY LOGS ───────────
+@router.get("/user-logs", summary="Admin: User activity logs", response_model=list[AuditLogOut])
+def get_user_logs(db: Session = Depends(get_db), admin: User = Depends(require_admin)):
+    return db.query(AuditLog).order_by(AuditLog.timestamp.desc()).limit(100).all()
+
 # ─────────── DASHBOARD METRICS ───────────
 @router.get("/dashboard-metrics", summary="Admin: Platform-wide dashboard metrics")
 def admin_dashboard_metrics(db: Session = Depends(get_db), admin: User = Depends(require_admin)):
