@@ -1,6 +1,6 @@
 from sqlalchemy import Column, Integer, String, DateTime, Enum, Numeric
 from datetime import datetime
-from core.database import Base  # ✅ Correct import
+from core.database import Base
 import enum
 from sqlalchemy.orm import relationship
 
@@ -12,7 +12,7 @@ class UserRole(str, enum.Enum):
 
 class User(Base):
     __tablename__ = "users"
-    __table_args__ = {'extend_existing': True}  # ✅ Add this for redeclaration issues
+    __table_args__ = {'extend_existing': True}
 
     id = Column(Integer, primary_key=True, index=True)
     username = Column(String, unique=True, index=True, nullable=False)
@@ -25,5 +25,5 @@ class User(Base):
     cumulative_sales = Column(Numeric(12, 2), default=0.00)
 
     # Relationships
-    # fee_transactions = relationship("FeeTransaction", back_populates="user")  # ❌ Commented out for shell testing
+    # fee_transactions = relationship("FeeTransaction", back_populates="user")  # Commented out
     fraud_alerts = relationship("FraudAlert", back_populates="user")
