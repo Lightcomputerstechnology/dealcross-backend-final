@@ -87,3 +87,12 @@ def fund_wallet(fund: FundWallet, db: Session = Depends(get_db), current_user: U
     db.add(transaction)
     db.commit()
     return {"message": f"Wallet funded with {fund.amount} USD"}
+
+# ─────────── GET ALL TRANSACTIONS ───────────
+@router.get("/transactions", summary="Retrieve all wallet transactions for the current user")
+def get_all_transactions(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    transactions = db.query(WalletTransaction).filter(
+        WalletTransaction.user_id == current_user.id
+    ).order_by(WalletTransaction.timestamp.desc()).all()
+    
+    return [TransactionOut.model_validate(tx) for tx in transactions]
