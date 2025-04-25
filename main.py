@@ -12,8 +12,6 @@ from app.api.routes import router as api_router
 from models.admin_wallet import AdminWallet
 
 # 1) Create all tables
-Base.metadata.create_all(bind=engine)
-
 # ✅ Ensure Admin Wallet exists
 def create_admin_wallet():
     db = SessionLocal()
