@@ -23,7 +23,9 @@ class Deal(Base):
     is_flagged = Column(Boolean, default=False)  # Fraud flag
     creator_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     counterparty_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    fee_applied = Column(Float, default=0.0, nullable=False)  # ✅ New fee field here!
     created_at = Column(DateTime, default=datetime.utcnow)
 
+    # Relationships
     creator = relationship("User", foreign_keys=[creator_id], back_populates="created_deals")
     counterparty = relationship("User", foreign_keys=[counterparty_id], back_populates="counterparty_deals")
