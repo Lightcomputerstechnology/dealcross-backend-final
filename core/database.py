@@ -3,15 +3,15 @@ from sqlalchemy.orm import sessionmaker, declarative_base
 from contextlib import contextmanager
 import os
 
-# ▶ 1.  read the DATABASE_URL from Render’s env‑vars
+# ▶ 1. read DATABASE_URL from env
 SQLALCHEMY_DATABASE_URL = os.getenv("DATABASE_URL")
 
-# ▶ 2.  SQLAlchemy boiler‑plate
+# ▶ 2. SQLAlchemy boilerplate
 engine = create_engine(SQLALCHEMY_DATABASE_URL, pool_pre_ping=True)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-Base = declarative_base()
+Base = declarative_base()  # ✅ This is where Base is defined
 
-# ▶ 3.  FastAPI dependency for DB sessions
+# ▶ 3. DB session dependency
 @contextmanager
 def get_db():
     db = SessionLocal()
