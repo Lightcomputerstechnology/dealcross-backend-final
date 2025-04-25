@@ -25,5 +25,5 @@ class User(Base):
     cumulative_sales = Column(Numeric(12, 2), default=0.00)
 
     # Relationships
-    fee_transactions = relationship("FeeTransaction", back_populates="user")
+    # fee_transactions = relationship("FeeTransaction", back_populates="user")  # ❌ Commented out for shell testing
     fraud_alerts = relationship("FraudAlert", back_populates="user")
