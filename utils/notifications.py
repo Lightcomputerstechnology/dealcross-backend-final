@@ -1,36 +1,15 @@
-# File: src/utils/notifications.py
+# File: src/models/notification.py
 
-from sqlalchemy.orm import Session
-from models.notification import Notification
-from fastapi import BackgroundTasks
-from core.email_utils import send_email
+from sqlalchemy import Column, Integer, String, Boolean, DateTime
+from core.database import Base
+from datetime import datetime
 
-def create_notification(
-    db: Session,
-    user_id: int,
-    title: str,
-    message: str
-) -> Notification:
-    """
-    Creates an in-app notification for the specified user.
-    """
-    notification = Notification(
-        user_id=user_id,
-        title=title,
-        message=message
-    )
-    db.add(notification)
-    db.commit()
-    db.refresh(notification)
-    return notification
+class Notification(Base):
+    __tablename__ = "notifications"
 
-def send_email_notification(
-    background_tasks: BackgroundTasks,
-    to_email: str,
-    subject: str,
-    body: str
-) -> None:
-    """
-    Schedules an email to be sent in the background.
-    """
-    background_tasks.add_task(send_email, to_email, subject, body)
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, index=True, nullable=False)
+    title = Column(String, nullable=False)
+    message = Column(String, nullable=False)
+    is_read = Column(Boolean, default=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
