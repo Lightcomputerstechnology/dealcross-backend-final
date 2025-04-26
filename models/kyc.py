@@ -1,22 +1,29 @@
 from sqlalchemy import Column, Integer, String, ForeignKey, Enum, DateTime
 from sqlalchemy.orm import relationship
-from core.database import Base
 from datetime import datetime
 import enum
+
+from core.database import Base
+
 
 class KYCStatus(str, enum.Enum):
     pending = "pending"
     approved = "approved"
     rejected = "rejected"
 
+
 class KYCRequest(Base):
+    """
+    Represents a user’s KYC submission.
+    """
     __tablename__ = "kyc_requests"
 
     id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     document_type = Column(String, nullable=False)
     document_url = Column(String, nullable=False)
-    status = Column(Enum(KYCStatus), default=KYCStatus.pending)
-    submitted_at = Column(DateTime, default=datetime.utcnow)
+    status = Column(Enum(KYCStatus), default=KYCStatus.pending, nullable=False)
+    submitted_at = Column(DateTime, default=datetime.utcnow, nullable=False)
 
-    user = relationship("User")
+    # Relationship back to the User
+    user = relationship("User", back_populates="kyc_requests")
