@@ -1,35 +1,23 @@
-# File: src/app/api/routes/router.py
+# File: app/api/routes/__init__.py
 
 from fastapi import APIRouter
+from routers import auth, wallet, deals, disputes, kyc, upload
 
-# Core routers (ensure these files exist)
-from . import auth, wallet, deals, disputes, admin, kyc, referrals
-
-# Admin/analytics routers (may trigger errors if missing)
+# Safe import for notifications router
 try:
-    from . import analytics, metrics, notifications, shares, auditlog, fraud, usercontrol
+    from routers import notifications
 except ImportError:
-    pass  # Skip if module not found
+    notifications = None  # Skip if missing or broken
 
 router = APIRouter()
 
-# Include routers (core ones)
+# Include routers
 router.include_router(auth.router)
 router.include_router(wallet.router)
 router.include_router(deals.router)
 router.include_router(disputes.router)
-router.include_router(admin.router)
 router.include_router(kyc.router)
-router.include_router(referrals.router)
+router.include_router(upload.router)
 
-# Include optional routers (admin/analytics)
-try:
-    router.include_router(analytics.router)
-    router.include_router(metrics.router)
+if notifications:  # Only include if notifications router exists
     router.include_router(notifications.router)
-    router.include_router(shares.router)
-    router.include_router(auditlog.router)
-    router.include_router(fraud.router)
-    router.include_router(usercontrol.router)
-except Exception:
-    pass  # Skip including if any fails
