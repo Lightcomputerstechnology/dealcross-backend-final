@@ -10,7 +10,7 @@ from fastapi import HTTPException as FastAPIHTTPException
 from core.database import SessionLocal
 from core.middleware import RateLimitMiddleware
 from models.admin_wallet import AdminWallet
-from app.api.routes import router as api_router  # ✅ Router
+from app.api.routes import router as api_router
 
 # Initialize FastAPI app
 app = FastAPI(
