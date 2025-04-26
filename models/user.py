@@ -26,4 +26,4 @@ class User(Base):
 
     # Relationships
     fee_transactions = relationship("FeeTransaction", back_populates="user")
-    fraud_alerts = relationship("FraudAlert", back_populates="user")
+    fraud_alerts = relationship("FraudAlert", back_populates="reporter")  # ✅ Fixed here
