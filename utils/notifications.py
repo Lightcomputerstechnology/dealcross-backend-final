@@ -3,7 +3,7 @@
 from sqlalchemy.orm import Session
 from models.notification import Notification
 from fastapi import BackgroundTasks
-from core.email_utils import send_email  # send_email helper
+from core.email_utils import send_email
 
 def create_notification(
     db: Session,
