@@ -1,65 +1,99 @@
-from fastapi import APIRouter, Depends, HTTPException from sqlalchemy.orm import Session from core.database import get_db from core.security import get_current_user from core.dependencies import require_admin from models.dispute import Dispute, DisputeStatus from models.deal import Deal from models.user import User from models.fraud_alert import FraudAlert  # ✅ Added for fraud alerts from schemas.dispute_schema import DisputeCreate, DisputeOut from typing import List from datetime import datetime
+# File: src/routers/disputes.py
 
-router = APIRouter(prefix="/disputes", tags=["Dispute Management"])
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy.orm import Session
 
-=== Fraud alert utility ===
+from core.database import get_db
+from core.security import get_current_user
 
-def trigger_fraud_alert(db: Session, user_id: int, alert_type: str, description: str): alert = FraudAlert( user_id=user_id, alert_type=alert_type, description=description ) db.add(alert) db.commit()
+from models.dispute import Dispute, DisputeStatus
+from models.user import User
+from models.fraud_alert import FraudAlert
 
-=== User submits dispute ===
+from schemas.dispute import DisputeCreate, DisputeOut, DisputeResolve
+from schemas.fraud_alert import FraudAlertOut
 
-@router.post("/submit", response_model=DisputeOut, summary="Submit a dispute for a deal") def submit_dispute( payload: DisputeCreate, db: Session = Depends(get_db), current_user=Depends(get_current_user) ): deal = db.query(Deal).filter(Deal.id == payload.deal_id).first() if not deal: raise HTTPException(status_code=404, detail="Deal not found")
+# Notification helpers
+from utils.notifications import create_notification, send_email_notification
 
-if current_user.id not in [deal.creator_id, deal.counterparty_id]:
-    raise HTTPException(status_code=403, detail="Access denied")
+router = APIRouter(prefix="/disputes", tags=["Disputes"])
 
-dispute = Dispute(
-    deal_id=payload.deal_id,
-    user_id=current_user.id,
-    reason=payload.reason,
-    details=payload.details
-)
 
-db.add(dispute)
-db.commit()
-db.refresh(dispute)
+@router.post("/submit", response_model=DisputeOut, summary="Submit a new dispute")
+def submit_dispute(
+    payload: DisputeCreate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> DisputeOut:
+    """
+    Create a new dispute record.
+    """
+    new_dispute = Dispute(
+        deal_id=payload.deal_id,
+        user_id=current_user.id,
+        reason=payload.reason,
+        details=payload.details,
+        status=DisputeStatus.pending,
+    )
+    db.add(new_dispute)
+    db.commit()
+    db.refresh(new_dispute)
 
-# === Trigger fraud alert for dispute submission ===
-trigger_fraud_alert(db, current_user.id, "dispute_flag", f"User opened a dispute for deal {payload.deal_id}.")
+    # Example: notify admin of new dispute
+    admin_alert = FraudAlert(
+        user_id=current_user.id,
+        alert_type="dispute_submitted",
+        description=f"User {current_user.id} submitted dispute {new_dispute.id}"
+    )
+    db.add(admin_alert)
+    db.commit()
 
-# === Check for multiple disputes ===
-unresolved_count = db.query(Dispute).filter(
-    Dispute.user_id == current_user.id,
-    Dispute.status == DisputeStatus.open
-).count()
+    return new_dispute
 
-if unresolved_count >= 3:
-    trigger_fraud_alert(db, current_user.id, "multiple_disputes", f"User has {unresolved_count} unresolved disputes.")
 
-return dispute
+@router.get("/logs", response_model=list[DisputeOut], summary="Admin: View all disputes")
+def view_dispute_logs(
+    db: Session = Depends(get_db),
+    admin: User = Depends(get_current_user),
+) -> list[DisputeOut]:
+    if admin.role.value != "admin":
+        raise HTTPException(status_code=403, detail="Admin access required.")
+    return (
+        db.query(Dispute)
+          .order_by(Dispute.created_at.desc())
+          .all()
+    )
 
-=== User views their disputes ===
 
-@router.get("/my-disputes", response_model=List[DisputeOut], summary="View your submitted disputes") def get_my_disputes(db: Session = Depends(get_db), current_user=Depends(get_current_user)): disputes = db.query(Dispute).filter(Dispute.user_id == current_user.id).order_by(Dispute.created_at.desc()).all() return disputes
+@router.post("/{dispute_id}/resolve", response_model=DisputeOut, summary="Admin: Resolve a dispute")
+def resolve_dispute(
+    dispute_id: int,
+    payload: DisputeResolve,
+    db: Session = Depends(get_db),
+    admin: User = Depends(get_current_user),
+) -> DisputeOut:
+    if admin.role.value != "admin":
+        raise HTTPException(status_code=403, detail="Admin access required.")
+    dispute = db.query(Dispute).filter(Dispute.id == dispute_id).first()
+    if not dispute:
+        raise HTTPException(status_code=404, detail="Dispute not found.")
 
-=== Admin views all disputes ===
+    dispute.status = payload.status
+    db.commit()
+    db.refresh(dispute)
 
-@router.get("/logs", response_model=List[DisputeOut], summary="Admin: View all disputes in the system") def get_disputes(db: Session = Depends(get_db), admin=Depends(require_admin)): return db.query(Dispute).order_by(Dispute.created_at.desc()).all()
+    # Notify the user who raised the dispute
+    send_email_notification(
+        background_tasks=Depends(),  # ensure you inject BackgroundTasks in your actual endpoint
+        to_email=dispute.user.email,
+        subject="Your dispute has been resolved",
+        body=f"Hello {dispute.user.full_name or 'User'}, your dispute #{dispute.id} is now {dispute.status}."
+    )
+    create_notification(
+        db=db,
+        user_id=dispute.user_id,
+        title="Dispute Resolved",
+        message=f"Your dispute #{dispute.id} has been marked {dispute.status}."
+    )
 
-=== Admin resolves dispute ===
-
-@router.put("/resolve/{dispute_id}", response_model=DisputeOut, summary="Admin: Resolve or reject a dispute") def resolve_dispute( dispute_id: int, resolution: str, note: str = "", db: Session = Depends(get_db), admin=Depends(require_admin) ): dispute = db.query(Dispute).filter(Dispute.id == dispute_id).first() if not dispute: raise HTTPException(status_code=404, detail="Dispute not found")
-
-if dispute.status != DisputeStatus.open:
-    raise HTTPException(status_code=409, detail="Dispute already handled")
-
-if resolution not in ["resolved", "rejected"]:
-    raise HTTPException(status_code=400, detail="Invalid resolution option")
-
-dispute.status = resolution
-dispute.resolution_note = note
-dispute.resolved_at = datetime.utcnow()
-db.commit()
-db.refresh(dispute)
-return dispute
-
+    return dispute
