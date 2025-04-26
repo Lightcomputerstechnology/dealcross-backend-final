@@ -14,10 +14,10 @@ from app.api.routes import (
     analytics,
     metrics,
     notifications,  # Pending creation or confirmation
-    shares,          Share trading router
-    auditlog,        Admin audit log router
-    fraud,           Fraud alerts
-    usercontrol      Admin user management
+    shares,          # Share trading router
+    auditlog,        # Admin audit log router
+    fraud,           # Fraud alerts
+    usercontrol      # Admin user management
 )
 
 # Initialize main API router
