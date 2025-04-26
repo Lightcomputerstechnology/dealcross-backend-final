@@ -1,3 +1,5 @@
+# File: core/database.py
+
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
 from contextlib import contextmanager
@@ -10,6 +12,13 @@ SQLALCHEMY_DATABASE_URL = os.getenv("DATABASE_URL")
 engine = create_engine(SQLALCHEMY_DATABASE_URL, pool_pre_ping=True)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()  # ✅ This is where Base is defined
+
+def init_db():
+    """
+    Auto-create all tables defined on Base.
+    Call this on app startup to ensure your models' tables exist.
+    """
+    Base.metadata.create_all(bind=engine)
 
 # ▶ 3. DB session dependency
 @contextmanager
