@@ -1,3 +1,8 @@
+from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Text
+from sqlalchemy.orm import relationship
+from core.database import Base  # ✅ Make sure this is here
+from datetime import datetime
+
 class FraudAlert(Base):
     __tablename__ = "fraud_alerts"
     __table_args__ = {'extend_existing': True}
@@ -9,5 +14,5 @@ class FraudAlert(Base):
     status = Column(String, default="unresolved")
     created_at = Column(DateTime, default=datetime.utcnow)
 
-    # Relationship (back_populates must match user model)
+    # Relationship
     user = relationship("User", back_populates="fraud_alerts", foreign_keys=[user_id])
