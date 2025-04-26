@@ -1,6 +1,13 @@
-from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Text
+from sqlalchemy import (
+    Column,
+    Integer,
+    String,
+    DateTime,
+    ForeignKey,
+    Text,
+)
 from sqlalchemy.orm import relationship
-from core.database import Base  # ✅ Make sure this is here
+from core.database import Base
 from datetime import datetime
 
 class FraudAlert(Base):
@@ -14,5 +21,15 @@ class FraudAlert(Base):
     status = Column(String, default="unresolved")
     created_at = Column(DateTime, default=datetime.utcnow)
 
-    # Relationship
+    # ← New FK to Dispute
+    dispute_id = Column(Integer, ForeignKey("disputes.id"), nullable=True)
+
+    # ← back-populate the Dispute link
+    dispute = relationship(
+        "Dispute",
+        back_populates="fraud_alerts",
+        foreign_keys=[dispute_id]
+    )
+
+    # ← your existing user link
     user = relationship("User", back_populates="fraud_alerts", foreign_keys=[user_id])
