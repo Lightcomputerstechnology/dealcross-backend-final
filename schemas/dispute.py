@@ -4,31 +4,23 @@ from pydantic import BaseModel, Field
 from datetime import datetime
 from typing import Optional
 
-from models.dispute import DisputeStatus
-
-
-class DisputeBase(BaseModel):
-    deal_id: int = Field(..., description="ID of the deal being disputed")
-    reason: str = Field(..., description="Brief reason for the dispute")
-    details: Optional[str] = Field(None, description="Optional additional details")
-
-
-class DisputeCreate(DisputeBase):
-    """Payload for submitting a new dispute."""
-
-
-class DisputeOut(DisputeBase):
-    """What we return when looking up disputes."""
-    id: int
-    user_id: int
-    status: DisputeStatus
-    created_at: datetime
-    resolved_at: Optional[datetime] = None
-
-    class Config:
-        orm_mode = True
-
+class DisputeCreate(BaseModel):
+    deal_id: int = Field(..., description="ID of the deal to dispute")
+    reason: str = Field(..., description="Reason for disputing")
+    details: Optional[str] = Field(None, description="Additional details")
 
 class DisputeResolve(BaseModel):
-    """Payload for an admin resolving a dispute."""
-    status: DisputeStatus
+    dispute_id: int = Field(..., description="ID of the dispute to resolve")
+    resolution: str = Field(..., description="Resolution summary")
+    note: Optional[str] = Field(None, description="Optional note")
+
+class DisputeOut(BaseModel):
+    id: int
+    deal_id: int
+    status: str
+    reason: str
+    details: Optional[str]
+    created_at: datetime
+    resolved_at: Optional[datetime]
+
+    model_config = {"from_attributes": True}
