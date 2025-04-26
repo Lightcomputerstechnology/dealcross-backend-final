@@ -7,7 +7,7 @@ from core.security import get_current_user
 from models.wallet import Wallet
 from models.wallet_transaction import WalletTransaction
 from models.fee_transaction import FeeTransaction
-from models.fraud_alert import FraudAlert
+from models.fraud import FraudAlert
 from models.user import User
 from schemas.wallet import WalletOut, FundWallet, TransactionOut
 
