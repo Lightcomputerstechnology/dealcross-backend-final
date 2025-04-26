@@ -12,7 +12,8 @@ class KYCStatus(str, enum.Enum):
     rejected = "rejected"
 
 class KYC(Base):
-    __tablename__ = "kyc_requests"
+    __tablename__  = "kyc_requests"
+    __table_args__ = {"extend_existing": True}
 
     id            = Column(Integer, primary_key=True, index=True)
     user_id       = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
@@ -27,4 +28,4 @@ class KYC(Base):
     reviewed_at   = Column(DateTime, nullable=True)
 
     # relationship back to User
-    user          = relationship("User", back_populates="kyc_requests")
+    user = relationship("User", back_populates="kyc_requests")
