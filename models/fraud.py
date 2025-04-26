@@ -7,6 +7,7 @@ from datetime import datetime
 
 class FraudAlert(Base):
     __tablename__ = "fraud_alerts"
+    __table_args__ = {'extend_existing': True}  # ✅ Prevents duplicate table issues
 
     id = Column(Integer, primary_key=True, index=True)
     description = Column(String, nullable=False)
