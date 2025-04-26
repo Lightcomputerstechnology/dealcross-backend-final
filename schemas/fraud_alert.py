@@ -2,6 +2,11 @@
 
 from pydantic import BaseModel
 from datetime import datetime
+from typing import Optional
+
+class FraudAlertCreate(BaseModel):
+    alert_type: str
+    description: str
 
 class FraudAlertOut(BaseModel):
     id: int
@@ -10,5 +15,4 @@ class FraudAlertOut(BaseModel):
     description: str
     timestamp: datetime
 
-    class Config:
-        orm_mode = True
+    model_config = {"from_attributes": True}
