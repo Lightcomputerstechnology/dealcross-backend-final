@@ -1,5 +1,3 @@
-# File: models/fraud.py
-
 from sqlalchemy import Column, Integer, String, DateTime, ForeignKey
 from sqlalchemy.orm import relationship
 from core.database import Base
@@ -15,5 +13,5 @@ class FraudAlert(Base):
     reported_by = Column(Integer, ForeignKey("users.id"))  # Links to user who reported
     reported_at = Column(DateTime, default=datetime.utcnow)
 
-    # Relationship (optional, enriches queries)
+    # Relationship (matches user.py)
     reporter = relationship("User", back_populates="fraud_alerts")
