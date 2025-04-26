@@ -7,7 +7,7 @@ from fastapi.exceptions import RequestValidationError
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from fastapi import HTTPException as FastAPIHTTPException
 
-from core.database import SessionLocal
+from core.database import SessionLocal, init_db
 from core.middleware import RateLimitMiddleware
 from models.admin_wallet import AdminWallet
 from app.api.routes import router as api_router
@@ -19,17 +19,18 @@ app = FastAPI(
     description="FastAPI backend for Dealcross platform including escrow, wallet, and analytics.",
 )
 
-# ===== Admin Wallet Seeder =====
-def create_admin_wallet():
+# ===== Application Startup =====
+@app.on_event("startup")
+def startup_event():
+    # 1) Auto-create all tables from your models
+    init_db()
+
+    # 2) Seed admin wallet if needed
     db = SessionLocal()
     if not db.query(AdminWallet).first():
         db.add(AdminWallet(balance=0.00))
         db.commit()
     db.close()
-
-@app.on_event("startup")
-def startup_event():
-    create_admin_wallet()
 
 # ===== Middleware =====
 app.add_middleware(RateLimitMiddleware)
