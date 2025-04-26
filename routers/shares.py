@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from core.database import get_db
 from core.security import get_current_user
 from models.user import User
-from models.fraud_alert import FraudAlert  # ✅ Added for fraud alerts
+from models.fraud import FraudAlert  # ✅ Added for fraud alerts
 from utils.fee_calculator import apply_share_trade_fee
 
 router = APIRouter(prefix="/shares", tags=["Share Trading"])
