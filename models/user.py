@@ -12,7 +12,7 @@ class UserRole(str, enum.Enum):
 
 class User(Base):
     __tablename__ = "users"
-    __table_args__ = {'extend_existing': True}
+    __table_args__ = {'extend_existing': True}  # ✅ This ensures no conflict with existing table
 
     id = Column(Integer, primary_key=True, index=True)
     username = Column(String, unique=True, index=True, nullable=False)
@@ -21,7 +21,7 @@ class User(Base):
     hashed_password = Column(String, nullable=False)
     role = Column(Enum(UserRole), default=UserRole.user, nullable=False)
     status = Column(String, default="active", nullable=False)
-    tier = Column(String, default="basic", nullable=False)  # ✅ Added tier field here
+    tier = Column(String, default="basic", nullable=False)  # ✅ Added tier field
     cumulative_sales = Column(Numeric(12, 2), default=0.00)
 
     # Relationships
