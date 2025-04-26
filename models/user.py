@@ -21,7 +21,7 @@ class User(Base):
     hashed_password = Column(String, nullable=False)
     role = Column(Enum(UserRole), default=UserRole.user, nullable=False)
     status = Column(String, default="active", nullable=False)
-    created_at = Column(DateTime, default=datetime.utcnow)
+    tier = Column(String, default="basic", nullable=False)  # ✅ Added tier field here
     cumulative_sales = Column(Numeric(12, 2), default=0.00)
 
     # Relationships
