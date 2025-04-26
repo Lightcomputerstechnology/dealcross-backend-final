@@ -22,23 +22,8 @@ if DATABASE_URL:
 # Import Base and models for Alembic
 from core.database import Base  # ✅ Database Base
 
-# Import all models to sync metadata
-from models.admin_wallet import AdminWallet
-from models.aiinsight import AIInsight
-from models.audit_log import AuditLog
-from models.deal import Deal
-from models.dispute import Dispute
-from models.escrow_tracker import EscrowTracker
-from models.fraud import FraudAlert
-from models.kyc import KYC
-from models.login_attempt import LoginAttempt
-from models.metric import Metric
-from models.notification import Notification
-from models.settings import AppSettings
-from models.share import Share
-from models.user import User
-from models.wallet import Wallet
-from models.wallet_transaction import WalletTransaction
+# ✅ Import all models at once (avoids duplication)
+from models import *  # This loads everything via __init__.py
 
 target_metadata = Base.metadata  # ✅ This connects all models
 
