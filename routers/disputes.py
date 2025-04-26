@@ -7,7 +7,7 @@ from core.security import get_current_user
 from models.dispute import Dispute, DisputeStatus
 from schemas.dispute import DisputeCreate, DisputeResolve, DisputeOut
 from schemas.fraud_alert import FraudAlertCreate, FraudAlertOut
-from models.fraud_alert import FraudAlert
+from models.fraud import FraudAlert
 from models.deal import Deal, DealStatus
 from models.fee_transaction import FeeTransaction
 from models.user import User
