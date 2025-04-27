@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from core.database import get_db
 from core.dependencies import require_admin  # ✅ Admin check
-from models.user import User
+from models import User
 from models.deal import Deal
 from models.wallet import Wallet
 from models.dispute import Dispute
