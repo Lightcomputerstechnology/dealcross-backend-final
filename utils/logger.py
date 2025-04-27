@@ -2,7 +2,7 @@
 
 from sqlalchemy.orm import Session
 from models.audit import AuditLog
-from models.user import User
+from models import User
 
 def log_admin_action(db: Session, admin_user: User, action: str, target_type: str, target_id: int):
     log = AuditLog(
