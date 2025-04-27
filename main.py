@@ -23,7 +23,7 @@ def startup_event():
     db.close()
 
 # ✅ Ensure tables are created ONCE here after models are loaded
-Base.metadata.create_all(bind=engine)
+Base.metadata.reflect(bind=engine)
 
 # Middleware
 app.add_middleware(RateLimitMiddleware)
