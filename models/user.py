@@ -27,4 +27,10 @@ class User(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
 
     # Relationships
-    kyc_requests = relationship("KYCRequest", back_populates="user", foreign_keys="KYCRequest.user_id", cascade="all, delete")
+    kyc_requests = relationship(
+        "KYCRequest",
+        back_populates="user",
+        foreign_keys="[KYCRequest.user_id]",
+        primaryjoin="User.id == KYCRequest.user_id",
+        cascade="all, delete"
+    )
