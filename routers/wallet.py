@@ -8,7 +8,7 @@ from models.wallet import Wallet
 from models.wallet_transaction import WalletTransaction
 from models.fee_transaction import FeeTransaction
 from models.fraud import FraudAlert
-from models.user import User
+from models import User
 from schemas.wallet import WalletOut, FundWallet, TransactionOut
 
 router = APIRouter(prefix="/wallet", tags=["Wallet Management"])
