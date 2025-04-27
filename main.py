@@ -39,3 +39,9 @@ app.add_middleware(
 
 # Routes
 app.include_router(api_router)
+
+import models  # ✅ Load all models
+from core.database import engine, Base
+
+# ✅ Ensure tables are created once
+Base.metadata.create_all(bind=engine)
