@@ -2,7 +2,7 @@
 
 from fastapi import Depends, HTTPException, status
 from core.security import get_current_user
-from models.user import User, UserRole  # ✅ Import roles
+from models import User  # ✅ Import roles
 
 def require_admin(user: User = Depends(get_current_user)) -> User:
     if user.role != UserRole.admin:
