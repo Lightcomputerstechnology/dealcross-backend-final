@@ -22,11 +22,9 @@ class User(Base):
     status = Column(String, default="active", nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow)
 
-    # Fixed Relationship to KYCRequest
     kyc_requests = relationship(
         "KYCRequest",
         back_populates="user",
-        cascade="all, delete"
+        cascade="all, delete",
+        foreign_keys="[KYCRequest.user_id]"  # Explicitly specify FK
     )
-
-    # (Optional) Add other relationships here if needed
