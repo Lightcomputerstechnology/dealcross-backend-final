@@ -30,9 +30,14 @@ class User(Base):
 
     # Relationships
     fee_transactions = relationship("FeeTransaction", back_populates="user")
-    fraud_alerts = relationship("FraudAlert", back_populates="user")
-    created_deals = relationship("Deal", back_populates="creator", foreign_keys="Deal.creator_id")
+    fraud_alerts     = relationship("FraudAlert", back_populates="user")
+    created_deals    = relationship("Deal", back_populates="creator",        foreign_keys="Deal.creator_id")
     counterparty_deals = relationship("Deal", back_populates="counterparty", foreign_keys="Deal.counterparty_id")
-    
-    # ✅ Wallet relationship WITHOUT direct import (use string "Wallet")
-    wallet = relationship("Wallet", back_populates="user", uselist=False)
+    wallet           = relationship("Wallet", back_populates="user", uselist=False)
+
+    # 🔑 KYCRequests relationship with explicit foreign_keys
+    kyc_requests = relationship(
+        "KYCRequest",
+        back_populates="user",
+        foreign_keys="[KYCRequest.user_id]"
+    )
