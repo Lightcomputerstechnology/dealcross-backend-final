@@ -11,7 +11,7 @@ SessionLocal = sessionmaker(bind=engine, autocommit=False, autoflush=False)
 Base = declarative_base()
 
 # IMPORT ALL MODELS HERE
-from models.user import User
+from models import User
 from models.deal import Deal
 from models.share import Share
 from models.wallet import Wallet
