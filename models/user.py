@@ -1,3 +1,18 @@
+from sqlalchemy import Column, Integer, String, DateTime, Enum, Numeric
+from sqlalchemy.orm import relationship
+from datetime import datetime
+import enum
+
+from core.database import Base  # ✅ Correct Base import here
+
+
+class UserRole(str, enum.Enum):
+    user = "user"
+    moderator = "moderator"
+    auditor = "auditor"
+    admin = "admin"
+
+
 class User(Base):
     __tablename__ = "users"
     __table_args__ = {'extend_existing': True}
@@ -15,8 +30,8 @@ class User(Base):
     # Relationships
     fee_transactions = relationship("FeeTransaction", back_populates="user")
     fraud_alerts = relationship("FraudAlert", back_populates="user")
-    
-    # New relationships for deals
+
+    # Deal relationships
     created_deals = relationship(
         "Deal",
         back_populates="creator",
