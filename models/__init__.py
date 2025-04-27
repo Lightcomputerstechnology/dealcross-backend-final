@@ -2,8 +2,8 @@
 Import order chosen so every FK target table is already known
 before the model that references it is mapped.
 """
-from .kyc                import KYCRequest   # <-- must come first
-from .user               import User        # User depends on KYCRequest
+from .kyc                import KYCRequest   # must come first (so users.id exists)
+from .user               import User         # now can reference KYCRequest.user_id
 from .deal               import Deal
 from .wallet             import Wallet
 from .wallet_transaction import WalletTransaction
