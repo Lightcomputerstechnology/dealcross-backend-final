@@ -28,12 +28,14 @@ class User(Base):
     kyc_requests = relationship(
         "KYCRequest",
         back_populates="user",
-        cascade="all, delete-orphan"
+        cascade="all, delete-orphan",
+        foreign_keys="KYCRequest.user_id"  # ✅ Explicit FK reference
     )
 
-    wallet = relationship(  # ✅ Wallet relationship added
+    wallet = relationship(
         "Wallet",
         back_populates="user",
         uselist=False,
-        cascade="all, delete-orphan"
+        cascade="all, delete-orphan",
+        foreign_keys="Wallet.user_id"  # ✅ Explicit FK reference
     )
