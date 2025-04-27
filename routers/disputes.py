@@ -10,7 +10,7 @@ from schemas.fraud_alert import FraudAlertCreate, FraudAlertOut
 from models.fraud import FraudAlert
 from models.deal import Deal, DealStatus
 from models.fee_transaction import FeeTransaction
-from models.user import User
+from models import User
 from datetime import datetime, timedelta
 from sqlalchemy import func
 
