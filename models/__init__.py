@@ -10,6 +10,3 @@ from .metric import Metric
 from .chart import ChartPoint
 
 from core.database import Base, engine
-
-# ✅ Register all tables explicitly
-Base.metadata.create_all(bind=engine)
