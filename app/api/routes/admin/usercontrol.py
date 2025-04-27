@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, Body
 from sqlalchemy.orm import Session
 from core.database import get_db
-from models.user import User
+from models import User
 from schemas.user import UserOut, UserAdminUpdate
 from typing import List, Optional
 
