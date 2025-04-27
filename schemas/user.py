@@ -1,13 +1,13 @@
 from pydantic import BaseModel, EmailStr
 from datetime import datetime
 from typing import Optional
-from models import User
+from models.user import UserRole  # ✅ Corrected import
 
 class UserBase(BaseModel):
     username: str
     email: EmailStr
     full_name: Optional[str] = None
-    role: UserRole = UserRole.user
+    role: UserRole = UserRole.user  # ✅ Fixed missing UserRole reference
     status: str = "active"
     cumulative_sales: float = 0.00
 
