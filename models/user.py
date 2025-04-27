@@ -1,3 +1,19 @@
+from sqlalchemy import Column, Integer, String, DateTime, Enum, Numeric
+from sqlalchemy.orm import relationship
+from datetime import datetime
+import enum
+
+# ✅ This is what was missing! Import Base properly:
+from core.database import Base
+
+
+class UserRole(str, enum.Enum):
+    user = "user"
+    moderator = "moderator"
+    auditor = "auditor"
+    admin = "admin"
+
+
 class User(Base):
     __tablename__ = "users"
     __table_args__ = {'extend_existing': True}
@@ -28,5 +44,5 @@ class User(Base):
         foreign_keys="Deal.counterparty_id"
     )
 
-    # Wallet relationship (add this)
+    # Wallet relationship
     wallet = relationship("Wallet", back_populates="user", uselist=False)
