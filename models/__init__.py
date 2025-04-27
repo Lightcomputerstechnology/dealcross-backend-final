@@ -9,4 +9,4 @@ from .audit_log import AuditLog
 from .metric import Metric
 from .chart import ChartPoint
 
-from core.database import Base, engine
+# ❌ No create_all() here!
