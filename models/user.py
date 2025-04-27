@@ -1,25 +1,26 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, Enum, DateTime
+from sqlalchemy import Column, Integer, String, DateTime, Enum
 from sqlalchemy.orm import relationship
 from datetime import datetime
 import enum
 
 from core.database import Base
 
-class KYCStatus(str, enum.Enum):
-    pending = "pending"
-    approved = "approved"
-    rejected = "rejected"
+class UserRole(str, enum.Enum):
+    user = "user"
+    moderator = "moderator"
+    auditor = "auditor"
+    admin = "admin"
 
-class KYCRequest(Base):
-    __tablename__ = "kyc_requests"
+class User(Base):
+    __tablename__ = "users"
 
     id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    username = Column(String, unique=True, index=True, nullable=False)
+    email = Column(String, unique=True, index=True, nullable=False)
+    hashed_password = Column(String, nullable=False)
+    role = Column(Enum(UserRole), default=UserRole.user, nullable=False)
+    status = Column(String, default="active", nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
 
-    document_type = Column(String, nullable=False)
-    document_url = Column(String, nullable=False)
-    status = Column(Enum(KYCStatus), default=KYCStatus.pending, nullable=False)
-    submitted_at = Column(DateTime, default=datetime.utcnow, nullable=False)
-
-    # RELATIONSHIP
-    user = relationship("User", back_populates="kyc_requests", foreign_keys=[user_id])
+    # Relationship to KYCRequest (string reference)
+    kyc_requests = relationship("KYCRequest", back_populates="user", cascade="all, delete")
