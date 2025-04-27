@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 from core.database import get_db
 from datetime import datetime, timedelta
 from models.deal import Deal
-from models.user import User
+from models import User
 from schemas.chart import ChartDataResponse, ChartPoint
 
 router = APIRouter()
