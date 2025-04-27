@@ -1,18 +1,16 @@
-# File: models/user.py
-
 from sqlalchemy import Column, Integer, String, DateTime, Enum, Numeric
 from sqlalchemy.orm import relationship
 from datetime import datetime
 import enum
 
 from core.database import Base
-from models.kyc import KYCRequest   # ✅ Import your KYC model here
 
 class UserRole(str, enum.Enum):
-    user = "user"
-    moderator = "moderator"
-    auditor = "auditor"
-    admin = "admin"
+    user       = "user"
+    moderator  = "moderator"
+    auditor    = "auditor"
+    admin      = "admin"
+
 
 class User(Base):
     __tablename__ = "users"
@@ -25,19 +23,20 @@ class User(Base):
     hashed_password  = Column(String, nullable=False)
     role             = Column(Enum(UserRole), default=UserRole.user, nullable=False)
     status           = Column(String, default="active", nullable=False)
-    tier             = Column(String, default="basic", nullable=False)
+    tier             = Column(String, default="basic",  nullable=False)
     cumulative_sales = Column(Numeric(12, 2), default=0.00)
     created_at       = Column(DateTime, default=datetime.utcnow)
 
+    # relationships
     fee_transactions   = relationship("FeeTransaction", back_populates="user")
     fraud_alerts       = relationship("FraudAlert",     back_populates="user")
-    created_deals      = relationship("Deal", back_populates="creator",    foreign_keys="Deal.creator_id")
-    counterparty_deals = relationship("Deal", back_populates="counterparty", foreign_keys="Deal.counterparty_id")
+    created_deals      = relationship("Deal",  back_populates="creator",     foreign_keys="Deal.creator_id")
+    counterparty_deals = relationship("Deal",  back_populates="counterparty", foreign_keys="Deal.counterparty_id")
     wallet             = relationship("Wallet", back_populates="user", uselist=False)
 
-    # 🔑 KYCRequests relationship — now unambiguous with actual imported class
+    # KYC submissions – note: we *do not* import KYCRequest to avoid a cycle
     kyc_requests = relationship(
         "KYCRequest",
         back_populates="user",
-        foreign_keys=[KYCRequest.user_id]
+        foreign_keys="KYCRequest.user_id"      # string reference keeps imports clean
     )
