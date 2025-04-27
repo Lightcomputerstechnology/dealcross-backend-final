@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from core.database import get_db
 from models.logs import FraudAlert, AuditLog, FraudStatus
-from models.user import User
+from models import User
 from schemas.logs import FraudAlertCreate, FraudAlertOut
 from core.security import get_current_user
 
