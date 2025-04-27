@@ -5,9 +5,12 @@ from fastapi.exceptions import RequestValidationError
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from fastapi import HTTPException as FastAPIHTTPException
 
-from core.database import SessionLocal, get_db  # Removed init_db
+from core.database import SessionLocal, get_db
 from core.middleware import RateLimitMiddleware
 from models.admin_wallet import AdminWallet
+
+import models  # ✅ Import ALL models
+
 from app.api.routes import router as api_router
 
 app = FastAPI(
@@ -18,10 +21,6 @@ app = FastAPI(
 
 @app.on_event("startup")
 def startup_event():
-    # 1) Commented out table creation (Alembic will handle migrations)
-    # init_db()
-
-    # 2) Seed admin wallet (this part stays)
     db = SessionLocal()
     if not db.query(AdminWallet).first():
         db.add(AdminWallet(balance=0.00))
@@ -40,6 +39,3 @@ app.add_middleware(
 
 # Routes
 app.include_router(api_router)
-
-# Exception handlers (unchanged)
-...
