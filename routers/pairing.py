@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from core.database import get_db
 from core.security import get_current_user
 from models.pairing import Pairing, PairingStatus
-from models.user import User
+from models import User
 from schemas.pairing import PairRequest, PairOut
 
 router = APIRouter(prefix="/deals", tags=["Deal Pairing"])
