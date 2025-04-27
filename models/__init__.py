@@ -8,6 +8,6 @@ from .settings import AppSettings
 from .aiinsight import AIInsight
 from .fee_transaction import FeeTransaction
 from .admin_wallet import AdminWallet
-from .fraud import FraudAlert  # ✅ Keep this only
-from .audit import AuditLog  # ✅ Also include AuditLog here if not already
+from .fraud import FraudAlert
+from .audit import AuditLog
 # from .notification import Notification  # Keep commented if not ready
