@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, DateTime, Enum
+from sqlalchemy import Column, Integer, String, Enum, DateTime
 from sqlalchemy.orm import relationship
 from datetime import datetime
 import enum
@@ -22,11 +22,11 @@ class User(Base):
     status = Column(String, default="active", nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow)
 
-    # Relationship to KYCRequest
+    # Fixed Relationship to KYCRequest
     kyc_requests = relationship(
         "KYCRequest",
         back_populates="user",
-        primaryjoin="User.id==KYCRequest.user_id",
-        foreign_keys="KYCRequest.user_id",
         cascade="all, delete"
     )
+
+    # (Optional) Add other relationships here if needed
