@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from core.database import get_db
 from core.security import get_current_user
-from models.user import User
+from models import User
 from schemas.user import UserOut, UserUpdate, UserAdminUpdate
 
 router = APIRouter(prefix="/user", tags=["User Management"])
