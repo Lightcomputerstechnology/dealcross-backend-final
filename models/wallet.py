@@ -1,22 +1,27 @@
-from sqlalchemy import Column, Integer, Float, String, ForeignKey, DateTime
+from sqlalchemy import Column, Integer, String, Enum, DateTime, ForeignKey
 from sqlalchemy.orm import relationship
-from sqlalchemy.sql import func
+from datetime import datetime
+import enum
 from core.database import Base
 
-class Wallet(Base):
-    __tablename__ = "wallets"
-    __table_args__ = {'extend_existing': True}
+class KYCStatus(str, enum.Enum):
+    pending = "pending"
+    approved = "approved"
+    rejected = "rejected"
+
+class KYCRequest(Base):
+    __tablename__ = "kyc_requests"
 
     id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, unique=True)
-    balance = Column(Float, default=0.0)
-    currency = Column(String, default="USD")
-    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    document_type = Column(String, nullable=False)
+    document_url = Column(String, nullable=False)
+    status = Column(Enum(KYCStatus), default=KYCStatus.pending, nullable=False)
+    submitted_at = Column(DateTime, default=datetime.utcnow, nullable=False)
 
-    # Relationships
+    # Relationship back to User
     user = relationship(
         "User",
-        back_populates="wallet",
-        foreign_keys=[user_id]  # ✅ Explicitly set foreign key
+        back_populates="kyc_requests",
+        foreign_keys=[user_id]
     )
-    transactions = relationship("WalletTransaction", back_populates="wallet", cascade="all, delete")
