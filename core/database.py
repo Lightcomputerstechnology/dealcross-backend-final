@@ -6,15 +6,18 @@ from contextlib import contextmanager
 # 1. Read DATABASE_URL from env
 SQLALCHEMY_DATABASE_URL = os.getenv("DATABASE_URL")
 
-# 2. Create engine & session factory
-engine = create_engine(SQLALCHEMY_DATABASE_URL, pool_pre_ping=True)
+# 2. Create engine & session factory with SSL mode for Render
+engine = create_engine(
+    SQLALCHEMY_DATABASE_URL,
+    connect_args={"sslmode": "require"},  # Required for Render PostgreSQL
+    pool_pre_ping=True
+)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 # 3. Declare your Base
 Base = declarative_base()
 
 # — ensure all models are imported so Base.metadata sees them —
-# (you can also do this in models/__init__.py)
 import models.user
 import models.deal
 import models.wallet
@@ -26,7 +29,6 @@ import models.aiinsight
 import models.fee_transaction
 import models.admin_wallet
 import models.kyc
-import models.dispute
 import models.fraud
 import models.audit
 import models.notification
