@@ -17,28 +17,7 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 # 3. Declare your Base
 Base = declarative_base()
 
-# — ensure all models are imported so Base.metadata sees them —
-import models.user
-import models.deal
-import models.wallet
-import models.share
-import models.dispute
-import models.escrow_tracker
-import models.settings
-import models.aiinsight
-import models.fee_transaction
-import models.admin_wallet
-import models.kyc
-import models.fraud
-import models.audit
-import models.notification
-import models.wallet_transaction
-
-# 4. Auto-create all tables & indexes at startup
-def init_db():
-    Base.metadata.create_all(bind=engine, checkfirst=True)
-
-# 5. DB session dependency
+# 4. DB session dependency
 @contextmanager
 def get_db():
     db = SessionLocal()
