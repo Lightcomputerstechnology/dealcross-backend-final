@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 from core.database import get_db
 from core.security import get_current_user
 from models.deal import Deal, DealStatus
-from models.user import User
+from models import User
 from models.wallet import Wallet
 from models.wallet_transaction import WalletTransaction
 from schemas.deal import DealCreate, DealOut
