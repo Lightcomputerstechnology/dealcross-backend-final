@@ -7,7 +7,7 @@ from datetime import datetime, timedelta
 from typing import List, Dict
 from core.database import get_db
 from models.deal import Deal
-from models.user import User
+from models import User
 from models.fraud import FraudAlert
 
 router = APIRouter()
