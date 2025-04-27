@@ -1,8 +1,8 @@
-from sqlalchemy import Column, Integer, String, Float, ForeignKey, Enum, Boolean, DateTime
+from sqlalchemy import Column, Integer, Float, ForeignKey, Enum, Boolean, DateTime, String
 from sqlalchemy.orm import relationship
+from datetime import datetime
 from core.database import Base
 import enum
-from datetime import datetime
 
 class DealStatus(str, enum.Enum):
     pending = "pending"
@@ -20,10 +20,10 @@ class Deal(Base):
     status = Column(Enum(DealStatus), default=DealStatus.pending)
     description = Column(String, nullable=True)
     public_deal = Column(Boolean, default=False)
-    is_flagged = Column(Boolean, default=False)  # Fraud flag
+    is_flagged = Column(Boolean, default=False)
     creator_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     counterparty_id = Column(Integer, ForeignKey("users.id"), nullable=False)
-    fee_applied = Column(Float, default=0.0, nullable=False)  # ✅ New fee field here!
+    fee_applied = Column(Float, default=0.0, nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow)
 
     # Relationships
