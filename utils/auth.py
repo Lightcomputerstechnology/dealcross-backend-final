@@ -4,7 +4,7 @@ from fastapi import Depends, HTTPException, status
 from jose import JWTError, jwt
 from sqlalchemy.orm import Session
 from core.database import get_db
-from models.user import User
+from models import User
 from core.config import settings  # Assuming you have a central config file for SECRET_KEY, etc.
 
 # Load secret and algorithm from your config
