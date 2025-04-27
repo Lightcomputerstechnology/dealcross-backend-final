@@ -1,5 +1,3 @@
-# models/wallet.py
-
 from sqlalchemy import Column, Integer, Float, String, ForeignKey, DateTime
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
@@ -15,5 +13,9 @@ class Wallet(Base):
     currency = Column(String, default="USD")
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
 
-    # Relationship back to User
-    user = relationship("User", back_populates="wallet", foreign_keys=[user_id])
+    # Relationship back to User (✅ FIXED)
+    user = relationship(
+        "User",
+        back_populates="wallet",
+        foreign_keys=[user_id]
+    )
