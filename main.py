@@ -4,7 +4,7 @@ from core.database import SessionLocal, get_db, engine, Base
 from core.middleware import RateLimitMiddleware
 from models.admin_wallet import AdminWallet
 import models  # ✅ Load all models
-from sqlalchemy import inspect  # ✅ Import inspector
+# No need for sqlalchemy.inspect here
 
 from app.api.routes import router as api_router
 
@@ -22,10 +22,7 @@ def startup_event():
         db.commit()
     db.close()
 
-# ✅ Check if 'users' table exists before creating tables
-inspector = inspect(engine)
-if 'users' not in inspector.get_table_names():
-    Base.metadata.create_all(bind=engine)
+# ❌ No create_all() or reflect() — trust the existing database
 
 # Middleware
 app.add_middleware(RateLimitMiddleware)
