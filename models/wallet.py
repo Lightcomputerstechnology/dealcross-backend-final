@@ -14,5 +14,9 @@ class Wallet(Base):
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
 
     # Relationships
-    user = relationship("User", back_populates="wallet", foreign_keys=[user_id])
+    user = relationship(
+        "User",
+        back_populates="wallet",
+        foreign_keys=[user_id]  # ✅ Explicitly set foreign key
+    )
     transactions = relationship("WalletTransaction", back_populates="wallet", cascade="all, delete")
