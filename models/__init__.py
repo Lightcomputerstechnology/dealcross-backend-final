@@ -1,5 +1,3 @@
-# File: models/__init__.py
-
 from .user import User
 from .wallet import Wallet
 from .wallet_transaction import WalletTransaction
@@ -10,4 +8,8 @@ from .fraud import FraudAlert
 from .audit_log import AuditLog
 from .metric import Metric
 from .chart import ChartPoint
-# Add ALL other models here
+
+from core.database import Base, engine
+
+# ✅ Register all tables explicitly
+Base.metadata.create_all(bind=engine)
