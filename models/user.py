@@ -13,6 +13,7 @@ class UserRole(str, enum.Enum):
 
 class User(Base):
     __tablename__ = "users"
+    __table_args__ = {'extend_existing': True}  # Avoid duplicate table errors
 
     id = Column(Integer, primary_key=True, index=True)
     username = Column(String, unique=True, index=True, nullable=False)
@@ -22,9 +23,18 @@ class User(Base):
     status = Column(String, default="active", nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow)
 
+    # Relationships
     kyc_requests = relationship(
         "KYCRequest",
         back_populates="user",
         cascade="all, delete",
-        foreign_keys="[KYCRequest.user_id]"  # Explicitly specify FK
+        foreign_keys="[KYCRequest.user_id]"
+    )
+
+    wallet = relationship(
+        "Wallet",
+        back_populates="user",
+        uselist=False,  # One-to-one relationship
+        cascade="all, delete",
+        foreign_keys="[Wallet.user_id]"
     )
