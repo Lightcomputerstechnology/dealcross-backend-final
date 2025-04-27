@@ -40,10 +40,9 @@ class User(Base):
         foreign_keys="Deal.counterparty_id"
     )
 
-    # Updated Wallet relationship with foreign_keys
+    # ✅ Corrected Wallet relationship (no foreign_keys)
     wallet = relationship(
         "Wallet",
         back_populates="user",
-        uselist=False,
-        foreign_keys="[Wallet.user_id]"  # ✅ Added explicitly
+        uselist=False
     )
