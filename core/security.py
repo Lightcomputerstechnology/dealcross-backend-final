@@ -9,7 +9,7 @@ from datetime import datetime, timedelta
 import os
 
 from core.database import get_db
-from models.user import User
+from models import User
 
 # Password hashing
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
