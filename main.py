@@ -1,3 +1,6 @@
+from core.database import engine, Base
+import models  # ✅ Load all models first
+Base.metadata.reflect(bind=engine)  # ✅ Works now
 class User(Base):
     __tablename__ = "users"
     __table_args__ = {'extend_existing': True}  # ✅ Crucial here
