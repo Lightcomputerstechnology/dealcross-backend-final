@@ -1,39 +1,27 @@
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
-from core.database import SessionLocal, get_db, engine, Base
-from core.middleware import RateLimitMiddleware
-from models.admin_wallet import AdminWallet
-import models  # ✅ Import all models once
+class User(Base):
+    __tablename__ = "users"
+    __table_args__ = {'extend_existing': True}  # ✅ Crucial here
 
-from app.api.routes import router as api_router
+    id = Column(Integer, primary_key=True, index=True)
+    username = Column(String, unique=True, index=True, nullable=False)
+    email = Column(String, unique=True, index=True, nullable=False)
+    hashed_password = Column(String, nullable=False)
+    role = Column(Enum(UserRole), default=UserRole.user, nullable=False)
+    status = Column(String, default="active", nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
 
-app = FastAPI(
-    title="Dealcross Backend",
-    version="1.0.0",
-    description="FastAPI backend for Dealcross platform including escrow, wallet, and analytics.",
-)
+    # Relationships
+    kyc_requests = relationship(
+        "KYCRequest",
+        back_populates="user",
+        cascade="all, delete",
+        foreign_keys="[KYCRequest.user_id]"
+    )
 
-@app.on_event("startup")
-def startup_event():
-    # ✅ Initialize admin wallet
-    db = SessionLocal()
-    if not db.query(AdminWallet).first():
-        db.add(AdminWallet(balance=0.00))
-        db.commit()
-    db.close()
-
-# ✅ Ensure tables are created ONCE here after models are loaded
-Base.metadata.reflect(bind=engine)
-
-# Middleware
-app.add_middleware(RateLimitMiddleware)
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],  # Adjust in production
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-# Routes
-app.include_router(api_router)
+    wallet = relationship(
+        "Wallet",
+        back_populates="user",
+        uselist=False,
+        cascade="all, delete",
+        foreign_keys="[Wallet.user_id]"
+    )
