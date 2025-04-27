@@ -5,6 +5,7 @@ import enum
 
 from core.database import Base
 
+
 class UserRole(str, enum.Enum):
     user       = "user"
     moderator  = "moderator"
@@ -27,16 +28,15 @@ class User(Base):
     cumulative_sales = Column(Numeric(12, 2), default=0.00)
     created_at       = Column(DateTime, default=datetime.utcnow)
 
-    # relationships
+    # ─── Relationships ────────────────────────────────────────────────────────
     fee_transactions   = relationship("FeeTransaction", back_populates="user")
     fraud_alerts       = relationship("FraudAlert",     back_populates="user")
-    created_deals      = relationship("Deal",  back_populates="creator",     foreign_keys="Deal.creator_id")
-    counterparty_deals = relationship("Deal",  back_populates="counterparty", foreign_keys="Deal.counterparty_id")
+    created_deals      = relationship("Deal",  back_populates="creator",
+                                      foreign_keys="Deal.creator_id")
+    counterparty_deals = relationship("Deal",  back_populates="counterparty",
+                                      foreign_keys="Deal.counterparty_id")
     wallet             = relationship("Wallet", back_populates="user", uselist=False)
 
-    # KYC submissions – note: we *do not* import KYCRequest to avoid a cycle
-    kyc_requests = relationship(
-        "KYCRequest",
-        back_populates="user",
-        foreign_keys="KYCRequest.user_id"      # string reference keeps imports clean
-    )
+    # ✔ KYC submissions (string ref avoids circular import)
+    kyc_requests = relationship("KYCRequest", back_populates="user",
+                                cascade="all, delete-orphan")
