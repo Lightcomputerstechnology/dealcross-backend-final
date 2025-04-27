@@ -1,3 +1,5 @@
+# File: models/kyc.py
+
 from sqlalchemy import Column, Integer, String, ForeignKey, Enum, DateTime
 from sqlalchemy.orm import relationship
 from datetime import datetime
@@ -5,12 +7,10 @@ import enum
 
 from core.database import Base
 
-
 class KYCStatus(str, enum.Enum):
     pending = "pending"
     approved = "approved"
     rejected = "rejected"
-
 
 class KYCRequest(Base):
     """
@@ -25,5 +25,9 @@ class KYCRequest(Base):
     status = Column(Enum(KYCStatus), default=KYCStatus.pending, nullable=False)
     submitted_at = Column(DateTime, default=datetime.utcnow, nullable=False)
 
-    # Relationship back to the User
-    user = relationship("User", back_populates="kyc_requests")
+    # Relationship back to the User, unambiguous now
+    user = relationship(
+        "User",
+        back_populates="kyc_requests",
+        foreign_keys=[user_id]
+    )
