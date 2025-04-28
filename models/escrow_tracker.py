@@ -1,6 +1,6 @@
 class EscrowTracker(Model):
     id = fields.IntField(pk=True)
-    deal = fields.ForeignKeyField("models.Deal", related_name="escrow_trackers", on_delete=fields.CASCADE)
-    status = fields.CharField(max_length=50, default="initiated")
-    amount_held = fields.FloatField()
-    last_updated = fields.DatetimeField(auto_now=True)
+    deal = fields.ForeignKeyField("models.Deal", related_name="escrows", on_delete=fields.CASCADE)
+    amount = fields.DecimalField(max_digits=12, decimal_places=2)
+    status = fields.CharField(max_length=255, default="pending")
+    created_at = fields.DatetimeField(auto_now_add=True)
