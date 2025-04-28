@@ -1,14 +1,9 @@
-# File: models/admin.py
+from tortoise import fields
+from tortoise.models import Model
 
-from sqlalchemy import Column, Integer, String, DateTime
-from sqlalchemy.sql import func
-from core.database import Base
-
-class Admin(Base):
-    __tablename__ = "admins"
-
-    id = Column(Integer, primary_key=True, index=True)
-    name = Column(String, nullable=False)
-    email = Column(String, unique=True, index=True, nullable=False)
-    role = Column(String, default="admin")
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
+class Admin(Model):
+    id = fields.IntField(pk=True)
+    name = fields.CharField(max_length=255)
+    email = fields.CharField(max_length=255, unique=True)
+    role = fields.CharField(max_length=255, default="admin")
+    created_at = fields.DatetimeField(auto_now_add=True)
