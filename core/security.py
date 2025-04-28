@@ -1,27 +1,29 @@
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from tortoise.exceptions import DoesNotExist
+from passlib.context import CryptContext
 
-# Initialize OAuth2PasswordBearer
+# OAuth2 setup
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
-# Dummy user data for now (replace with real DB lookup later)
-fake_users_db = {
-    "testuser": {
-        "username": "testuser",
-        "full_name": "Test User",
-        "email": "testuser@example.com",
-        "disabled": False,
-    }
-}
+# Password hashing setup
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-# Dummy token decoder (replace with real JWT validation)
+# Verify password function
+def verify_password(plain_password, hashed_password):
+    return pwd_context.verify(plain_password, hashed_password)
+
+# Hash password function (optional)
+def get_password_hash(password):
+    return pwd_context.hash(password)
+
+# Dummy token decoder (replace with real JWT logic)
 def decode_token(token: str):
     if token == "fake-token":
-        return fake_users_db["testuser"]
+        return {"username": "testuser"}
     return None
 
-# get_current_user function (required)
+# Get current user
 async def get_current_user(token: str = Depends(oauth2_scheme)):
     user = decode_token(token)
     if not user:
