@@ -3,8 +3,8 @@ from sqlalchemy.orm import relationship
 from datetime import datetime
 import enum
 from core.database import Base
+from models.kyc import KYCRequest  # ✅ Import KYCRequest here
 
-# User roles
 class UserRole(str, enum.Enum):
     user = "user"
     moderator = "moderator"
@@ -13,7 +13,7 @@ class UserRole(str, enum.Enum):
 
 class User(Base):
     __tablename__ = "users"
-    __table_args__ = {'extend_existing': True}  # Allow table reuse
+    __table_args__ = {'extend_existing': True}
 
     id = Column(Integer, primary_key=True, index=True)
     username = Column(String, unique=True, index=True, nullable=False)
@@ -24,19 +24,9 @@ class User(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
 
     # Relationships
-    from models.kyc import KYCRequest
-
     kyc_requests = relationship(
-    "KYCRequest",
-    back_populates="user",
-    cascade="all, delete-orphan",
-    foreign_keys=[KYCRequest.user_id]  # ✅ Explicit FK object, not string
-)
-
-    wallet = relationship(
-        "Wallet",
+        "KYCRequest",
         back_populates="user",
-        uselist=False,
         cascade="all, delete-orphan",
-        foreign_keys="Wallet.user_id"
+        foreign_keys=[KYCRequest.user_id]  # ✅ Use object reference directly
     )
