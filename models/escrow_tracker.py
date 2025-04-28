@@ -1,14 +1,6 @@
-# File: models/escrow_tracker.py
-
-from sqlalchemy import Column, Integer, String, Float, DateTime, ForeignKey
-from sqlalchemy.sql import func
-from core.database import Base
-
-class EscrowTracker(Base):
-    __tablename__ = "escrow_trackers"
-
-    id = Column(Integer, primary_key=True, index=True)
-    deal_id = Column(Integer, ForeignKey("deals.id"))
-    status = Column(String, default="initiated")
-    amount_held = Column(Float)
-    last_updated = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+class EscrowTracker(Model):
+    id = fields.IntField(pk=True)
+    deal = fields.ForeignKeyField("models.Deal", related_name="escrow_trackers", on_delete=fields.CASCADE)
+    status = fields.CharField(max_length=50, default="initiated")
+    amount_held = fields.FloatField()
+    last_updated = fields.DatetimeField(auto_now=True)
