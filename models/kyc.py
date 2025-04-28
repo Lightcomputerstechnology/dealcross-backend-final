@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Enum, DateTime, ForeignKey
+from sqlalchemy import Column, Integer, String, Enum, DateTime, ForeignKey, Text
 from sqlalchemy.orm import relationship
 from datetime import datetime
 import enum
@@ -11,7 +11,6 @@ class KYCStatus(str, enum.Enum):
 
 class KYCRequest(Base):
     __tablename__ = "kyc_requests"
-    __table_args__ = {'extend_existing': True}
 
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
@@ -19,10 +18,19 @@ class KYCRequest(Base):
     document_url = Column(String, nullable=False)
     status = Column(Enum(KYCStatus), default=KYCStatus.pending, nullable=False)
     submitted_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    review_note = Column(Text, nullable=True)
+    reviewed_by = Column(Integer, ForeignKey("users.id"), nullable=True)
+    reviewed_at = Column(DateTime, nullable=True)
 
     # Relationships
     user = relationship(
         "User",
         back_populates="kyc_requests",
         foreign_keys=[user_id]
+    )
+
+    reviewed_by_user = relationship(
+        "User",
+        back_populates="reviewed_kyc_requests",
+        foreign_keys=[reviewed_by]
     )
