@@ -22,3 +22,6 @@ class KYCRequest(Model):
         "models.User", related_name="kyc_reviews", null=True, on_delete=fields.SET_NULL
     )
     review_note = fields.TextField(null=True)
+
+    class Meta:
+        table = "kyc_requests"
