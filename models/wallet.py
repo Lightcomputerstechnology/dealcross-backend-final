@@ -1,19 +1,18 @@
-from sqlalchemy import Column, Integer, Float, String, ForeignKey, DateTime
+from sqlalchemy import Column, Integer, ForeignKey, Numeric, DateTime
 from sqlalchemy.orm import relationship
-from sqlalchemy.sql import func
+from datetime import datetime
 from core.database import Base
 
 class Wallet(Base):
     __tablename__ = "wallets"
-    __table_args__ = {'extend_existing': True}
+    __table_args__ = {'extend_existing': True}  # Allow table reuse
 
     id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, unique=True)
-    balance = Column(Float, default=0.0)
-    currency = Column(String, default="USD")
-    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    balance = Column(Numeric(12, 2), default=0.00)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
-    # Relationship back to User (✅ FIXED)
+    # Relationship back to User
     user = relationship(
         "User",
         back_populates="wallet",
