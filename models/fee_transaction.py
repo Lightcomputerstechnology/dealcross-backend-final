@@ -1,3 +1,5 @@
+from tortoise.models import Model
+from tortoise import fields
 class FeeTransaction(Model):
     id = fields.IntField(pk=True)
     amount = fields.DecimalField(max_digits=12, decimal_places=2)
