@@ -1,16 +1,19 @@
-# File: src/utils/auth.py
+# File: src/routers/auth.py
 
-from fastapi import Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
 from models.user import User
 from core.config import settings
 
-# Load secret and algorithm from your config
+# Initialize FastAPI APIRouter
+router = APIRouter(prefix="/auth", tags=["Auth"])
+
+# Load secret and algorithm
 SECRET_KEY = settings.SECRET_KEY
 ALGORITHM = settings.ALGORITHM
 
-# Initialize OAuth2 scheme properly
+# Setup OAuth2 scheme
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
 
 async def verify_token(token: str) -> User:
@@ -36,6 +39,7 @@ async def verify_token(token: str) -> User:
         raise credentials_exception
     return user
 
+@router.get("/me", response_model=None)
 async def get_current_user(token: str = Depends(oauth2_scheme)) -> User:
     """
     Dependency to get the current user from the token.
