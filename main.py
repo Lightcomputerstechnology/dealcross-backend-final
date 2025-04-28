@@ -1,8 +1,8 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from core.db import init_db, close_db  # Tortoise ORM init
-from core.middleware import RateLimitMiddleware
-from app.api.routes import router as api_router
+from src.core.db import init_db, close_db  # Corrected path
+from src.core.middleware import RateLimitMiddleware  # Corrected path
+from src.app.api.routes import router as api_router  # Corrected path
 
 # Initialize FastAPI app
 app = FastAPI(
