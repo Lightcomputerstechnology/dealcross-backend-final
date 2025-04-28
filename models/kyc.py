@@ -1,3 +1,5 @@
+from tortoise.models import Model
+from tortoise import fields
 class KYCRequest(Model):
     id = fields.IntField(pk=True)
     user = fields.ForeignKeyField("models.User", related_name="kyc_requests", on_delete=fields.CASCADE)
