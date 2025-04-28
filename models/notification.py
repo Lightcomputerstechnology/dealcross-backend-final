@@ -1,3 +1,5 @@
+from tortoise.models import Model
+from tortoise import fields
 class Notification(Model):
     id = fields.IntField(pk=True)
     user = fields.ForeignKeyField("models.User", related_name="notifications", on_delete=fields.CASCADE)
