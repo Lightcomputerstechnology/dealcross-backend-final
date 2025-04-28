@@ -1,26 +1,14 @@
-from sqlalchemy import Column, Integer, String, Enum, DateTime, ForeignKey
-from sqlalchemy.orm import relationship
-from datetime import datetime
-from core.database import Base
-import enum
-
 class KYCStatus(str, enum.Enum):
     pending = "pending"
     approved = "approved"
     rejected = "rejected"
 
-class KYCRequest(Base):
-    __tablename__ = "kyc_requests"
-
-    id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
-    document_type = Column(String, nullable=False)
-    document_url = Column(String, nullable=False)
-    status = Column(Enum(KYCStatus), default=KYCStatus.pending, nullable=False)
-    submitted_at = Column(DateTime, default=datetime.utcnow, nullable=False)
-    reviewed_by = Column(Integer, ForeignKey("users.id"), nullable=True)
-    reviewed_at = Column(DateTime, nullable=True)
-
-    # Relationships
-    user = relationship("User", back_populates="kyc_requests", foreign_keys=[user_id])
-    reviewer = relationship("User", back_populates="reviewed_kyc_requests", foreign_keys=[reviewed_by])
+class KYCRequest(Model):
+    id = fields.IntField(pk=True)
+    user = fields.ForeignKeyField("models.User", related_name="kyc_requests", on_delete=fields.CASCADE)
+    document_type = fields.CharField(max_length=255)
+    document_url = fields.CharField(max_length=255)
+    status = fields.CharEnumField(KYCStatus, default=KYCStatus.pending)
+    submitted_at = fields.DatetimeField(auto_now_add=True)
+    reviewed_by = fields.ForeignKeyField("models.User", related_name="reviewed_kyc_requests", null=True)
+    reviewed_at = fields.DatetimeField(null=True)
