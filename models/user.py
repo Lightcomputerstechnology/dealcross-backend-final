@@ -22,10 +22,16 @@ class User(Base):
     status = Column(String, default="active", nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow)
 
-    # Relationships (Lazy FK import)
+    # Relationships with explicit FK string (avoid circular imports)
     kyc_requests = relationship(
         "KYCRequest",
         back_populates="user",
         cascade="all, delete-orphan",
-        foreign_keys="[KYCRequest.user_id]"  # Leave as string here
+        foreign_keys="[KYCRequest.user_id]"
+    )
+
+    reviewed_kyc_requests = relationship(
+        "KYCRequest",
+        back_populates="reviewed_by_user",
+        foreign_keys="[KYCRequest.reviewed_by]"
     )
