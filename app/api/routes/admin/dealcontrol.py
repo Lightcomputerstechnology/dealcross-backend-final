@@ -1,20 +1,22 @@
+# File: src/app/api/routes/admin/dealcontrol.py
+
 from fastapi import APIRouter, Depends, HTTPException, Body
-from sqlalchemy.orm import Session
 from typing import List, Optional
-from core.database import get_db
 from models.deal import Deal
+from core.security import get_current_user
 
-router = APIRouter()
+router = APIRouter(prefix="/admin/dealcontrol", tags=["Admin - Deal Control"])
 
-
+# === Get pending deals ===
 @router.get("/pending-deals")
-def get_pending_deals(db: Session = Depends(get_db)):
-    pending = db.query(Deal).filter(Deal.status == "Pending").all()
+async def get_pending_deals(current_user=Depends(get_current_user)):
+    pending = await Deal.filter(status="pending").all()
+
     return [
         {
             "id": d.id,
             "title": d.title,
-            "amount": d.amount,
+            "amount": float(d.amount),
             "status": d.status,
             "public_deal": d.public_deal,
             "counterparty_email": d.counterparty_email,
@@ -23,34 +25,38 @@ def get_pending_deals(db: Session = Depends(get_db)):
         for d in pending
     ]
 
-
+# === Approve a deal ===
 @router.post("/approve-deal/{deal_id}")
-def approve_deal(
+async def approve_deal(
     deal_id: int,
-    db: Session = Depends(get_db),
-    approval_note: Optional[str] = Body(None, embed=True)
+    approval_note: Optional[str] = Body(None, embed=True),
+    current_user=Depends(get_current_user),
 ):
-    deal = db.query(Deal).filter(Deal.id == deal_id).first()
+    deal = await Deal.get_or_none(id=deal_id)
     if not deal:
         raise HTTPException(status_code=404, detail="Deal not found")
-    deal.status = "Approved"
+
+    deal.status = "approved"
     if approval_note:
-        deal.approval_note = approval_note
-    db.commit()
+        deal.approval_note = approval_note  # (Optional: Add field in model if needed)
+
+    await deal.save()
     return {"message": f"Deal {deal_id} approved successfully."}
 
-
+# === Reject a deal ===
 @router.post("/reject-deal/{deal_id}")
-def reject_deal(
+async def reject_deal(
     deal_id: int,
-    db: Session = Depends(get_db),
-    reason: Optional[str] = Body(None, embed=True)
+    reason: Optional[str] = Body(None, embed=True),
+    current_user=Depends(get_current_user),
 ):
-    deal = db.query(Deal).filter(Deal.id == deal_id).first()
+    deal = await Deal.get_or_none(id=deal_id)
     if not deal:
         raise HTTPException(status_code=404, detail="Deal not found")
-    deal.status = "Rejected"
+
+    deal.status = "rejected"
     if reason:
-        deal.rejection_reason = reason  # You can create this field in models if needed
-    db.commit()
+        deal.rejection_reason = reason  # (Optional: Add field in model if needed)
+
+    await deal.save()
     return {"message": f"Deal {deal_id} rejected."}
