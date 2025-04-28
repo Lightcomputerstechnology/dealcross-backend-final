@@ -1,97 +1,78 @@
-from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session
-from core.database import get_db
-from core.security import get_current_user
-from models       import User, UserRole
-from models.logs import AuditLog
-from schemas.user import UserOut
-from schemas.logs import AuditLogOut
-from sqlalchemy import func
-from models.deal import Deal, DealStatus
-from models.dispute import Dispute
-from models.fee_transaction import FeeTransaction
-from datetime import datetime, timedelta
+Admin Controls Router (Tortoise ORM Version)
+
+from fastapi import APIRouter, Depends, HTTPException from tortoise.contrib.fastapi import HTTPNotFoundError from core.security import get_current_user from models.user import User, UserRole from models.auditlog import AuditLog from schemas.user import UserOut from schemas.logs import AuditLogOut from models.deal import Deal, DealStatus from models.dispute import Dispute from models.feetransaction import FeeTransaction from datetime import datetime, timedelta
 
 router = APIRouter(prefix="/admin", tags=["Admin Controls"])
 
-# ─────────── ADMIN CHECK ───────────
-def require_admin(current_user: User = Depends(get_current_user)):
-    if current_user.role != UserRole.admin:
-        raise HTTPException(status_code=403, detail="Admin access required.")
-    return current_user
+─────────── ADMIN CHECK ───────────
 
-# ─────────── LIST USERS ───────────
-@router.get("/users", response_model=list[UserOut])
-def list_users(db: Session = Depends(get_db), admin: User = Depends(require_admin)):
-    return db.query(User).all()
+async def require_admin(current_user: User = Depends(get_current_user)): if current_user.role != UserRole.admin: raise HTTPException(status_code=403, detail="Admin access required.") return current_user
 
-# ─────────── UPDATE USER ROLE ───────────
-@router.put("/users/{user_id}/role")
-def update_user_role(user_id: int, new_role: UserRole, db: Session = Depends(get_db), admin: User = Depends(require_admin)):
-    user = db.query(User).filter(User.id == user_id).first()
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found.")
-    user.role = new_role
-    db.commit()
+─────────── LIST USERS ───────────
 
-    # Audit log
-    audit = AuditLog(action=f"Role updated to {new_role} for user {user_id}", performed_by=admin.id)
-    db.add(audit)
-    db.commit()
-    return {"message": f"User role updated to {new_role}"}
+@router.get("/users", response_model=list[UserOut]) async def list_users(admin: User = Depends(require_admin)): return await User.all()
 
-# ─────────── VIEW AUDIT LOGS ───────────
-@router.get("/audit-logs", response_model=list[AuditLogOut])
-def view_audit_logs(db: Session = Depends(get_db), admin: User = Depends(require_admin)):
-    return db.query(AuditLog).order_by(AuditLog.timestamp.desc()).all()
+─────────── UPDATE USER ROLE ───────────
 
-# ─────────── USER ACTIVITY LOGS ───────────
-@router.get("/user-logs", summary="Admin: User activity logs", response_model=list[AuditLogOut])
-def get_user_logs(db: Session = Depends(get_db), admin: User = Depends(require_admin)):
-    return db.query(AuditLog).order_by(AuditLog.timestamp.desc()).limit(100).all()
+@router.put("/users/{user_id}/role") async def update_user_role(user_id: int, new_role: UserRole, admin: User = Depends(require_admin)): user = await User.get_or_none(id=user_id) if not user: raise HTTPException(status_code=404, detail="User not found.") user.role = new_role await user.save()
 
-# ─────────── DASHBOARD METRICS ───────────
-@router.get("/dashboard-metrics", summary="Admin: Platform-wide dashboard metrics")
-def admin_dashboard_metrics(db: Session = Depends(get_db), admin: User = Depends(require_admin)):
-    now = datetime.utcnow()
-    start_of_month = now.replace(day=1)
-    last_month = (start_of_month - timedelta(days=1)).replace(day=1)
+# Audit log
+await AuditLog.create(action=f"Role updated to {new_role} for user {user_id}", performed_by=admin)
 
-    # Users
-    total_users = db.query(User).count()
-    new_users_7d = db.query(User).filter(User.created_at >= now - timedelta(days=7)).count()
+return {"message": f"User role updated to {new_role}"}
 
-    # Deals
-    total_deals = db.query(Deal).count()
-    active_deals = db.query(Deal).filter(Deal.status == DealStatus.active).count()
-    completed_deals = db.query(Deal).filter(Deal.status == DealStatus.completed).count()
-    disputed_deals = db.query(Deal).filter(Deal.status == DealStatus.disputed).count()
-    flagged_deals = db.query(Deal).filter(Deal.is_flagged == True).count()
+─────────── VIEW AUDIT LOGS ───────────
 
-    # Disputes
-    dispute_statuses = db.query(Dispute.status, func.count(Dispute.id)).group_by(Dispute.status).all()
-    dispute_breakdown = {status: count for status, count in dispute_statuses}
-    total_disputes = sum(dispute_breakdown.values())
-    disputes_this_month = db.query(Dispute).filter(Dispute.created_at >= start_of_month).count()
-    disputes_last_month = db.query(Dispute).filter(Dispute.created_at >= last_month, Dispute.created_at < start_of_month).count()
+@router.get("/audit-logs", response_model=list[AuditLogOut]) async def view_audit_logs(admin: User = Depends(require_admin)): return await AuditLog.all().order_by("-timestamp")
 
-    # Avg resolution time (days)
-    resolution_times = db.query(func.avg(func.extract('epoch', Dispute.resolved_at - Dispute.created_at))).filter(Dispute.status == "resolved").scalar()
-    avg_resolution_days = round((resolution_times or 0) / 86400, 2) if resolution_times else 0
+─────────── USER ACTIVITY LOGS ───────────
 
-    # Fees
-    total_fees = db.query(func.sum(FeeTransaction.amount)).scalar() or 0.00
-    monthly_fees = db.query(func.sum(FeeTransaction.amount)).filter(FeeTransaction.timestamp >= start_of_month).scalar() or 0.00
+@router.get("/user-logs", summary="Admin: User activity logs", response_model=list[AuditLogOut]) async def get_user_logs(admin: User = Depends(require_admin)): return await AuditLog.all().order_by("-timestamp").limit(100)
 
-    return {
-        "users": {"total": total_users, "new_last_7_days": new_users_7d},
-        "deals": {"total": total_deals, "active": active_deals, "completed": completed_deals, "disputed": disputed_deals, "flagged": flagged_deals},
-        "disputes": {
-            "total": total_disputes,
-            "status_breakdown": dispute_breakdown,
-            "this_month": disputes_this_month,
-            "last_month": disputes_last_month,
-            "avg_resolution_days": avg_resolution_days
-        },
-        "fees": {"total_collected": total_fees, "collected_this_month": monthly_fees}
-    }
+─────────── DASHBOARD METRICS ───────────
+
+@router.get("/dashboard-metrics", summary="Admin: Platform-wide dashboard metrics") async def admin_dashboard_metrics(admin: User = Depends(require_admin)): now = datetime.utcnow() start_of_month = now.replace(day=1) last_month = (start_of_month - timedelta(days=1)).replace(day=1)
+
+# Users
+total_users = await User.all().count()
+new_users_7d = await User.filter(created_at__gte=now - timedelta(days=7)).count()
+
+# Deals
+total_deals = await Deal.all().count()
+active_deals = await Deal.filter(status=DealStatus.active).count()
+completed_deals = await Deal.filter(status=DealStatus.completed).count()
+disputed_deals = await Deal.filter(status=DealStatus.disputed).count()
+flagged_deals = await Deal.filter(is_flagged=True).count()
+
+# Disputes
+dispute_statuses = await Dispute.all().group_by("status").annotate(count=fields.Count("id"))
+dispute_breakdown = {d.status: d.count for d in dispute_statuses}
+total_disputes = sum(dispute_breakdown.values())
+disputes_this_month = await Dispute.filter(created_at__gte=start_of_month).count()
+disputes_last_month = await Dispute.filter(created_at__gte=last_month, created_at__lt=start_of_month).count()
+
+# Avg resolution time (days)
+resolved_disputes = await Dispute.filter(status="resolved", resolved_at__isnull=False).all()
+if resolved_disputes:
+    total_seconds = sum([(d.resolved_at - d.created_at).total_seconds() for d in resolved_disputes])
+    avg_resolution_days = round((total_seconds / len(resolved_disputes)) / 86400, 2)
+else:
+    avg_resolution_days = 0
+
+# Fees
+total_fees = await FeeTransaction.all().aggregate(total=fields.Sum("amount"))
+monthly_fees = await FeeTransaction.filter(timestamp__gte=start_of_month).aggregate(total=fields.Sum("amount"))
+
+return {
+    "users": {"total": total_users, "new_last_7_days": new_users_7d},
+    "deals": {"total": total_deals, "active": active_deals, "completed": completed_deals, "disputed": disputed_deals, "flagged": flagged_deals},
+    "disputes": {
+        "total": total_disputes,
+        "status_breakdown": dispute_breakdown,
+        "this_month": disputes_this_month,
+        "last_month": disputes_last_month,
+        "avg_resolution_days": avg_resolution_days
+    },
+    "fees": {"total_collected": total_fees.get("total", 0.00), "collected_this_month": monthly_fees.get("total", 0.00)}
+}
+
