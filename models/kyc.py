@@ -24,13 +24,13 @@ class KYCRequest(Base):
 
     # Relationships
     user = relationship(
-        "User",
-        back_populates="kyc_requests",
-        foreign_keys=[user_id]
-    )
+    "User",
+    back_populates="kyc_requests",
+    foreign_keys="[user_id]"
+)
 
-    reviewed_by_user = relationship(
-        "User",
-        back_populates="reviewed_kyc_requests",
-        foreign_keys=[reviewed_by]
-    )
+reviewer = relationship(
+    "User",
+    back_populates="reviewed_kyc_requests",
+    foreign_keys="[reviewed_by]"
+)
