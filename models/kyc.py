@@ -23,7 +23,7 @@ class KYCRequest(Base):
 
     # Relationship back to User
     user = relationship(
-        "User",
-        back_populates="kyc_requests",
-        foreign_keys=[user_id]
+    "User",
+    back_populates="kyc_requests",
+    foreign_keys=[user_id]
     )
