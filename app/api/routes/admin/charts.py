@@ -1,19 +1,17 @@
 # File: app/api/routes/admin/charts.py
 
 from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session
-from sqlalchemy.sql import func
-from datetime import datetime, timedelta
 from typing import List, Dict
-from core.database import get_db
+from datetime import datetime, timedelta
+from models.user import User
 from models.deal import Deal
-from models import User
 from models.fraud import FraudAlert
+from core.security import get_current_user
 
-router = APIRouter()
+router = APIRouter(prefix="/admin/charts", tags=["Admin - Charts"])
 
-@router.get("/admin/charts", response_model=List[Dict])
-def get_chart_data(db: Session = Depends(get_db)):
+@router.get("/", response_model=List[Dict])
+async def get_chart_data(current_user=Depends(get_current_user)):
     """
     Provides data for admin charts:
     - Daily count of new users
@@ -23,27 +21,38 @@ def get_chart_data(db: Session = Depends(get_db)):
     today = datetime.utcnow().date()
     last_7_days = [today - timedelta(days=i) for i in range(6, -1, -1)]
 
-    def count_records(model):
-        results = (
-            db.query(func.date(model.created_at).label("date"), func.count().label("count"))
-            .filter(model.created_at >= today - timedelta(days=6))
-            .group_by(func.date(model.created_at))
-            .all()
-        )
-        return {record.date: record.count for record in results}
+    def format_date(dt):
+        return dt.strftime("%Y-%m-%d")
 
     try:
-        users_data = count_records(User)
-        deals_data = count_records(Deal)
-        fraud_data = count_records(FraudAlert)
+        users = await User.all()
+        deals = await Deal.all()
+        frauds = await FraudAlert.all()
+
+        users_data = {}
+        deals_data = {}
+        fraud_data = {}
+
+        for user in users:
+            date = format_date(user.created_at.date())
+            users_data[date] = users_data.get(date, 0) + 1
+
+        for deal in deals:
+            date = format_date(deal.created_at.date())
+            deals_data[date] = deals_data.get(date, 0) + 1
+
+        for fraud in frauds:
+            date = format_date(fraud.created_at.date())
+            fraud_data[date] = fraud_data.get(date, 0) + 1
 
         chart_data = []
         for date in last_7_days:
+            formatted = date.strftime("%Y-%m-%d")
             chart_data.append({
-                "date": date.strftime("%Y-%m-%d"),
-                "users": users_data.get(date, 0),
-                "deals": deals_data.get(date, 0),
-                "frauds": fraud_data.get(date, 0),
+                "date": formatted,
+                "users": users_data.get(formatted, 0),
+                "deals": deals_data.get(formatted, 0),
+                "frauds": fraud_data.get(formatted, 0),
             })
 
         return chart_data
