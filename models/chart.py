@@ -1,3 +1,5 @@
+from tortoise.models import Model
+from tortoise import fields
 class ChartPoint(Model):
     id = fields.IntField(pk=True)
     value = fields.FloatField()
