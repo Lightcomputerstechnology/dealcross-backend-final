@@ -8,3 +8,17 @@ from .fraud import FraudAlert
 from .audit_log import AuditLog
 from .metric import Metric
 from .chart import ChartPoint
+
+# Optional: For easier dynamic model discovery (Tortoise ORM apps setup)
+__models__ = [
+    User,
+    Wallet,
+    WalletTransaction,
+    AdminWallet,
+    KYCRequest,
+    Deal,
+    FraudAlert,
+    AuditLog,
+    Metric,
+    ChartPoint,
+]
