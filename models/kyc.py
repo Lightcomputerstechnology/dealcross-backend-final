@@ -19,6 +19,6 @@ class KYCRequest(Model):
     status = fields.CharEnumField(KYCStatus, default=KYCStatus.pending)
     submitted_at = fields.DatetimeField(auto_now_add=True)
     reviewed_by = fields.ForeignKeyField(
-        "models.User", related_name="kyc_reviews", null=True, on_delete=fields.SET_NULL
+        "models.User", related_name="kyc_reviews", on_delete=fields.SET_NULL, null=True
     )
     review_note = fields.TextField(null=True)
