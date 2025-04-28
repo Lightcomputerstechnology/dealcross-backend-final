@@ -1,17 +1,7 @@
-from sqlalchemy import Column, Integer, Float, String, ForeignKey, DateTime
-from sqlalchemy.orm import relationship
-from datetime import datetime
-from core.database import Base
-
-class WalletTransaction(Base):
-    __tablename__ = "wallet_transactions"
-    __table_args__ = {'extend_existing': True}
-
-    id = Column(Integer, primary_key=True, index=True)
-    wallet_id = Column(Integer, ForeignKey("wallets.id"), nullable=False)
-    amount = Column(Float, nullable=False)
-    transaction_type = Column(String, nullable=False)  # e.g., 'fund', 'deduct', 'transfer'
-    description = Column(String, nullable=True)
-    timestamp = Column(DateTime, default=datetime.utcnow)
-
-    wallet = relationship("Wallet", back_populates="transactions", foreign_keys=[wallet_id])
+class WalletTransaction(Model):
+    id = fields.IntField(pk=True)
+    wallet = fields.ForeignKeyField("models.Wallet", related_name="transactions", on_delete=fields.CASCADE)
+    amount = fields.FloatField()
+    transaction_type = fields.CharField(max_length=50)
+    description = fields.CharField(max_length=255, null=True)
+    timestamp = fields.DatetimeField(auto_now_add=True)
