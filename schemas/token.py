@@ -1,6 +1,11 @@
 from datetime import datetime, timedelta
 from typing import Optional
 from jose import jwt, JWTError
+from pydantic import BaseModel
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str = "bearer"
 
 # Secret key and algorithm
 SECRET_KEY = "your_secret_key"  # Replace with your actual secret
