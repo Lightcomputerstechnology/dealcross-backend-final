@@ -8,5 +8,3 @@ from .fraud import FraudAlert
 from .audit_log import AuditLog
 from .metric import Metric
 from .chart import ChartPoint
-
-# ❌ No create_all() here!
