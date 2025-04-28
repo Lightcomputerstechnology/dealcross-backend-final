@@ -3,7 +3,6 @@ from sqlalchemy.orm import relationship
 from datetime import datetime
 import enum
 from core.database import Base
-from models.kyc import KYCRequest  # ✅ Import KYCRequest here
 
 class UserRole(str, enum.Enum):
     user = "user"
@@ -23,10 +22,10 @@ class User(Base):
     status = Column(String, default="active", nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow)
 
-    # Relationships
+    # Relationships (Lazy FK import)
     kyc_requests = relationship(
         "KYCRequest",
         back_populates="user",
         cascade="all, delete-orphan",
-        foreign_keys=[KYCRequest.user_id]  # ✅ Use object reference directly
+        foreign_keys="[KYCRequest.user_id]"  # Leave as string here
     )
