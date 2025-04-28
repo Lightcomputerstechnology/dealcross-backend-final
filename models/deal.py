@@ -1,9 +1,3 @@
-from sqlalchemy import Column, Integer, Float, ForeignKey, Enum, Boolean, DateTime, String
-from sqlalchemy.orm import relationship
-from datetime import datetime
-from core.database import Base
-import enum
-
 class DealStatus(str, enum.Enum):
     pending = "pending"
     active = "active"
@@ -11,21 +5,15 @@ class DealStatus(str, enum.Enum):
     disputed = "disputed"
     cancelled = "cancelled"
 
-class Deal(Base):
-    __tablename__ = 'deals'
-
-    id = Column(Integer, primary_key=True, index=True)
-    title = Column(String, index=True, nullable=False)
-    amount = Column(Float, nullable=False)
-    status = Column(Enum(DealStatus), default=DealStatus.pending)
-    description = Column(String, nullable=True)
-    public_deal = Column(Boolean, default=False)
-    is_flagged = Column(Boolean, default=False)
-    creator_id = Column(Integer, ForeignKey("users.id"), nullable=False)
-    counterparty_id = Column(Integer, ForeignKey("users.id"), nullable=False)
-    fee_applied = Column(Float, default=0.0, nullable=False)
-    created_at = Column(DateTime, default=datetime.utcnow)
-
-    # Relationships
-    creator = relationship("User", foreign_keys=[creator_id], back_populates="created_deals")
-    counterparty = relationship("User", foreign_keys=[counterparty_id], back_populates="counterparty_deals")
+class Deal(Model):
+    id = fields.IntField(pk=True)
+    title = fields.CharField(max_length=255)
+    amount = fields.FloatField()
+    status = fields.CharEnumField(DealStatus, default=DealStatus.pending)
+    description = fields.CharField(max_length=255, null=True)
+    public_deal = fields.BooleanField(default=False)
+    is_flagged = fields.BooleanField(default=False)
+    creator = fields.ForeignKeyField("models.User", related_name="created_deals", on_delete=fields.CASCADE)
+    counterparty = fields.ForeignKeyField("models.User", related_name="counterparty_deals", on_delete=fields.CASCADE)
+    fee_applied = fields.FloatField(default=0.0)
+    created_at = fields.DatetimeField(auto_now_add=True)
