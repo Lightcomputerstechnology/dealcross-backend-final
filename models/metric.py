@@ -1,5 +1,5 @@
 class Metric(Model):
     id = fields.IntField(pk=True)
-    type = fields.CharField(max_length=100)
+    name = fields.CharField(max_length=255)
     value = fields.FloatField()
     timestamp = fields.DatetimeField(auto_now_add=True)
