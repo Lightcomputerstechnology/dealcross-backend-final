@@ -14,7 +14,7 @@ class KYCRequest(Base):
     __tablename__ = "kyc_requests"
     __table_args__ = {'extend_existing': True}  # Allow table reuse
 
-    id = Column(Integer, primary_key=True, index=True)
+    id = Column(Integer, primary_key=True, index=False)
     user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     document_type = Column(String, nullable=False)
     document_url = Column(String, nullable=False)
