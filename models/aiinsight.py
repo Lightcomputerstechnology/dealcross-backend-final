@@ -1,3 +1,5 @@
+from tortoise.models import Model
+from tortoise import fields
 class AIInsight(Model):
     id = fields.IntField(pk=True)
     title = fields.CharField(max_length=255)
