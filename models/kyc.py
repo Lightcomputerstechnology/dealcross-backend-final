@@ -4,6 +4,7 @@ from datetime import datetime
 import enum
 from core.database import Base
 
+# KYC Status Enum
 class KYCStatus(str, enum.Enum):
     pending = "pending"
     approved = "approved"
@@ -11,6 +12,7 @@ class KYCStatus(str, enum.Enum):
 
 class KYCRequest(Base):
     __tablename__ = "kyc_requests"
+    __table_args__ = {'extend_existing': True}  # Allow table reuse
 
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
@@ -23,5 +25,5 @@ class KYCRequest(Base):
     user = relationship(
         "User",
         back_populates="kyc_requests",
-        foreign_keys=[user_id]  # Explicit FK
+        foreign_keys=[user_id]
     )
