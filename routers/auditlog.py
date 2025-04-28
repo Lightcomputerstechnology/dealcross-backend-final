@@ -1,16 +1,8 @@
-# File: routers/auditlog.py
+Audit Log Router (Tortoise ORM Version)
 
-from fastapi import APIRouter, Depends
-from sqlalchemy.orm import Session
-from core.database import get_db
-from core.dependencies import require_admin
-from models.audit import AuditLog
-from schemas.audit import AuditLogOut
-from typing import List
+from fastapi import APIRouter, Depends from core.dependencies import require_admin from models.auditlog import AuditLog from schemas.audit import AuditLogOut from typing import List
 
 router = APIRouter()
 
-@router.get("/audit-logs", response_model=List[AuditLogOut])
-def get_audit_logs(db: Session = Depends(get_db), admin=Depends(require_admin)):
-    logs = db.query(AuditLog).order_by(AuditLog.timestamp.desc()).all()
-    return logs
+@router.get("/audit-logs", response_model=List[AuditLogOut]) async def get_audit_logs(admin=Depends(require_admin)): logs = await AuditLog.all().order_by("-timestamp") return logs
+
