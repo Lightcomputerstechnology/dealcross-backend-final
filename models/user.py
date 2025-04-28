@@ -1,8 +1,9 @@
-from sqlalchemy import Column, Integer, String, Enum, DateTime
+# models/user.py
+
+from sqlalchemy import Column, Integer, String, Enum
 from sqlalchemy.orm import relationship
-from datetime import datetime
-import enum
 from core.database import Base
+import enum
 
 class UserRole(str, enum.Enum):
     user = "user"
@@ -12,26 +13,12 @@ class UserRole(str, enum.Enum):
 
 class User(Base):
     __tablename__ = "users"
-    __table_args__ = {'extend_existing': True}
 
     id = Column(Integer, primary_key=True, index=True)
     username = Column(String, unique=True, index=True, nullable=False)
     email = Column(String, unique=True, index=True, nullable=False)
     hashed_password = Column(String, nullable=False)
-    role = Column(Enum(UserRole), default=UserRole.user, nullable=False)
-    status = Column(String, default="active", nullable=False)
-    created_at = Column(DateTime, default=datetime.utcnow)
+    role = Column(Enum(UserRole), default=UserRole.user)
 
-    # Relationships with explicit FK string (avoid circular imports)
-    kyc_requests = relationship(
-    "KYCRequest",
-    back_populates="user",
-    cascade="all, delete-orphan",
-    foreign_keys="[KYCRequest.user_id]"
-)
-
-reviewed_kyc_requests = relationship(
-    "KYCRequest",
-    back_populates="reviewer",
-    foreign_keys="[KYCRequest.reviewed_by]"
-)
+    # Add this relationship to link with KYCRequest
+    kyc_requests = relationship("KYCRequest", back_populates="user")
