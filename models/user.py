@@ -1,5 +1,3 @@
-# models/user.py
-
 from sqlalchemy import Column, Integer, String, Enum
 from sqlalchemy.orm import relationship
 from core.database import Base
@@ -20,5 +18,6 @@ class User(Base):
     hashed_password = Column(String, nullable=False)
     role = Column(Enum(UserRole), default=UserRole.user)
 
-    # Add this relationship to link with KYCRequest
-    kyc_requests = relationship("KYCRequest", back_populates="user")
+    # Relationships
+    kyc_requests = relationship("KYCRequest", back_populates="user", foreign_keys="KYCRequest.user_id")
+    reviewed_kyc_requests = relationship("KYCRequest", back_populates="reviewer", foreign_keys="KYCRequest.reviewed_by")
