@@ -24,11 +24,14 @@ class User(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
 
     # Relationships
+    from models.kyc import KYCRequest
+
     kyc_requests = relationship(
     "KYCRequest",
     back_populates="user",
-    cascade="all, delete-orphan"
-    )
+    cascade="all, delete-orphan",
+    foreign_keys=[KYCRequest.user_id]  # ✅ Explicit FK object, not string
+)
 
     wallet = relationship(
         "Wallet",
