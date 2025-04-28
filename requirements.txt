@@ -2,6 +2,7 @@ fastapi
 uvicorn
 tortoise-orm
 aerich
+tomlkit
 asyncpg
 pydantic
 python-dotenv
