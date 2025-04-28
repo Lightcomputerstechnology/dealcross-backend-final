@@ -1,3 +1,5 @@
+from tortoise.models import Model
+from tortoise import fields
 class AppSettings(Model):
     id = fields.IntField(pk=True)
     setting_name = fields.CharField(max_length=255, unique=True)
