@@ -1,25 +1,13 @@
-from sqlalchemy import create_engine
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
-from config import settings
+from tortoise import Tortoise
 
-SQLALCHEMY_DATABASE_URL = settings.DATABASE_URL
+async def init_db():
+    await Tortoise.init(
+        db_url="postgres://dealcross_db_mybg_user:your_password@dpg-d06rhgali9vc73elmnlg-a/dealcross_db_mybg",
+        modules={"models": ["models.user", "models.kyc", "models.wallet", "models.admin_wallet", 
+                            "models.deal", "models.share", "models.escrow_tracker", 
+                            "models.dispute", "models.settings", "models.aiinsight"]}
+    )
+    await Tortoise.generate_schemas()  # Auto-create tables if they don't exist
 
-engine = create_engine(SQLALCHEMY_DATABASE_URL)
-SessionLocal = sessionmaker(bind=engine, autocommit=False, autoflush=False)
-
-Base = declarative_base()
-
-# IMPORT ALL MODELS HERE
-from models import User
-from models.deal import Deal
-from models.share import Share
-from models.wallet import Wallet
-from models.admin import Admin
-from models.escrow_tracker import EscrowTracker
-from models.dispute import Dispute
-from models.settings import AppSettings
-from models.aiinsight import AIInsight
-
-# Now create all tables
-Base.metadata.create_all(bind=engine)
+async def close_db():
+    await Tortoise.close_connections()
