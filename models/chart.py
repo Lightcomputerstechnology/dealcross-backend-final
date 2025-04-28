@@ -1,11 +1,5 @@
-from sqlalchemy import Column, Integer, String, Float, DateTime
-from datetime import datetime
-from core.database import Base
-
-class ChartPoint(Base):
-    __tablename__ = "chart_points"
-
-    id = Column(Integer, primary_key=True, index=True)
-    label = Column(String, nullable=False)  # Example: "User Growth", "Revenue"
-    value = Column(Float, nullable=False)   # Example: 1500.5
-    timestamp = Column(DateTime, default=datetime.utcnow)  # Time of data point
+class ChartPoint(Model):
+    id = fields.IntField(pk=True)
+    value = fields.FloatField()
+    label = fields.CharField(max_length=255)
+    timestamp = fields.DatetimeField(auto_now_add=True)
