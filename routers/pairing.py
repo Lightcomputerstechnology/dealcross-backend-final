@@ -1,65 +1,42 @@
-from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
-from core.database import get_db
-from core.security import get_current_user
-from models.pairing import Pairing, PairingStatus
-from models import User
-from schemas.pairing import PairRequest, PairOut
+Deal Pairing Router (Tortoise ORM Version)
+
+from fastapi import APIRouter, Depends, HTTPException, status from core.security import get_current_user from models.pairing import Pairing, PairingStatus from models.user import User from schemas.pairing import PairRequest, PairOut
 
 router = APIRouter(prefix="/deals", tags=["Deal Pairing"])
 
-# Initiate Pairing
-@router.post("/pair", response_model=PairOut)
-def initiate_pairing(
-    payload: PairRequest,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
-):
-    # Find counterparty
-    counterparty = db.query(User).filter(User.email == payload.counterparty_email).first()
-    if not counterparty:
-        raise HTTPException(status_code=404, detail="Counterparty not found.")
+Initiate Pairing
 
-    # Prevent self-pairing
-    if counterparty.id == current_user.id:
-        raise HTTPException(status_code=400, detail="Cannot pair with yourself.")
+@router.post("/pair", response_model=PairOut) async def initiate_pairing( payload: PairRequest, current_user: User = Depends(get_current_user) ): counterparty = await User.get_or_none(email=payload.counterparty_email) if not counterparty: raise HTTPException(status_code=404, detail="Counterparty not found.")
 
-    # Check if pairing exists
-    existing = db.query(Pairing).filter(
-        Pairing.creator_id == current_user.id,
-        Pairing.counterparty_id == counterparty.id,
-        Pairing.status == PairingStatus.pending
-    ).first()
+if counterparty.id == current_user.id:
+    raise HTTPException(status_code=400, detail="Cannot pair with yourself.")
 
-    if existing:
-        raise HTTPException(status_code=400, detail="Pairing already pending.")
+existing = await Pairing.filter(
+    creator=current_user,
+    counterparty=counterparty,
+    status=PairingStatus.pending
+).first()
 
-    # Create pairing
-    new_pair = Pairing(creator_id=current_user.id, counterparty_id=counterparty.id)
-    db.add(new_pair)
-    db.commit()
-    db.refresh(new_pair)
-    return new_pair
+if existing:
+    raise HTTPException(status_code=400, detail="Pairing already pending.")
 
-# Confirm Pairing
-@router.post("/pair/{pair_id}/confirm", response_model=PairOut)
-def confirm_pairing(
-    pair_id: int,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
-):
-    pairing = db.query(Pairing).filter(Pairing.id == pair_id).first()
-    if not pairing:
-        raise HTTPException(status_code=404, detail="Pairing not found.")
+new_pair = await Pairing.create(
+    creator=current_user,
+    counterparty=counterparty
+)
+return new_pair
 
-    # Only counterparty can confirm
-    if pairing.counterparty_id != current_user.id:
-        raise HTTPException(status_code=403, detail="Not authorized to confirm this pairing.")
+Confirm Pairing
 
-    if pairing.status != PairingStatus.pending:
-        raise HTTPException(status_code=400, detail="Pairing already processed.")
+@router.post("/pair/{pair_id}/confirm", response_model=PairOut) async def confirm_pairing( pair_id: int, current_user: User = Depends(get_current_user) ): pairing = await Pairing.get_or_none(id=pair_id) if not pairing: raise HTTPException(status_code=404, detail="Pairing not found.")
 
-    pairing.status = PairingStatus.confirmed
-    db.commit()
-    db.refresh(pairing)
-    return pairing
+if pairing.counterparty_id != current_user.id:
+    raise HTTPException(status_code=403, detail="Not authorized to confirm this pairing.")
+
+if pairing.status != PairingStatus.pending:
+    raise HTTPException(status_code=400, detail="Pairing already processed.")
+
+pairing.status = PairingStatus.confirmed
+await pairing.save()
+return pairing
+
