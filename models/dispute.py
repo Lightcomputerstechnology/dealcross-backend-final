@@ -1,3 +1,5 @@
+from tortoise.models import Model
+from tortoise import fields
 class Dispute(Model):
     id = fields.IntField(pk=True)
     deal = fields.ForeignKeyField("models.Deal", related_name="disputes", on_delete=fields.CASCADE)
