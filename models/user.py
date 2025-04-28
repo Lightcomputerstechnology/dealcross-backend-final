@@ -24,14 +24,14 @@ class User(Base):
 
     # Relationships with explicit FK string (avoid circular imports)
     kyc_requests = relationship(
-        "KYCRequest",
-        back_populates="user",
-        cascade="all, delete-orphan",
-        foreign_keys="[KYCRequest.user_id]"
-    )
+    "KYCRequest",
+    back_populates="user",
+    cascade="all, delete-orphan",
+    foreign_keys="[KYCRequest.user_id]"
+)
 
-    reviewed_kyc_requests = relationship(
-        "KYCRequest",
-        back_populates="reviewed_by_user",
-        foreign_keys="[KYCRequest.reviewed_by]"
-    )
+reviewed_kyc_requests = relationship(
+    "KYCRequest",
+    back_populates="reviewer",
+    foreign_keys="[KYCRequest.reviewed_by]"
+)
