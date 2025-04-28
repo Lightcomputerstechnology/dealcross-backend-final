@@ -1,3 +1,5 @@
+from tortoise.models import Model
+from tortoise import fields
 class WalletTransaction(Model):
     id = fields.IntField(pk=True)
     wallet = fields.ForeignKeyField("models.Wallet", related_name="transactions", on_delete=fields.CASCADE)
