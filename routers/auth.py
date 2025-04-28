@@ -1,20 +1,21 @@
-# File: src/routers/auth.py
+# File: src/utils/auth.py
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import Depends, HTTPException, status
+from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
-from tortoise.transactions import in_transaction
 from models.user import User
 from core.config import settings
-
-router = APIRouter()
 
 # Load secret and algorithm from your config
 SECRET_KEY = settings.SECRET_KEY
 ALGORITHM = settings.ALGORITHM
 
+# Initialize OAuth2 scheme properly
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
+
 async def verify_token(token: str) -> User:
     """
-    Verifies a JWT token and returns the corresponding user using Tortoise ORM.
+    Verifies a JWT token and returns the corresponding user.
     """
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
@@ -35,7 +36,7 @@ async def verify_token(token: str) -> User:
         raise credentials_exception
     return user
 
-async def get_current_user(token: str = Depends(settings.oauth2_scheme)) -> User:
+async def get_current_user(token: str = Depends(oauth2_scheme)) -> User:
     """
     Dependency to get the current user from the token.
     """
