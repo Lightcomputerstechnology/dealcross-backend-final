@@ -1,31 +1,13 @@
-# File: src/models/kyc.py
+KYC Model (Tortoise ORM Version)
 
-from sqlalchemy import Column, Integer, String, ForeignKey, Enum, DateTime, Text
-from sqlalchemy.orm import relationship
-from core.database import Base
-from datetime import datetime
-import enum
+from tortoise import fields from tortoise.models import Model import enum
 
-class KYCStatus(str, enum.Enum):
-    pending  = "pending"
-    approved = "approved"
-    rejected = "rejected"
+class KYCStatus(str, enum.Enum): pending  = "pending" approved = "approved" rejected = "rejected"
 
-class KYC(Base):
-    __tablename__  = "kyc_requests"
-    __table_args__ = {"extend_existing": True}
+class KYC(Model): id            = fields.IntField(pk=True) user          = fields.ForeignKeyField("models.User", related_name="kyc_requests", on_delete=fields.CASCADE) document_type = fields.CharField(max_length=255) document_url  = fields.CharField(max_length=255) status        = fields.CharEnumField(KYCStatus, default=KYCStatus.pending) submitted_at  = fields.DatetimeField(auto_now_add=True)
 
-    id            = Column(Integer, primary_key=True, index=True)
-    user_id       = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
-    document_type = Column(String, nullable=False)
-    document_url  = Column(String, nullable=False)
-    status        = Column(Enum(KYCStatus), default=KYCStatus.pending, nullable=False)
-    submitted_at  = Column(DateTime, default=datetime.utcnow, nullable=False)
+# ——— Admin review fields ———
+review_note   = fields.TextField(null=True)
+reviewed_by   = fields.ForeignKeyField("models.User", related_name="reviewed_kyc", null=True)
+reviewed_at   = fields.DatetimeField(null=True)
 
-    # ——— Admin review fields ———
-    review_note   = Column(Text,     nullable=True)
-    reviewed_by   = Column(Integer,  ForeignKey("users.id"), nullable=True)
-    reviewed_at   = Column(DateTime, nullable=True)
-
-    # relationship back to User
-    user = relationship("User", back_populates="kyc_requests")
