@@ -11,7 +11,9 @@ class KYCStatus(str, enum.Enum):
 
 class KYCRequest(Model):
     id = fields.IntField(pk=True)
-    user = fields.ForeignKeyField("models.User", related_name="kyc_requests", on_delete=fields.CASCADE)
+    user = fields.ForeignKeyField(
+        "models.User", related_name="kyc_requests", on_delete=fields.CASCADE
+    )
     document_type = fields.CharField(max_length=255)
     document_url = fields.CharField(max_length=255)
     status = fields.CharEnumField(KYCStatus, default=KYCStatus.pending)
