@@ -4,17 +4,7 @@ from config import settings  # Your Pydantic settings
 # Tortoise ORM config using DATABASE_URL and SSL
 TORTOISE_ORM = {
     "connections": {
-        "default": {
-            "engine": "tortoise.backends.asyncpg",
-            "credentials": {
-                "host": "dpg-d06rhgali9vc73elmnlg-a",
-                "port": 5432,
-                "user": "dealcross_db_mybg_user",
-                "password": "uaDD6kKDRWuESF6YCnvaWvJjGQkUymDl",
-                "database": "dealcross_db_mybg",
-                "ssl": True  # ✅ This handles SSL for asyncpg!
-            }
-        }
+        "default": settings.DATABASE_URL  # uses postgresql+asyncpg://
     },
     "apps": {
         "models": {
@@ -29,9 +19,9 @@ TORTOISE_ORM = {
                 "models.audit_log",
                 "models.metric",
                 "models.chart",
-                "aerich.models"
+                "aerich.models"  # Required for migrations
             ],
             "default_connection": "default",
         }
-    }
+    },
 }
