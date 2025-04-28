@@ -1,33 +1,20 @@
-from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session
-from core.database import get_db
-from core.security import get_current_user, get_password_hash
-from models import User
-from schemas.user import UserOut, UserUpdate
+User Profile Router (Tortoise ORM Version)
 
-router = APIRouter(
-    prefix="/users",
-    tags=["User Profile"],
-)
+from fastapi import APIRouter, Depends, HTTPException from core.security import get_current_user, get_password_hash from models.user import User from schemas.user import UserOut, UserUpdate
 
-# ───────────── GET CURRENT USER PROFILE ─────────────
-@router.get("/me", response_model=UserOut)
-def read_my_profile(current_user: User = Depends(get_current_user)):
-    return current_user
+router = APIRouter( prefix="/users", tags=["User Profile"], )
 
-# ───────────── UPDATE CURRENT USER PROFILE ─────────────
-@router.put("/me", response_model=UserOut)
-def update_my_profile(
-    update_data: UserUpdate,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
-):
-    if update_data.full_name:
-        current_user.full_name = update_data.full_name
+───────────── GET CURRENT USER PROFILE ─────────────
 
-    if update_data.password:
-        current_user.hashed_password = get_password_hash(update_data.password)
+@router.get("/me", response_model=UserOut) async def read_my_profile(current_user: User = Depends(get_current_user)): return current_user
 
-    db.commit()
-    db.refresh(current_user)
-    return current_user
+───────────── UPDATE CURRENT USER PROFILE ─────────────
+
+@router.put("/me", response_model=UserOut) async def update_my_profile( update_data: UserUpdate, current_user: User = Depends(get_current_user) ): if update_data.full_name: current_user.full_name = update_data.full_name
+
+if update_data.password:
+    current_user.hashed_password = get_password_hash(update_data.password)
+
+await current_user.save()
+return current_user
+
