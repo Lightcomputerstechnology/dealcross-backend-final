@@ -7,8 +7,12 @@ TORTOISE_ORM = {
         "default": {
             "engine": "tortoise.backends.asyncpg",
             "credentials": {
-                "uri": settings.DATABASE_URL,  # Use the full URL from settings
-                "ssl": True                    # Enable SSL here
+                "host": "dpg-d06rhgali9vc73elmnlg-a",
+                "port": 5432,
+                "user": "dealcross_db_mybg_user",
+                "password": "uaDD6kKDRWuESF6YCnvaWvJjGQkUymDl",
+                "database": "dealcross_db_mybg",
+                "ssl": True  # ✅ This handles SSL for asyncpg!
             }
         }
     },
@@ -31,12 +35,3 @@ TORTOISE_ORM = {
         }
     }
 }
-
-# Initialize Tortoise
-async def init_db():
-    await Tortoise.init(config=TORTOISE_ORM)
-    await Tortoise.generate_schemas()
-
-# Close connection
-async def close_db():
-    await Tortoise.close_connections()
