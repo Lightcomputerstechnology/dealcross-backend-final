@@ -1,5 +1,3 @@
-# models/kyc.py
-
 from sqlalchemy import Column, Integer, String, Enum, DateTime, ForeignKey
 from sqlalchemy.orm import relationship
 from datetime import datetime
@@ -23,5 +21,6 @@ class KYCRequest(Base):
     reviewed_by = Column(Integer, ForeignKey("users.id"))
     reviewed_at = Column(DateTime)
 
-    # Back-populates for SQLAlchemy relationship
-    user = relationship("User", back_populates="kyc_requests")
+    # Relationships with foreign_keys specified
+    user = relationship("User", back_populates="kyc_requests", foreign_keys=[user_id])
+    reviewer = relationship("User", foreign_keys=[reviewed_by])
