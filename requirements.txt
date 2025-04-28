@@ -1,9 +1,10 @@
 fastapi
 uvicorn
-sqlalchemy
+tortoise-orm
+aerich
+asyncpg
 pydantic
 python-dotenv
-psycopg2-binary
 python-jose
 passlib[bcrypt]
 python-multipart
