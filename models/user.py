@@ -25,10 +25,9 @@ class User(Base):
 
     # Relationships
     kyc_requests = relationship(
-        "KYCRequest",
-        back_populates="user",
-        cascade="all, delete-orphan",
-        foreign_keys="KYCRequest.user_id"
+    "KYCRequest",
+    back_populates="user",
+    cascade="all, delete-orphan"
     )
 
     wallet = relationship(
