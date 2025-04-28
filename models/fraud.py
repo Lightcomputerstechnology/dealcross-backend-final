@@ -1,3 +1,5 @@
+from tortoise.models import Model
+from tortoise import fields
 class FraudAlert(Model):
     id = fields.IntField(pk=True)
     user = fields.ForeignKeyField("models.User", related_name="fraud_alerts", on_delete=fields.CASCADE)
