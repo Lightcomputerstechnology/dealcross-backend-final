@@ -1,13 +1,6 @@
-# File: models/login_attempt.py
-
-from sqlalchemy import Column, Integer, String, ForeignKey, DateTime
-from datetime import datetime
-from core.database import Base
-
-class LoginAttempt(Base):
-    __tablename__ = "login_attempts"
-
-    id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=True)
-    status = Column(String, nullable=False)  # 'failed' or 'successful'
-    timestamp = Column(DateTime, default=datetime.utcnow)
+class LoginAttempt(Model):
+    id = fields.IntField(pk=True)
+    user = fields.ForeignKeyField("models.User", related_name="login_attempts", on_delete=fields.CASCADE)
+    ip_address = fields.CharField(max_length=255)
+    timestamp = fields.DatetimeField(auto_now_add=True)
+    successful = fields.BooleanField()
