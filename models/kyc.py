@@ -18,9 +18,9 @@ class KYCRequest(Base):
     document_url = Column(String, nullable=False)
     status = Column(Enum(KYCStatus), default=KYCStatus.pending, nullable=False)
     submitted_at = Column(DateTime, default=datetime.utcnow, nullable=False)
-    reviewed_by = Column(Integer, ForeignKey("users.id"))
-    reviewed_at = Column(DateTime)
+    reviewed_by = Column(Integer, ForeignKey("users.id"), nullable=True)
+    reviewed_at = Column(DateTime, nullable=True)
 
-    # Relationships with foreign_keys specified
+    # Relationships
     user = relationship("User", back_populates="kyc_requests", foreign_keys=[user_id])
-    reviewer = relationship("User", foreign_keys=[reviewed_by])
+    reviewer = relationship("User", back_populates="reviewed_kyc_requests", foreign_keys=[reviewed_by])
