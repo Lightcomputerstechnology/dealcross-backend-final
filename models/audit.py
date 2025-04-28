@@ -1,3 +1,5 @@
+from tortoise.models import Model
+from tortoise import fields
 class Audit(Model):
     id = fields.IntField(pk=True)
     action = fields.CharField(max_length=255)
