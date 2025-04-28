@@ -1,9 +1,13 @@
-from tortoise import fields
-from tortoise.models import Model
+from tortoise import fields, models
 
-class Admin(Model):
+# ─────────── ADMIN MODEL ───────────
+
+class Admin(models.Model):
     id = fields.IntField(pk=True)
     name = fields.CharField(max_length=255)
     email = fields.CharField(max_length=255, unique=True)
-    role = fields.CharField(max_length=255, default="admin")
+    role = fields.CharField(max_length=50, default="admin")
     created_at = fields.DatetimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Admin(id={self.id}, email='{self.email}')"
