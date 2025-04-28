@@ -1,3 +1,5 @@
+from tortoise.models import Model
+from tortoise import fields
 class Logs(Model):
     id = fields.IntField(pk=True)
     message = fields.TextField()
