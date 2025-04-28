@@ -1,25 +1,20 @@
 # File: app/api/routes/admin/auditlog.py
 
 from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session
 from typing import List
-from core.database import get_db
+from core.security import get_current_user
 from models.audit_log import AuditLog
 from schemas.audit_schema import AuditLogOut
 
-router = APIRouter()
+router = APIRouter(prefix="/admin/audit-logs", tags=["Admin - Audit Logs"])
 
-@router.get("/audit-logs", response_model=List[AuditLogOut])
-def fetch_audit_logs(db: Session = Depends(get_db)):
+@router.get("/", response_model=List[AuditLogOut])
+async def fetch_audit_logs(current_user=Depends(get_current_user)):
     """
     Get recent admin actions for transparency and monitoring.
     """
     try:
-        return (
-            db.query(AuditLog)
-            .order_by(AuditLog.timestamp.desc())
-            .limit(50)
-            .all()
-        )
+        logs = await AuditLog.all().order_by("-created_at").limit(50)
+        return [AuditLogOut.model_validate(log) for log in logs]
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error fetching logs: {str(e)}")
