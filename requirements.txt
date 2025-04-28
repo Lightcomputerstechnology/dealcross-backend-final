@@ -5,6 +5,7 @@ aerich
 tomlkit
 asyncpg
 pydantic
+PyJWT==2.8.0
 python-dotenv
 python-jose
 passlib[bcrypt]
