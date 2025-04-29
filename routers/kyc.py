@@ -1,23 +1,28 @@
-# File: src/models/kyc.py
+# File: routers/kyc.py
 
-from tortoise import fields
-from tortoise.models import Model
-import enum
+from fastapi import APIRouter, Depends, HTTPException
+from models.kyc import KYCRequest, KYCStatus
+from core.security import get_current_user
+from tortoise.exceptions import DoesNotExist
+from schemas.kyc_schema import KYCRequestCreate, KYCRequestOut
+from typing import List
+from datetime import datetime
 
-class KYCStatus(str, enum.Enum):
-    pending = "pending"
-    approved = "approved"
-    rejected = "rejected"
+router = APIRouter()
 
-class KYC(Model):
-    id = fields.IntField(pk=True)
-    user = fields.ForeignKeyField("models.User", related_name="kyc_requests", on_delete=fields.CASCADE)
-    document_type = fields.CharField(max_length=255)
-    document_url = fields.CharField(max_length=255)
-    status = fields.CharEnumField(KYCStatus, default=KYCStatus.pending)
-    submitted_at = fields.DatetimeField(auto_now_add=True)
+# Submit new KYC request
+@router.post("/", response_model=KYCRequestOut)
+async def submit_kyc(kyc_data: KYCRequestCreate, current_user=Depends(get_current_user)):
+    kyc = await KYCRequest.create(
+        user=current_user,
+        document_type=kyc_data.document_type,
+        document_url=kyc_data.document_url,
+        status=KYCStatus.pending,
+        submitted_at=datetime.utcnow()
+    )
+    return kyc
 
-    # ——— Admin review fields ———
-    review_note = fields.TextField(null=True)
-    reviewed_by = fields.ForeignKeyField("models.User", related_name="reviewed_kyc", null=True, on_delete=fields.SET_NULL)
-    reviewed_at = fields.DatetimeField(null=True)
+# View my KYC status
+@router.get("/my-kyc", response_model=List[KYCRequestOut])
+async def view_my_kyc(current_user=Depends(get_current_user)):
+    return await KYCRequest.filter(user=current_user).order_by("-submitted_at")
