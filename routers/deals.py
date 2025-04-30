@@ -11,7 +11,6 @@ from schemas.deal import DealCreate, DealOut
 router = APIRouter(prefix="/deals", tags=["Deals"])
 
 # ─────────── CREATE DEAL ───────────
-
 @router.post("/", response_model=DealOut, summary="Create a new deal")
 async def create_deal(
     deal: DealCreate,
@@ -24,15 +23,38 @@ async def create_deal(
     )
     return DealOut.model_validate(new_deal)
 
-# ─────────── FUND DEAL ───────────
+# ─────────── GET PENDING PAIRINGS ───────────
+@router.get("/pairing/pending", summary="Fetch pending pairings for user")
+async def get_pending_pairings(current_user: User = Depends(get_current_user)):
+    pairings = await Deal.filter(counterparty=None).exclude(creator=current_user)
+    return [DealOut.model_validate(p) for p in pairings]
 
+# ─────────── CONFIRM PAIRING ───────────
+@router.post("/pairing/confirm/{deal_id}", summary="Confirm and pair a deal")
+async def confirm_pairing(
+    deal_id: int,
+    current_user: User = Depends(get_current_user)
+):
+    deal = await Deal.get_or_none(id=deal_id, counterparty=None)
+    if not deal or deal.creator_id == current_user.id:
+        raise HTTPException(status_code=400, detail="Invalid deal for pairing.")
+
+    deal.counterparty = current_user
+    deal.status = "paired"
+    await deal.save()
+
+    # TODO: Notify the creator that the deal has been paired
+
+    return {"message": "Pairing confirmed."}
+
+# ─────────── FUND DEAL ───────────
 @router.post("/{deal_id}/fund", summary="Fund a deal")
 async def fund_deal(
     deal_id: int,
     current_user: User = Depends(get_current_user),
 ):
     deal = await Deal.get_or_none(id=deal_id, creator=current_user)
-    if not deal or deal.status != "pending":
+    if not deal or deal.status != "paired":
         raise HTTPException(status_code=400, detail="Deal not found or cannot be funded.")
 
     wallet = await Wallet.get(user=current_user)
@@ -56,7 +78,6 @@ async def fund_deal(
     return {"message": "Deal funded successfully."}
 
 # ─────────── MARK DEAL AS DELIVERED ───────────
-
 @router.post("/{deal_id}/deliver", summary="Mark a deal as delivered")
 async def mark_delivered(
     deal_id: int,
@@ -72,7 +93,6 @@ async def mark_delivered(
     return {"message": "Deal marked as delivered."}
 
 # ─────────── RELEASE FUNDS ───────────
-
 @router.post("/{deal_id}/release", summary="Release funds for a completed deal")
 async def release_funds(
     deal_id: int,
@@ -97,7 +117,6 @@ async def release_funds(
     return {"message": "Funds released to seller."}
 
 # ─────────── RAISE DISPUTE ───────────
-
 @router.post("/{deal_id}/dispute", summary="Raise a dispute on a deal")
 async def raise_dispute(
     deal_id: int,
