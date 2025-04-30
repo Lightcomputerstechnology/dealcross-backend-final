@@ -7,11 +7,11 @@ from typing import List
 
 # ─────────── Single Chart Point Creation ───────────
 class ChartPointCreate(BaseModel):
-    label: str
-    value: float
+    label: str         # e.g., "Mon", "Revenue"
+    value: float       # Numeric metric
 
 
-# ─────────── Output Model for Single Point ───────────
+# ─────────── Output Model for a Saved Chart Point ───────────
 class ChartPointOut(ChartPointCreate):
     id: int
     timestamp: datetime
@@ -19,13 +19,14 @@ class ChartPointOut(ChartPointCreate):
     model_config = {"from_attributes": True}
 
 
-# ─────────── Grouped Response Schema ───────────
+# ─────────── Reusable Data Point Model for Charts ───────────
 class ChartPoint(BaseModel):
-    label: str         # e.g. "Mon", "Tue"
-    value: float       # count (e.g. number of users/deals)
+    label: str                  # e.g., "Mon", "Tue"
+    value: float                # User or deal count
     timestamp: datetime
 
 
+# ─────────── Full Response Payload for Chart API ───────────
 class ChartDataResponse(BaseModel):
-    chart_type: str                  # e.g. "user_vs_deal"
+    chart_type: str             # e.g., "user_vs_deal", "growth_over_time"
     data: List[ChartPoint]
