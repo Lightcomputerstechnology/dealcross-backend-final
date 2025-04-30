@@ -3,7 +3,6 @@
 from tortoise.models import Model
 from tortoise import fields
 
-
 class ChartPoint(Model):
     """
     Represents a single data point on an admin chart (e.g., user growth, revenue).
