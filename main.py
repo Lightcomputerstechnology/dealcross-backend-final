@@ -1,17 +1,21 @@
+# File: main.py
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from core.db import init_db, close_db  # Corrected path
-from core.middleware import RateLimitMiddleware  # Corrected path
-from app.api.routes import router as api_router  # Corrected path
-from routers import chart
-app.include_router(chart.router)
 
+from core.db import init_db, close_db
+from core.middleware import RateLimitMiddleware
+from app.api.routes import router as api_router
+from routers import chart  # ✅ Chart router for admin charts
+
+# Initialize FastAPI app
 app = FastAPI(
     title="Dealcross Backend",
     version="1.0.0",
     description="FastAPI backend for Dealcross platform including escrow, wallet, and analytics."
 )
 
+# ─── Lifecycle Events ─────────────────────────
 @app.on_event("startup")
 async def startup_event():
     await init_db()
@@ -20,7 +24,7 @@ async def startup_event():
 async def shutdown_event():
     await close_db()
 
-# Middleware
+# ─── Middleware ───────────────────────────────
 app.add_middleware(RateLimitMiddleware)
 app.add_middleware(
     CORSMiddleware,
@@ -30,5 +34,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Routes
-app.include_router(api_router)
+# ─── API Routes ───────────────────────────────
+app.include_router(api_router)       # All grouped API endpoints
+app.include_router(chart.router)     # ✅ Chart analytics endpoint
