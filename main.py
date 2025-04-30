@@ -3,6 +3,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from core.db import init_db, close_db  # Corrected path
 from core.middleware import RateLimitMiddleware  # Corrected path
 from app.api.routes import router as api_router  # Corrected path
+from routers import chart
+app.include_router(chart.router)
 
 app = FastAPI(
     title="Dealcross Backend",
