@@ -5,9 +5,11 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from core.db import init_db, close_db
 from core.middleware import RateLimitMiddleware
+
 from app.api.routes import router as api_router
-from routers import chart  # ✅ Chart router for admin charts
-from routers import chat   # ✅ Chat router for user/admin chat support
+from routers import chart         # ✅ Chart router for admin charts
+from routers import chat          # ✅ Chat router for user/admin chat support
+from routers import health        # ✅ Health router for server status
 
 # Initialize FastAPI app
 app = FastAPI(
@@ -38,4 +40,5 @@ app.add_middleware(
 # ─── API Routes ───────────────────────────────
 app.include_router(api_router)       # All grouped API endpoints
 app.include_router(chart.router)     # ✅ Chart analytics endpoint
-app.include_router(chat.router)      # ✅ Chat system endpoint (frontend + admin)
+app.include_router(chat.router)      # ✅ Chat system endpoint
+app.include_router(health.router)    # ✅ Health monitoring endpoint
