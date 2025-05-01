@@ -7,6 +7,9 @@ router = APIRouter()
 # — public
 from routers import auth, wallet, deals, disputes, kyc, upload, notifications
 
+from routers import blog
+router.include_router(blog.router, prefix="/blog", tags=["Blog"])
+
 router.include_router(auth.router, prefix="/auth", tags=["Auth"])
 router.include_router(wallet.router, prefix="/wallet", tags=["Wallet"])
 router.include_router(deals.router, prefix="/deals", tags=["Deals"])
