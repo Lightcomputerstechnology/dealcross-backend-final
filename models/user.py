@@ -17,8 +17,8 @@ class User(Model):
     email = fields.CharField(max_length=255, unique=True, null=False)
     password = fields.CharField(max_length=255, null=False)
     role = fields.CharEnumField(UserRole, default=UserRole.user)
+    email_verified = fields.BooleanField(default=False)  # ✅ Added field
     created_at = fields.DatetimeField(auto_now_add=True)
 
-    # Optional: Human readable representation
     def __str__(self):
         return f"User({self.username}, {self.email}, {self.role})"
