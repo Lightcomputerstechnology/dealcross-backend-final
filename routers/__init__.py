@@ -1,11 +1,10 @@
-# File: routers/__init__.py
+# File: routers/_ini_.py
 
 from . import subscription
 from . import chart
 from . import chat
 
-__all__ = [
+__all__ -[
     "subscription",
     "chart",
     "chat",
-]
