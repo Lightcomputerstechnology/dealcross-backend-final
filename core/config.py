@@ -1,4 +1,4 @@
-from pydantic_settings import BaseSettings  # or 'from pydantic import BaseSettings' for v1
+from pydantic_settings import BaseSettings  # or: from pydantic import BaseSettings for v1
 
 class Settings(BaseSettings):
     # Core Auth Settings
@@ -17,6 +17,6 @@ class Settings(BaseSettings):
 
     class Config:
         env_file = ".env"
-        extra = "allow"  # ✅ This fixes the ValidationError for any unused/extra vars
+        extra = "allow"  # ✅ Accepts extra vars not declared
 
 settings = Settings()
