@@ -5,6 +5,7 @@ from . import chart
 from . import chat
 
 __all__ = [
+    "subscription",
     "chart",
     "chat",
 ]
