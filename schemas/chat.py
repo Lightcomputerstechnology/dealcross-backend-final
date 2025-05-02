@@ -21,4 +21,3 @@ class ChatMessageOut(BaseModel):
     timestamp: datetime
 
     model_config = {"from_attributes": True}
-    
