@@ -1,27 +1,29 @@
-from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session
-from core.database import get_db
-from models.blog import BlogPost
+# File: routers/blog.py
+
+from fastapi import APIRouter, HTTPException
+from tortoise.contrib.fastapi import HTTPNotFoundError
+from models.blog import BlogPost  # Tortoise model
 from schemas.blog import BlogPostCreate, BlogPostOut
 from typing import List
 
 router = APIRouter(prefix="/blog", tags=["Blog"])
 
+
 @router.post("/posts", response_model=BlogPostOut)
-def create_post(data: BlogPostCreate, db: Session = Depends(get_db)):
-    post = BlogPost(**data.dict())
-    db.add(post)
-    db.commit()
-    db.refresh(post)
-    return post
+async def create_post(data: BlogPostCreate):
+    post = await BlogPost.create(**data.dict())
+    return await BlogPostOut.from_tortoise_orm(post)
+
 
 @router.get("/posts", response_model=List[BlogPostOut])
-def get_posts(db: Session = Depends(get_db)):
-    return db.query(BlogPost).order_by(BlogPost.published_at.desc()).all()
+async def get_posts():
+    posts = await BlogPost.all().order_by("-published_at")
+    return [await BlogPostOut.from_tortoise_orm(post) for post in posts]
 
-@router.get("/posts/{slug}", response_model=BlogPostOut)
-def get_post(slug: str, db: Session = Depends(get_db)):
-    post = db.query(BlogPost).filter(BlogPost.slug == slug).first()
+
+@router.get("/posts/{slug}", response_model=BlogPostOut, responses={404: {"model": HTTPNotFoundError}})
+async def get_post(slug: str):
+    post = await BlogPost.get_or_none(slug=slug)
     if not post:
         raise HTTPException(status_code=404, detail="Post not found")
-    return post
+    return await BlogPostOut.from_tortoise_orm(post)
