@@ -8,6 +8,7 @@ from .fraud import FraudAlert
 from .audit_log import AuditLog
 from .metric import Metric
 from .chart import ChartPoint
+from .chat import ChatMessage  # ✅ Added
 
 # Optional: For easier dynamic model discovery (Tortoise ORM apps setup)
 __models__ = [
@@ -21,4 +22,5 @@ __models__ = [
     AuditLog,
     Metric,
     ChartPoint,
+    ChatMessage,  # ✅ Added here too
 ]
