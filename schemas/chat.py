@@ -1,4 +1,4 @@
-# File: schemas/chat_schema.py
+# File: schemas/chat.py
 
 from pydantic import BaseModel
 from typing import Optional
