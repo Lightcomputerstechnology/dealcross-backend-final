@@ -1,13 +1,11 @@
-from sqlalchemy import Column, Integer, String, Text, DateTime
-from datetime import datetime
-from core.database import Base
+# File: models/blog.py
 
-class BlogPost(Base):
-    __tablename__ = "blog_posts"
-    id = Column(Integer, primary_key=True, index=True)
-    title = Column(String(255), nullable=False)
-    slug = Column(String(255), unique=True, nullable=False)
-    content = Column(Text, nullable=False)
-    author = Column(String(100), nullable=False)
-    read_time = Column(String(50))
-    published_at = Column(DateTime, default=datetime.utcnow)
+from tortoise import fields
+from tortoise.models import Model
+
+class BlogPost(Model):
+    id = fields.IntField(pk=True)
+    title = fields.CharField(max_length=255)
+    slug = fields.CharField(max_length=255, unique=True)
+    content = fields.TextField()
+    published_at = fields.DatetimeField(auto_now_add=True)
