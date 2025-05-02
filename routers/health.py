@@ -1,6 +1,7 @@
+# File: routers/health.py
+
 from fastapi import APIRouter
-from sqlalchemy import text
-from core.database import engine
+from tortoise.transactions import in_transaction
 import time
 
 router = APIRouter()
@@ -9,11 +10,11 @@ router = APIRouter()
 start_time = time.time()
 
 @router.get("/health")
-def get_server_health():
-    # Check database connection
+async def get_server_health():
+    # Check database connection using Tortoise ORM
     try:
-        with engine.connect() as conn:
-            conn.execute(text("SELECT 1"))
+        async with in_transaction() as conn:
+            await conn.execute_query("SELECT 1")
         db_status = True
     except Exception:
         db_status = False
