@@ -1,7 +1,7 @@
 # File: routers/blog.py
 
 from fastapi import APIRouter, HTTPException
-from tortoise.contrib.fastapi import HTTPNotFoundError
+from fastapi import HTTPException
 from models.blog import BlogPost  # Tortoise model
 from schemas.blog import BlogPostCreate, BlogPostOut
 from typing import List
