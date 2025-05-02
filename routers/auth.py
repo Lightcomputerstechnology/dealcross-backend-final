@@ -6,6 +6,7 @@ from starlette.responses import JSONResponse
 from jose import JWTError, jwt
 from datetime import datetime, timedelta
 from models.user import User
+from schemas.user_schema import UserOut  # At the top
 from core.config import settings
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
@@ -38,9 +39,10 @@ async def verify_token(token: str) -> User:
 
 # ────────── ROUTES ──────────
 
-@router.get("/me")
-async def get_current_user(token: str = Depends(oauth2_scheme)) -> User:
-    return await verify_token(token)
+@router.get("/me", response_model=UserOut)
+async def get_current_user(token: str = Depends(oauth2_scheme)):
+    user = await verify_token(token)
+    return user
 
 @router.post("/verify-email")
 async def verify_email(token: str):
