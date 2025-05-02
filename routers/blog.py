@@ -1,7 +1,6 @@
 # File: routers/blog.py
 
 from fastapi import APIRouter, HTTPException
-from fastapi import HTTPException
 from models.blog import BlogPost  # Tortoise model
 from schemas.blog import BlogPostCreate, BlogPostOut
 from typing import List
@@ -21,7 +20,7 @@ async def get_posts():
     return [await BlogPostOut.from_tortoise_orm(post) for post in posts]
 
 
-@router.get("/posts/{slug}", response_model=BlogPostOut, responses={404: {"model": HTTPNotFoundError}})
+@router.get("/posts/{slug}", response_model=BlogPostOut, responses={404: {"description": "Post not found"}})
 async def get_post(slug: str):
     post = await BlogPost.get_or_none(slug=slug)
     if not post:
