@@ -1,3 +1,5 @@
+# File: core/db.py
+
 from tortoise import Tortoise
 from config import settings
 
@@ -5,8 +7,9 @@ from config import settings
 async def init_db():
     await Tortoise.init(
         db_url=settings.DATABASE_URL,
-        modules={"models": ["models"]}  # Correct path to your models
+        modules={"models": ["models"]}  # Automatically detects all listed models
     )
+    await Tortoise.generate_schemas()
 
 # Close DB connections gracefully
 async def close_db():
@@ -15,7 +18,7 @@ async def close_db():
 # Aerich configuration for migrations
 TORTOISE_ORM = {
     "connections": {
-        "default": settings.DATABASE_URL  # Must be postgresql+asyncpg://
+        "default": settings.DATABASE_URL
     },
     "apps": {
         "models": {
@@ -30,6 +33,7 @@ TORTOISE_ORM = {
                 "models.audit_log",
                 "models.metric",
                 "models.chart",
+                "models.chat",        # ✅ Included Chat model
                 "aerich.models"
             ],
             "default_connection": "default",
