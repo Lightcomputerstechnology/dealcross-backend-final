@@ -2,6 +2,7 @@
 
 from fastapi import APIRouter, Depends, HTTPException
 from tortoise.exceptions import DoesNotExist
+from tortoise.expressions import Q
 from models.chat import ChatMessage
 from models.user import User
 from schemas.chat import ChatMessageCreate, ChatMessageOut
@@ -30,8 +31,8 @@ async def get_conversation(
     current_user: User = Depends(get_current_user),
 ):
     messages = await ChatMessage.filter(
-        (fields.Q(sender_id=current_user.id) & fields.Q(receiver_id=user_id)) |
-        (fields.Q(sender_id=user_id) & fields.Q(receiver_id=current_user.id))
+        (Q(sender_id=current_user.id) & Q(receiver_id=user_id)) |
+        (Q(sender_id=user_id) & Q(receiver_id=current_user.id))
     ).order_by("timestamp")
     return await ChatMessageOut.model_validate(messages, many=True)
 
