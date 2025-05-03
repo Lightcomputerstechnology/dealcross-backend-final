@@ -3,14 +3,19 @@
 from fastapi import APIRouter, Depends, HTTPException
 from decimal import Decimal
 from core.security import get_current_user
+
+# MODELS
 from models.deal import Deal
 from models.user import User
 from models.wallet import Wallet
 from models.wallet_transaction import WalletTransaction
-from schemas.deal import DealCreate, DealOut
 from models.admin_wallet import AdminWallet
 from models.platform_earnings import PlatformEarning
-from models.referral_reward import ReferralReward  # ✅ NEW
+from models.referral_reward import ReferralReward
+from models.admin_wallet_log import AdminWalletLog  # ✅ NEW
+
+# SCHEMAS
+from schemas.deal import DealCreate, DealOut
 from services.fee_logic import calculate_fee
 
 router = APIRouter(prefix="/deals", tags=["Deals"])
@@ -50,7 +55,7 @@ async def confirm_pairing(
 
     return {"message": "Pairing confirmed."}
 
-# ─────────── FUND DEAL (UPDATED with referral logic) ───────────
+# ─────────── FUND DEAL (w/ AdminWalletLog + Referral Bonus) ───────────
 @router.post("/{deal_id}/fund", summary="Fund a deal (escrow fee + referral bonus)")
 async def fund_deal(
     deal_id: int,
@@ -95,6 +100,15 @@ async def fund_deal(
         amount=fee
     )
 
+    # ✅ Log AdminWallet update
+    await AdminWalletLog.create(
+        amount=fee,
+        action="fee_credit",
+        description=f"Escrow fee for Deal {deal.id}",
+        admin_wallet=admin_wallet,
+        triggered_by=current_user
+    )
+
     # ───── Referral Bonus on First Deal ─────
     if current_user.referred_by:
         deal_fund_count = await WalletTransaction.filter(
@@ -102,11 +116,10 @@ async def fund_deal(
             transaction_type="escrow_fund"
         ).count()
 
-        if deal_fund_count == 1:  # First deal funding
+        if deal_fund_count == 1:  # First escrow fund only
             reward_amount = base_amount * Decimal("0.005")
             inviter_id = current_user.referred_by.id
 
-            # Credit admin wallet again for transparency
             admin_wallet.balance += reward_amount
             await admin_wallet.save()
 
@@ -115,6 +128,15 @@ async def fund_deal(
                 invitee_id=current_user.id,
                 reward_amount=reward_amount,
                 event="deal_funding"
+            )
+
+            # ✅ Log Referral Bonus
+            await AdminWalletLog.create(
+                amount=reward_amount,
+                action="referral_reward",
+                description=f"Referral bonus from Deal {deal.id} (invitee: {current_user.id})",
+                admin_wallet=admin_wallet,
+                triggered_by=current_user
             )
 
     return {
