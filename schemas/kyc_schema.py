@@ -30,3 +30,14 @@ class KYCStatusUpdate(BaseModel):
     status: KYCStatus
 
     model_config = {"from_attributes": True}
+
+
+class KYCOut(BaseModel):
+    id: int
+    user_id: int
+    document_type: str
+    document_url: str
+    status: KYCStatus
+    submitted_at: datetime
+
+    model_config = {"from_attributes": True}
