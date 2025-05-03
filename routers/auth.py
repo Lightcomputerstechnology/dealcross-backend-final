@@ -6,8 +6,10 @@ from starlette.responses import JSONResponse
 from jose import JWTError, jwt
 from datetime import datetime, timedelta
 from models.user import User
-from schemas.user_schema import UserOut  # At the top
+from schemas.user_schema import UserOut, UserCreate  # At the top
 from core.config import settings
+from core.security import get_password_hash
+import random, string
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
 
@@ -38,6 +40,38 @@ async def verify_token(token: str) -> User:
     return user
 
 # ────────── ROUTES ──────────
+
+@router.post("/signup", summary="Register a new user")
+async def signup(user_data: UserCreate):
+    # Check if user already exists
+    existing = await User.get_or_none(email=user_data.email)
+    if existing:
+        raise HTTPException(status_code=400, detail="Email already registered.")
+
+    # Handle optional referrer
+    referrer = None
+    if user_data.referrer_code:
+        referrer = await User.get_or_none(referral_code=user_data.referrer_code)
+        if not referrer:
+            raise HTTPException(status_code=400, detail="Invalid referrer code.")
+
+    # Generate unique referral code
+    code_exists = True
+    while code_exists:
+        generated_code = ''.join(random.choices(string.ascii_lowercase + string.digits, k=8))
+        code_exists = await User.exists(referral_code=generated_code)
+
+    # Create user
+    new_user = await User.create(
+        username=user_data.username,
+        email=user_data.email,
+        full_name=user_data.full_name,
+        hashed_password=get_password_hash(user_data.password),
+        referral_code=generated_code,
+        referred_by=referrer,
+    )
+
+    return {"message": "Signup successful", "user_id": new_user.id, "referral_code": new_user.referral_code}
 
 @router.get("/me", response_model=UserOut)
 async def get_current_user(token: str = Depends(oauth2_scheme)):
@@ -82,3 +116,4 @@ async def request_email_verification(
     verify_link = f"https://dealcross.net/verify-email?token={verification_token}"
 
     return JSONResponse(content={"message": "Verification link generated.", "url": verify_link})
+        
