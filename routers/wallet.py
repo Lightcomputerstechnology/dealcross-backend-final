@@ -1,5 +1,6 @@
 # File: routers/wallet.py
 
+from utils.admin_wallet_logger import log_admin_wallet_activity  # ✅ NEW
 from decimal import Decimal
 from datetime import datetime, timedelta
 from fastapi import APIRouter, Depends, HTTPException
