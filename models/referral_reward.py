@@ -4,15 +4,36 @@ from tortoise import fields, models
 
 class ReferralReward(models.Model):
     id = fields.IntField(pk=True)
-    referrer = fields.ForeignKeyField("models.User", related_name="referral_earnings")
-    referred = fields.ForeignKeyField("models.User", related_name="referral_rewards")
-    source = fields.CharField(max_length=20)  # "wallet" or "deal"
-    amount = fields.DecimalField(max_digits=12, decimal_places=2)
+    
+    referrer = fields.ForeignKeyField(
+        "models.User",
+        related_name="referral_earnings",
+        on_delete=fields.CASCADE
+    )
+    referred = fields.ForeignKeyField(
+        "models.User",
+        related_name="referral_rewards",
+        on_delete=fields.CASCADE
+    )
+    
+    source = fields.CharField(
+        max_length=30
+    )  # E.g., "wallet_funding", "deal_funding"
+    
+    amount = fields.DecimalField(
+        max_digits=12, decimal_places=2
+    )
+    
+    approved_by_admin = fields.BooleanField(default=False)  # ✅ NEW for manual control
+    
     timestamp = fields.DatetimeField(auto_now_add=True)
 
     class Meta:
         table = "referral_rewards"
-        unique_together = ("referred", "source")  # One reward per source per user
+        unique_together = ("referred", "source")  # Only 1 reward per source per referred user
 
     def __str__(self):
-        return f"ReferralReward(from={self.referred_id}, to={self.referrer_id}, source={self.source}, amount={self.amount})"
+        return (
+            f"ReferralReward(from={self.referred_id}, to={self.referrer_id}, "
+            f"source={self.source}, amount={self.amount})"
+        )
