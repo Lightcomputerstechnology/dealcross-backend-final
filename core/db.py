@@ -1,11 +1,19 @@
 # File: core/db.py
 
+import os
 from tortoise import Tortoise
+
+# Normalize Render DB URL
+def normalize_db_url(raw_url: str) -> str:
+    if raw_url and raw_url.startswith("postgres://"):
+        return raw_url.replace("postgres://", "postgresql://", 1)
+    return raw_url
 
 # Initialize Tortoise ORM
 async def init_db():
+    db_url = normalize_db_url(os.getenv("DATABASE_URL"))
     await Tortoise.init(
-        db_url="postgresql://dealcross_db_mybg_user:uaDD6kKDRWuESF6YCnvaWvJjGQkUymDl@dpg-d06rhgali9vc73elmnlg-a/dealcross_db_mybg",
+        db_url=db_url,
         modules={"models": ["models"]}
     )
     await Tortoise.generate_schemas()
@@ -15,9 +23,11 @@ async def close_db():
     await Tortoise.close_connections()
 
 # Aerich configuration for migrations
+db_url_env = normalize_db_url(os.getenv("DATABASE_URL"))
+
 TORTOISE_ORM = {
     "connections": {
-        "default": "postgresql://dealcross_db_mybg_user:uaDD6kKDRWuESF6YCnvaWvJjGQkUymDl@dpg-d06rhgali9vc73elmnlg-a/dealcross_db_mybg"
+        "default": db_url_env
     },
     "apps": {
         "models": {
