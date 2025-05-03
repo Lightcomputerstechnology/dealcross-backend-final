@@ -3,7 +3,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 from models.kyc import KYCRequest, KYCStatus
 from core.security import get_current_user
-from tortoise.exceptions import DoesNotExist
 from schemas.kyc_schema import KYCRequestCreate, KYCRequestOut
 from typing import List
 from datetime import datetime
@@ -17,7 +16,6 @@ async def submit_kyc(
     kyc_data: KYCRequestCreate,
     current_user: User = Depends(get_current_user)
 ):
-    # Prevent duplicate pending requests
     existing = await KYCRequest.filter(user=current_user, status=KYCStatus.pending).first()
     if existing:
         raise HTTPException(status_code=400, detail="You already have a pending KYC request.")
