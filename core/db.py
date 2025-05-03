@@ -37,6 +37,7 @@ TORTOISE_ORM = {
                 "models.audit_log",
                 "models.metric",
                 "models.chart",
+                "models.admin_wallet_log",
                 "models.chat",
                 "models.referral_reward",  # ✅ Newly added
                 "aerich.models",
