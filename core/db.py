@@ -23,9 +23,10 @@ async def close_db():
     await Tortoise.close_connections()
 
 # Static config for Aerich (MUST use postgresql:// here directly)
-"connections": {
-    "default": "postgresql://dealcross_db_mybg_user:uaDD6kKDRWuESF6YCnvaWvJjGQkUymDl@dpg-d06rhgali9vc73elmnlg-a/dealcross_db_mybg"
-},
+TORTOISE_ORM = {
+    "connections": {
+        "default": "postgresql://dealcross_db_mybg_user:uaDD6kKDRWuESF6YCnvaWvJjGQkUymDl@dpg-d06rhgali9vc73elmnlg-a/dealcross_db_mybg"
+    },
     "apps": {
         "models": {
             "models": [
@@ -42,7 +43,7 @@ async def close_db():
                 "models.chat",
                 "aerich.models"
             ],
-            "default_connection": "default",
+            "default_connection": "default"
         }
-    },
+    }
 }
