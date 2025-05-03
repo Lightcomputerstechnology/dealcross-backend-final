@@ -46,7 +46,7 @@ app.add_middleware(
 )
 
 # ─── API Routes ───────────────────────────────
-app.include_router(user_router)            # /users
+app.include_router(user_router)            # /user
 app.include_router(api_router)             # grouped API endpoints
 app.include_router(chart_router)           # /chart
 app.include_router(chat_router)            # /chat
@@ -63,16 +63,15 @@ async def upgrade_plan(
 ):
     if plan not in ("pro", "business"):
         raise HTTPException(status_code=400, detail="Invalid plan selected.")
-
     # TODO: integrate real payment gateway here
     payment_success = True
     if not payment_success:
         raise HTTPException(status_code=400, detail="Payment failed.")
-
     return {"message": f"Upgraded to {plan} plan successfully."}
 
-# ─── Normalize and Register Tortoise ORM ─────
+# ─── Normalize DB URL & Register Tortoise ORM ───
 _db_url = os.getenv("DATABASE_URL", "sqlite://db.sqlite3")
+# convert postgresql:// to postgres:// for Tortoise
 if _db_url.startswith("postgresql://"):
     _db_url = _db_url.replace("postgresql://", "postgres://", 1)
 
@@ -80,7 +79,6 @@ register_tortoise(
     app,
     db_url=_db_url,
     modules={"models": ["models.user"]},
-    generate_schemas=True,            # auto-create tables in dev
-    add_exception_handlers=True       # handle 404 for missing objects
+    generate_schemas=True,          # auto-create tables in dev
+    add_exception_handlers=True       # handle 404 for missing models
 )
-    
