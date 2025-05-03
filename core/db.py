@@ -3,13 +3,13 @@
 import os
 from tortoise import Tortoise
 
-# Normalize Render DB URL
+# Normalize the DB URL
 def normalize_db_url(raw_url: str) -> str:
     if raw_url and raw_url.startswith("postgres://"):
         return raw_url.replace("postgres://", "postgresql://", 1)
     return raw_url
 
-# Initialize Tortoise ORM
+# Dynamic init for FastAPI
 async def init_db():
     db_url = normalize_db_url(os.getenv("DATABASE_URL"))
     await Tortoise.init(
@@ -18,16 +18,14 @@ async def init_db():
     )
     await Tortoise.generate_schemas()
 
-# Close DB connections gracefully
+# Graceful shutdown
 async def close_db():
     await Tortoise.close_connections()
 
-# Aerich configuration for migrations
-db_url_env = normalize_db_url(os.getenv("DATABASE_URL"))
-
+# Static config for Aerich (MUST use postgresql:// here directly)
 TORTOISE_ORM = {
     "connections": {
-        "default": db_url_env
+        "default": "postgresql://dealcross_db_mybg_user:uaDD6kKDRWuESF6YCnvaWvJjGQkUymDl@dpg-d06rhgali9vc73elmnlg-a/dealcross_db_mybg"
     },
     "apps": {
         "models": {
@@ -42,7 +40,7 @@ TORTOISE_ORM = {
                 "models.audit_log",
                 "models.metric",
                 "models.chart",
-                "models.chat",  # ✅ Included Chat model
+                "models.chat",
                 "aerich.models"
             ],
             "default_connection": "default",
