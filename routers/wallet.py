@@ -102,4 +102,3 @@ async def fund_wallet(fund: FundWallet, current_user: User = Depends(get_current
 # ─────────── GET ALL TRANSACTIONS ───────────
 @router.get("/transactions", summary="Retrieve all wallet transactions for the current user")
 async def get_all_transactions(current_user: User = Depends(get_current_user)):
-    ...
