@@ -13,6 +13,7 @@ from models.fraud import FraudAlert
 from models.user import User
 from models.admin_wallet import AdminWallet
 from models.platform_earnings import PlatformEarning
+from models.admin_wallet_log import AdminWalletLog  # ✅ NEW
 
 # SERVICES / UTILS
 from services.fee_logic import calculate_fee
@@ -69,7 +70,7 @@ async def get_my_wallet_summary(current_user: User = Depends(get_current_user)):
         "recent_transactions": [TransactionOut.model_validate(tx) for tx in recent_transactions]
     }
 
-# ─────────── FUND WALLET ───────────
+# ─────────── FUND WALLET (w/ Admin Log) ───────────
 @router.post("/fund", summary="Fund user's wallet (fee applies)")
 async def fund_wallet(fund: FundWallet, current_user: User = Depends(get_current_user)):
     base_amount = Decimal(fund.amount)
@@ -91,13 +92,24 @@ async def fund_wallet(fund: FundWallet, current_user: User = Depends(get_current
     admin_wallet = await AdminWallet.first()
     if not admin_wallet:
         admin_wallet = await AdminWallet.create(balance=0)
+
     admin_wallet.balance += fee
     await admin_wallet.save()
 
+    # Log platform earning
     await PlatformEarning.create(
         user=current_user,
         source="funding",
         amount=fee
+    )
+
+    # ✅ Log admin wallet activity
+    await AdminWalletLog.create(
+        amount=fee,
+        action="fee_credit",
+        description=f"Funding fee from user {current_user.id}",
+        admin_wallet=admin_wallet,
+        triggered_by=current_user
     )
 
     return {
