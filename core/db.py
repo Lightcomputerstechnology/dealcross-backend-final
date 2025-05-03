@@ -38,6 +38,7 @@ TORTOISE_ORM = {
                 "models.metric",
                 "models.chart",
                 "models.chat",
+                "models.referral_reward",  # ✅ Newly added
                 "aerich.models",
             ],
             "default_connection": "default",
