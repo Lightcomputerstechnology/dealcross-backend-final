@@ -78,7 +78,7 @@ async def fund_wallet(fund: FundWallet, current_user: User = Depends(get_current
         ).count()
 
         if prev_fund_count == 1:  # First time funding
-            reward_amount = Decimal("0.50")
+            reward_amount = base_amount * Decimal("0.005")  # 0.5% of funded amount
             inviter_id = current_user.referred_by.id
 
             # Credit Admin Wallet for transparency
@@ -102,3 +102,5 @@ async def fund_wallet(fund: FundWallet, current_user: User = Depends(get_current
 # ─────────── GET ALL TRANSACTIONS ───────────
 @router.get("/transactions", summary="Retrieve all wallet transactions for the current user")
 async def get_all_transactions(current_user: User = Depends(get_current_user)):
+    transactions = await WalletTransaction.filter(user=current_user).order_by("-timestamp")
+    return [TransactionOut.model_validate(tx) for tx in transactions]
