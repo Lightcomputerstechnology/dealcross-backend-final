@@ -1,13 +1,12 @@
 # File: core/db.py
 
 from tortoise import Tortoise
-from config import settings
 
 # Initialize Tortoise ORM
 async def init_db():
     await Tortoise.init(
-        db_url=settings.DATABASE_URL,
-        modules={"models": ["models"]}  # Automatically detects all listed models
+        db_url="postgresql://dealcross_db_mybg_user:uaDD6kKDRWuESF6YCnvaWvJjGQkUymDl@dpg-d06rhgali9vc73elmnlg-a/dealcross_db_mybg",
+        modules={"models": ["models"]}
     )
     await Tortoise.generate_schemas()
 
@@ -18,7 +17,7 @@ async def close_db():
 # Aerich configuration for migrations
 TORTOISE_ORM = {
     "connections": {
-        "default": settings.DATABASE_URL
+        "default": "postgresql://dealcross_db_mybg_user:uaDD6kKDRWuESF6YCnvaWvJjGQkUymDl@dpg-d06rhgali9vc73elmnlg-a/dealcross_db_mybg"
     },
     "apps": {
         "models": {
@@ -33,7 +32,7 @@ TORTOISE_ORM = {
                 "models.audit_log",
                 "models.metric",
                 "models.chart",
-                "models.chat",        # ✅ Included Chat model
+                "models.chat",  # ✅ Included Chat model
                 "aerich.models"
             ],
             "default_connection": "default",
