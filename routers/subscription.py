@@ -1,4 +1,4 @@
-✅ File: routers/subscription.py
+#✅ File: routers/subscription.py
 
 from fastapi import APIRouter, HTTPException, Depends, Request
 from models.user import User
@@ -51,6 +51,6 @@ async def upgrade_user_plan(
 
 ---
 
-✅ Required Addition to models/user.py (if not already included):
+#✅ Required Addition to models/user.py (if not already included):
 
 subscription_plan = fields.CharField(max_length=20, default="basic")
