@@ -1,3 +1,5 @@
+# File: main.py
+
 import os
 from fastapi import FastAPI, HTTPException, Depends, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -13,47 +15,58 @@ from routers.health import router as health_router
 from routers.subscription import router as subscription_router
 from routers.user import router as user_router
 
-from tortoise.contrib.fastapi import register_tortoise
-
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 app = FastAPI(
     title="Dealcross Backend",
     version="1.0.0",
     description=(
-        "FastAPI backend for Dealcross platform including escrow, wallet, "
+        "FastAPI backend for the Dealcross platform including escrow, wallet, "
         "analytics, subscription, and more."
     )
 )
 
-# ─── Lifecycle Events ─────────────────────────
+# ──────────────────────────────────────────────
+# LIFECYCLE EVENTS
+# ──────────────────────────────────────────────
+
 @app.on_event("startup")
-async def startup_event():
+async def on_startup():
     await init_db()
 
 @app.on_event("shutdown")
-async def shutdown_event():
+async def on_shutdown():
     await close_db()
 
-# ─── Middleware ───────────────────────────────
+# ──────────────────────────────────────────────
+# MIDDLEWARE
+# ──────────────────────────────────────────────
+
 app.add_middleware(RateLimitMiddleware)
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["*"],  # TODO: Replace with allowed frontend origin in production
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# ─── API Routes ───────────────────────────────
-app.include_router(user_router)            # /user
-app.include_router(api_router)             # grouped API endpoints
-app.include_router(chart_router)           # /chart
-app.include_router(chat_router)            # /chat
-app.include_router(health_router)          # /health
-app.include_router(subscription_router)    # /subscription
+# ──────────────────────────────────────────────
+# ROUTES
+# ──────────────────────────────────────────────
 
-# ─── Subscription Plan Upgrade ─────────────
+app.include_router(user_router, prefix="/user")
+app.include_router(api_router)
+app.include_router(chart_router, prefix="/chart")
+app.include_router(chat_router, prefix="/chat")
+app.include_router(health_router, prefix="/health")
+app.include_router(subscription_router, prefix="/subscription")
+
+# ──────────────────────────────────────────────
+# PLAN UPGRADE ENDPOINT (Demo Only)
+# ──────────────────────────────────────────────
+
 @app.post("/users/upgrade-plan")
 async def upgrade_plan(
     request: Request,
@@ -64,23 +77,9 @@ async def upgrade_plan(
     if plan not in ("pro", "business"):
         raise HTTPException(status_code=400, detail="Invalid plan selected.")
 
-    # TODO: integrate real payment gateway here
+    # TODO: integrate real payment logic
     payment_success = True
     if not payment_success:
         raise HTTPException(status_code=400, detail="Payment failed.")
 
     return {"message": f"Upgraded to {plan} plan successfully."}
-
-# ─── Normalize DB URL & Register Tortoise ORM ───
-_db_url = os.getenv("DATABASE_URL", "sqlite://db.sqlite3")
-# Replace 'postgresql://' with 'postgres://' if present (Tortoise requirement)
-if _db_url.startswith("postgresql://"):
-    _db_url = _db_url.replace("postgresql://", "postgres://", 1)
-
-register_tortoise(
-    app,
-    db_url=_db_url,
-    modules={"models": ["models.user"]},
-    generate_schemas=True,            # auto-create tables in dev
-    add_exception_handlers=True       # handle 404s for missing models
-)
