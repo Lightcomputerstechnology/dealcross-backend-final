@@ -8,6 +8,8 @@ from routers import chart  # ✅ Chart router for admin charts
 from routers import chat  # ✅ Chat router for user/admin chat support
 from routers import health  # ✅ Health router for server status
 from routers import subscription  # ✅ Subscription plan router for upgrades
+from routers import user
+
 
 # Initialize OAuth2PasswordBearer for authorization
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
@@ -39,6 +41,7 @@ app.add_middleware(
 )
 
 # ─── API Routes ───────────────────────────────
+app.include_router(user.router)
 app.include_router(api_router)       # All grouped API endpoints
 app.include_router(chart.router)     # ✅ Chart analytics endpoint
 app.include_router(chat.router)      # ✅ Chat system endpoint
