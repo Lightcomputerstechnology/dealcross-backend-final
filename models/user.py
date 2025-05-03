@@ -17,7 +17,15 @@ class User(Model):
     status           = fields.CharField(max_length=20, default="active")
     cumulative_sales = fields.DecimalField(max_digits=12, decimal_places=2, default=0)
     hashed_password  = fields.CharField(max_length=128)
+    referral_code    = fields.CharField(max_length=20, unique=True, null=True)
+    referred_by      = fields.ForeignKeyField(
+        "models.User",
+        related_name="referrals",
+        null=True,
+        on_delete=fields.SET_NULL
+    )
     created_at       = fields.DatetimeField(auto_now_add=True)
 
     class Meta:
         table = "users"
+        
