@@ -10,6 +10,7 @@ from models.wallet_transaction import WalletTransaction
 from schemas.deal import DealCreate, DealOut
 from models.admin_wallet import AdminWallet
 from models.platform_earnings import PlatformEarning
+from models.referral_reward import ReferralReward  # ✅ NEW
 from services.fee_logic import calculate_fee
 
 router = APIRouter(prefix="/deals", tags=["Deals"])
@@ -49,8 +50,8 @@ async def confirm_pairing(
 
     return {"message": "Pairing confirmed."}
 
-# ─────────── FUND DEAL (UPDATED) ───────────
-@router.post("/{deal_id}/fund", summary="Fund a deal (escrow fee applies)")
+# ─────────── FUND DEAL (UPDATED with referral logic) ───────────
+@router.post("/{deal_id}/fund", summary="Fund a deal (escrow fee + referral bonus)")
 async def fund_deal(
     deal_id: int,
     current_user: User = Depends(get_current_user),
@@ -71,7 +72,7 @@ async def fund_deal(
     await wallet.save()
 
     deal.status = "active"
-    deal.escrow_locked = base_amount  # Requires field in model
+    deal.escrow_locked = base_amount
     await deal.save()
 
     await WalletTransaction.create(
@@ -93,6 +94,28 @@ async def fund_deal(
         source="escrow",
         amount=fee
     )
+
+    # ───── Referral Bonus on First Deal ─────
+    if current_user.referred_by:
+        deal_fund_count = await WalletTransaction.filter(
+            user=current_user,
+            transaction_type="escrow_fund"
+        ).count()
+
+        if deal_fund_count == 1:  # First deal funding
+            reward_amount = base_amount * Decimal("0.005")
+            inviter_id = current_user.referred_by.id
+
+            # Credit admin wallet again for transparency
+            admin_wallet.balance += reward_amount
+            await admin_wallet.save()
+
+            await ReferralReward.create(
+                inviter_id=inviter_id,
+                invitee_id=current_user.id,
+                reward_amount=reward_amount,
+                event="deal_funding"
+            )
 
     return {
         "message": f"Deal funded with {base_amount} (fee {fee})",
@@ -157,4 +180,3 @@ async def raise_dispute(
     await deal.save()
 
     return {"message": "Deal marked as disputed."}
-    
