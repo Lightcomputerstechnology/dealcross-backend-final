@@ -19,7 +19,6 @@ async def close_db():
     await Tortoise.close_connections()
 
 # Static config for Aerich (migrations)
-# You can call os.getenv here at import‑time—it just has to be postgres://
 TORTOISE_ORM = {
     "connections": {
         "default": DB_URL
@@ -30,17 +29,21 @@ TORTOISE_ORM = {
                 "models.user",
                 "models.wallet",
                 "models.wallet_transaction",
+                "models.fee_transaction",         # ✅ Fee tracking
                 "models.admin_wallet",
+                "models.admin_wallet_log",        # ✅ Admin logging
                 "models.kyc",
                 "models.deal",
+                "models.dispute",                 # ✅ Optional but important
                 "models.fraud",
                 "models.audit_log",
                 "models.metric",
                 "models.chart",
-                "models.admin_wallet_log",
                 "models.chat",
-                "models.referral_reward",  # ✅ Newly added
-                "aerich.models",
+                "models.login_attempt",           # ✅ Optional for login monitoring
+                "models.platform_earnings",       # ✅ Earnings tracking
+                "models.referral_reward",         # ✅ Referral system
+                "aerich.models",                  # Required
             ],
             "default_connection": "default",
         }
