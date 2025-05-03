@@ -7,10 +7,10 @@ from typing import TYPE_CHECKING
 from core.database import get_db
 from core.security import get_current_user, get_password_hash
 from schemas.user import UserOut, UserUpdate, UserAdminUpdate
-from models import user as user_model  # Avoid circular import
+import models.user as user_model  # Avoid direct import to break circular dependency
 
 if TYPE_CHECKING:
-    from models.user import User  # For type hints only
+    from models.user import User  # For type hinting only, won't be evaluated at runtime
 
 router = APIRouter(prefix="/user", tags=["User Management"])
 
