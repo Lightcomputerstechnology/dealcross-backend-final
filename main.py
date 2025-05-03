@@ -63,15 +63,17 @@ async def upgrade_plan(
 ):
     if plan not in ("pro", "business"):
         raise HTTPException(status_code=400, detail="Invalid plan selected.")
+
     # TODO: integrate real payment gateway here
     payment_success = True
     if not payment_success:
         raise HTTPException(status_code=400, detail="Payment failed.")
+
     return {"message": f"Upgraded to {plan} plan successfully."}
 
 # ─── Normalize DB URL & Register Tortoise ORM ───
 _db_url = os.getenv("DATABASE_URL", "sqlite://db.sqlite3")
-# convert postgresql:// to postgres:// for Tortoise
+# Replace 'postgresql://' with 'postgres://' if present (Tortoise requirement)
 if _db_url.startswith("postgresql://"):
     _db_url = _db_url.replace("postgresql://", "postgres://", 1)
 
@@ -79,6 +81,6 @@ register_tortoise(
     app,
     db_url=_db_url,
     modules={"models": ["models.user"]},
-    generate_schemas=True,          # auto-create tables in dev
-    add_exception_handlers=True       # handle 404 for missing models
+    generate_schemas=True,            # auto-create tables in dev
+    add_exception_handlers=True       # handle 404s for missing models
 )
