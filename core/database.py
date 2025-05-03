@@ -1,18 +1,30 @@
 # core/database.py
+
 from tortoise import Tortoise
-from config import settings  # Use your existing Pydantic settings
+from config import settings  # Your Pydantic settings file
 
-# DATABASE URL for Tortoise ORM (from environment variable)
-DATABASE_URL = settings.DATABASE_URL  # This is already stored in the settings
+# Get DATABASE URL from .env or settings
+DATABASE_URL = settings.DATABASE_URL
 
-# Initialize the database (Tortoise ORM)
+# === Aerich-Compatible ORM Config ===
+TORTOISE_ORM = {
+    "connections": {"default": DATABASE_URL},
+    "apps": {
+        "models": {
+            "models": ["models", "aerich.models"],  # Include aerich models
+            "default_connection": "default",
+        }
+    }
+}
+
+# === Initialize Tortoise ORM ===
 async def init_db():
     await Tortoise.init(
-        db_url=DATABASE_URL,  # Use the DATABASE_URL for connection
-        modules={"models": ["models"]}  # This tells Tortoise where to find your models
+        db_url=DATABASE_URL,
+        modules={"models": ["models"]},
     )
-    await Tortoise.generate_schemas()  # Optionally auto-create tables (skip if using Aerich)
+    # ❌ Removed: await Tortoise.generate_schemas() — now using Aerich
 
-# Close DB connection
+# === Graceful DB Close ===
 async def close_db():
     await Tortoise.close_connections()
