@@ -2,15 +2,15 @@
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
+from typing import TYPE_CHECKING
+
 from core.database import get_db
 from core.security import get_current_user, get_password_hash
 from schemas.user import UserOut, UserUpdate, UserAdminUpdate
-from typing import TYPE_CHECKING
+from models import user as user_model  # Avoid circular import
 
 if TYPE_CHECKING:
-    from models.user import User  # For type hinting only
-
-from models import user as user_model  # Import module instead of direct model to avoid circular import
+    from models.user import User  # For type hints only
 
 router = APIRouter(prefix="/user", tags=["User Management"])
 
@@ -34,7 +34,7 @@ def update_profile(
         current_user.email = updates.email
     if updates.password:
         current_user.hashed_password = get_password_hash(updates.password)
-    
+
     db.commit()
     db.refresh(current_user)
     return current_user
@@ -46,7 +46,7 @@ def get_user_settings(
     db: Session = Depends(get_db),
     current_user: "User" = Depends(get_current_user)
 ):
-    tier = current_user.role.value if hasattr(current_user.role, "value") else current_user.role
+    tier = getattr(current_user.role, "value", current_user.role)
     fee_rates = {
         "funding": "2%" if tier == "basic" else "1.5%",
         "escrow": "3%" if tier == "basic" else "2%",
