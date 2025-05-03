@@ -1,5 +1,3 @@
-# File: routers/user.py
-
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from typing import TYPE_CHECKING
@@ -7,10 +5,10 @@ from typing import TYPE_CHECKING
 from core.database import get_db
 from core.security import get_current_user, get_password_hash
 from schemas.user import UserOut, UserUpdate, UserAdminUpdate
-import models.user as user_model  # Avoid direct import to break circular dependency
+import models.user as user_model  # avoid early import of User model
 
 if TYPE_CHECKING:
-    from models.user import User  # For type hinting only, won't be evaluated at runtime
+    from models.user import User
 
 router = APIRouter(prefix="/user", tags=["User Management"])
 
