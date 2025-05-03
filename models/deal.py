@@ -1,13 +1,11 @@
-# File: models/deal.py
-
 from tortoise import Model, fields
 from models.user import User  # Ensure proper import if needed
 
-# ─────────── DEAL MODEL ───────────
+# ───────── DEAL MODEL ─────────
 
 class Deal(Model):
     id = fields.IntField(pk=True)
-    
+
     # Creator of the deal (the one who initiated it)
     creator = fields.ForeignKeyField(
         "models.User",
@@ -26,9 +24,10 @@ class Deal(Model):
     title = fields.CharField(max_length=200, null=True)
     description = fields.TextField(null=True)
     amount = fields.DecimalField(max_digits=12, decimal_places=2)
-    
+    escrow_locked = fields.DecimalField(max_digits=12, decimal_places=2, default=0.00)
+
     status = fields.CharField(max_length=50, default="pending")  # pending, active, completed, disputed, etc.
-    
+
     is_public = fields.BooleanField(default=True)
     pairing_confirmed = fields.BooleanField(default=False)
 
@@ -37,3 +36,4 @@ class Deal(Model):
 
     def __str__(self):
         return f"Deal(id={self.id}, status={self.status})"
+    
