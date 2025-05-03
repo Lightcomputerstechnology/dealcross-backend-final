@@ -71,11 +71,16 @@ async def upgrade_plan(
 
     return {"message": f"Upgraded to {plan} plan successfully."}
 
-# ─── Tortoise ORM Setup ──────────────────────
+# ─── Normalize and Register Tortoise ORM ─────
+_db_url = os.getenv("DATABASE_URL", "sqlite://db.sqlite3")
+if _db_url.startswith("postgresql://"):
+    _db_url = _db_url.replace("postgresql://", "postgres://", 1)
+
 register_tortoise(
     app,
-    db_url=os.getenv("DATABASE_URL", "sqlite://db.sqlite3"),
+    db_url=_db_url,
     modules={"models": ["models.user"]},
-    generate_schemas=True,          # auto-create tables in dev
-    add_exception_handlers=True     # handle 404 for missing objects
+    generate_schemas=True,            # auto-create tables in dev
+    add_exception_handlers=True       # handle 404 for missing objects
 )
+    
