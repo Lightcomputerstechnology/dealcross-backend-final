@@ -105,11 +105,10 @@ async def fund_wallet(fund: FundWallet, current_user: User = Depends(get_current
     )
 
     # ✅ Log admin wallet activity
-    await AdminWalletLog.create(
+    await log_admin_wallet_activity(
         amount=fee,
         action="fee_credit",
         description=f"Funding fee from user {current_user.id}",
-        admin_wallet=admin_wallet,
         triggered_by=current_user
     )
 
