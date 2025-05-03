@@ -3,8 +3,8 @@
 def calculate_fee(user, action: str, base_amount: float) -> float:
     """
     Calculates platform fee based on user role and action.
-    - user.role should be "user" or "admin" (admin pays no fees).
-    - user.cumulative_sales tracks total share sales.
+    - Admins pay no fees.
+    - Users pay fixed rates or tier-based rates depending on action.
     """
     role = user.role
     sales = float(user.cumulative_sales)
@@ -12,19 +12,19 @@ def calculate_fee(user, action: str, base_amount: float) -> float:
     if role == "admin":
         return 0.0
 
+    # Fixed 0.5% for all users
     if action == "funding":
-        return base_amount * (0.02 if role == "user" else 0.015)
+        return base_amount * 0.005
 
     elif action == "escrow":
-        return base_amount * (0.03 if role == "user" else 0.02)
+        return base_amount * 0.005
 
     elif action == "share_buy":
-        return base_amount * (0.02 if role == "user" else 0.015)
+        return base_amount * 0.02 if role == "user" else base_amount * 0.015
 
     elif action == "share_sell":
         if sales < 1000:
             return 0.0
-        return base_amount * (0.01 if role == "user" else 0.007)
+        return base_amount * 0.01 if role == "user" else base_amount * 0.007
 
     return 0.0
-
