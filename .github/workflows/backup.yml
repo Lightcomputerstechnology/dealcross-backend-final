@@ -11,7 +11,7 @@ jobs:
     env:
       DB_USER: ${{ secrets.DB_USER }}
       DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
-      DB_HOST: ${{ secrets.DB_HOST }}
+      DB_HOST: ${{ secrets.DB_HOST }}  # Should be the full hostname from Render
       DB_PORT: ${{ secrets.DB_PORT }}
       DB_NAME: ${{ secrets.DB_NAME }}
       GDRIVE_SERVICE_KEY: ${{ secrets.GDRIVE_SERVICE_KEY }}
@@ -33,9 +33,8 @@ jobs:
 
       - name: Install gdrive
         run: |
-          wget -O gdrive.tar.gz https://github.com/prasmussen/gdrive/releases/download/2.1.1/gdrive-linux-x64
-          chmod +x gdrive.tar.gz
-          mv gdrive.tar.gz gdrive
+          wget -O gdrive https://github.com/prasmussen/gdrive/releases/download/2.1.1/gdrive-linux-x64
+          chmod +x gdrive
           sudo mv gdrive /usr/local/bin/
 
       - name: Upload to Google Drive
