@@ -9,13 +9,13 @@ jobs:
   backup:
     runs-on: ubuntu-latest
     env:
-      DB_USER: ${{ secrets.DB_USER }}
-      DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
-      DB_HOST: ${{ secrets.DB_HOST }}
-      DB_PORT: ${{ secrets.DB_PORT }}
-      DB_NAME: ${{ secrets.DB_NAME }}
+      DB_USER:       ${{ secrets.DB_USER }}
+      DB_PASSWORD:   ${{ secrets.DB_PASSWORD }}
+      DB_HOST:       ${{ secrets.DB_HOST }}
+      DB_PORT:       ${{ secrets.DB_PORT }}
+      DB_NAME:       ${{ secrets.DB_NAME }}
       GDRIVE_SERVICE_KEY: ${{ secrets.GDRIVE_SERVICE_KEY }}
-      GDRIVE_FOLDER_ID: ${{ secrets.GDRIVE_FOLDER_ID }}
+      GDRIVE_FOLDER_ID:   1GcrVC_oYGJLqr_8EKf0DKR5ez7BAYOzE
 
     steps:
       - name: Checkout repository
@@ -26,10 +26,10 @@ jobs:
 
       - name: Debug connection vars
         run: |
-          echo "HOST: $DB_HOST"
-          echo "PORT: $DB_PORT"
-          echo "DB NAME: $DB_NAME"
-          echo "DB USER: $DB_USER"
+          echo "HOST:   $DB_HOST"
+          echo "PORT:   $DB_PORT"
+          echo "DB:     $DB_NAME"
+          echo "USER:   $DB_USER"
 
       - name: Write GDrive service key to file
         run: echo "$GDRIVE_SERVICE_KEY" > key.json
@@ -37,14 +37,34 @@ jobs:
       - name: Export PostgreSQL backup
         run: |
           export PGPASSWORD="$DB_PASSWORD"
-          pg_dump -h "$DB_HOST" -U "$DB_USER" -p "$DB_PORT" -d "$DB_NAME" -F c -f backup.dump
+          pg_dump \
+            -h "$DB_HOST" \
+            -U "$DB_USER" \
+            -p "$DB_PORT" \
+            -d "$DB_NAME" \
+            -F c \
+            -f backup.dump
 
       - name: Install gdrive CLI
         run: |
-          curl -L -o gdrive https://github.com/glamorouscow/gdrive/releases/download/2.1.1/gdrive-linux-x64
+          curl -L -o gdrive \
+            https://github.com/glamorouscow/gdrive/releases/download/2.1.1/gdrive-linux-x64
           chmod +x gdrive
           sudo mv gdrive /usr/local/bin/gdrive
 
+      - name: Verify gdrive install
+        run: |
+          ls -l /usr/local/bin/gdrive
+          file /usr/local/bin/gdrive
+          /usr/local/bin/gdrive version
+
       - name: Upload dump to Google Drive
         run: |
-          gdrive --service-account key.json upload --parent "$GDRIVE_FOLDER_ID" backup.dump
+          /usr/local/bin/gdrive \
+            --service-account key.json \
+            upload \
+            --parent "$GDRIVE_FOLDER_ID" \
+            backup.dump
+
+      - name: Cleanup
+        run: rm backup.dump key.json
