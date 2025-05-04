@@ -6,64 +6,41 @@ on:
     - cron: '0 1 * * *'  # Daily at 1 AM UTC
 
 jobs:
-  backup:
+  gdrive-upload:
     runs-on: ubuntu-latest
-    env:
-      DB_USER:       ${{ secrets.DB_USER }}
-      DB_PASSWORD:   ${{ secrets.DB_PASSWORD }}
-      DB_HOST:       ${{ secrets.DB_HOST }}
-      DB_PORT:       ${{ secrets.DB_PORT }}
-      DB_NAME:       ${{ secrets.DB_NAME }}
-      GDRIVE_KEY:    ${{ secrets.GDRIVE_SERVICE_KEY }}
-      GDRIVE_FOLDER: ${{ secrets.GDRIVE_FOLDER_ID }}
-
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v2
 
       - name: Install PostgreSQL client
         run: |
           sudo apt-get update
-          sudo apt-get install -y postgresql-client
-
-      - name: Write GDrive service key to file
-        run: |
-          echo "$GDRIVE_KEY" > gdrive-key.json
+          sudo apt-get install -y postgresql-client zip
 
       - name: Export PostgreSQL backup
         run: |
-          export PGPASSWORD="$DB_PASSWORD"
+          export PGPASSWORD="${{ secrets.DB_PASSWORD }}"
           pg_dump \
-            -h "$DB_HOST" \
-            -p "$DB_PORT" \
-            -U "$DB_USER" \
-            -d "$DB_NAME" \
+            -h "${{ secrets.DB_HOST }}" \
+            -p "${{ secrets.DB_PORT }}" \
+            -U "${{ secrets.DB_USER }}" \
+            -d "${{ secrets.DB_NAME }}" \
             -F c \
             -f backup.dump
 
-      - name: Install gdrive CLI
+      - name: Archive backup file
         run: |
-          curl -fsSL -o gdrive \
-            https://github.com/prasmussen/gdrive/releases/download/2.1.1/gdrive-linux-x64
-          chmod +x gdrive
-          sudo mv gdrive /usr/local/bin/gdrive
+          zip -r backup.zip backup.dump
 
-      - name: Upload dump to Google Drive
-        run: |
-          gdrive \
-            --service-account gdrive-key.json \
-            upload \
-            --parent "$GDRIVE_FOLDER" \
-            backup.dump
+      - name: Upload to Google Drive
+        uses: agusprayogi02/auto-upload-gdrive@v1.0.1
+        with:
+          filename: backup.zip
+          name: backup.zip
+          folderId: ${{ secrets.GDRIVE_FOLDER_ID }}
+          credentials: ${{ secrets.GDRIVE_SERVICE_KEY }}
+          encoded: false
+          mimeType: application/zip
 
       - name: Cleanup
-        run: |
-          rm backup.dump gdrive-key.json
-
-      - name: (Optional) Commit & push
-        run: |
-          git config user.name "github-actions"
-          git config user.email "actions@github.com"
-          git add .
-          git commit -m "Automated backup $(date -u '+%Y-%m-%dT%H:%M:%SZ')" || echo "Nothing to commit"
-          git push
+        run: rm -f backup.dump backup.zip
