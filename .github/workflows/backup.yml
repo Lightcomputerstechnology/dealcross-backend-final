@@ -9,11 +9,11 @@ jobs:
   backup:
     runs-on: ubuntu-latest
     env:
-      DB_USER: ${{ secrets.DB_USER }}
+      DB_USER:     ${{ secrets.DB_USER }}
       DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
-      DB_HOST: ${{ secrets.DB_HOST }}
-      DB_PORT: ${{ secrets.DB_PORT }}
-      DB_NAME: ${{ secrets.DB_NAME }}
+      DB_HOST:     ${{ secrets.DB_HOST }}
+      DB_PORT:     ${{ secrets.DB_PORT }}
+      DB_NAME:     ${{ secrets.DB_NAME }}
       GDRIVE_SERVICE_KEY: ${{ secrets.GDRIVE_SERVICE_KEY }}
 
     steps:
@@ -25,22 +25,29 @@ jobs:
 
       - name: Debug connection vars
         run: |
-          echo "HOST: $DB_HOST"
-          echo "PORT: $DB_PORT"
+          echo "HOST:    $DB_HOST"
+          echo "PORT:    $DB_PORT"
           echo "DB NAME: $DB_NAME"
           echo "DB USER: $DB_USER"
 
-      - name: Write GDrive service key to file
+      - name: Write GDrive service key
         run: echo "$GDRIVE_SERVICE_KEY" > key.json
 
       - name: Export PostgreSQL backup
         run: |
           export PGPASSWORD="$DB_PASSWORD"
-          pg_dump -h "$DB_HOST" -U "$DB_USER" -p "$DB_PORT" -d "$DB_NAME" -F c -f backup.dump
+          pg_dump \
+            -h "$DB_HOST" \
+            -U "$DB_USER" \
+            -p "$DB_PORT" \
+            -d "$DB_NAME" \
+            -F c \
+            -f backup.dump
 
       - name: Install gdrive CLI
         run: |
-          curl -L -o gdrive https://github.com/prasmussen/gdrive/releases/download/2.1.1/gdrive-linux-x64
+          curl -L https://github.com/prasmussen/gdrive/releases/download/2.1.1/gdrive-linux-x64 \
+            -o gdrive
           chmod +x gdrive
           sudo mv gdrive /usr/local/bin/gdrive
           gdrive version
