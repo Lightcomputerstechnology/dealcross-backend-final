@@ -6,7 +6,7 @@ on:
     - cron: '0 1 * * *'  # Daily at 1 AM UTC
 
 jobs:
-  gdrive-upload:
+  backup:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -15,22 +15,18 @@ jobs:
       - name: Install PostgreSQL client
         run: |
           sudo apt-get update
-          sudo apt-get install -y postgresql-client zip
+          sudo apt-get install -y postgresql-client
 
-      - name: Export PostgreSQL backup
+      - name: Dump PostgreSQL database
+        env:
+          PGPASSWORD: ${{ secrets.DB_PASSWORD }}
         run: |
-          export PGPASSWORD="${{ secrets.DB_PASSWORD }}"
-          pg_dump \
-            -h "${{ secrets.DB_HOST }}" \
-            -p "${{ secrets.DB_PORT }}" \
-            -U "${{ secrets.DB_USER }}" \
-            -d "${{ secrets.DB_NAME }}" \
-            -F c \
-            -f backup.dump
+          pg_dump -h ${{ secrets.DB_HOST }} -U ${{ secrets.DB_USER }} \
+          -p ${{ secrets.DB_PORT }} -d ${{ secrets.DB_NAME }} \
+          -F c -f backup.dump
 
-      - name: Archive backup file
-        run: |
-          zip -r backup.zip backup.dump
+      - name: Zip the backup
+        run: zip backup.zip backup.dump
 
       - name: Upload to Google Drive
         uses: agusprayogi02/auto-upload-gdrive@v1.0.1
@@ -43,4 +39,4 @@ jobs:
           mimeType: application/zip
 
       - name: Cleanup
-        run: rm -f backup.dump backup.zip
+        run: rm backup.*
