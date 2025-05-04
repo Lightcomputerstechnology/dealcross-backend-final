@@ -1,0 +1,57 @@
+name: Secure PostgreSQL Backup to Google Drive
+
+on:
+  schedule:
+    - cron: '0 3 * * *'  # Runs every day at 3:00 AM UTC
+  workflow_dispatch:
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Set up job
+        run: echo "Starting PostgreSQL backup job..."
+
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Install tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gnupg curl postgresql-client
+
+      - name: Create backup folder
+        run: mkdir -p backup
+
+      - name: Set timestamp (global)
+        run: echo "BACKUP_TS=$(date +'%Y-%m-%d_%H-%M-%S')" >> $GITHUB_ENV
+
+      - name: Dump PostgreSQL database
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: |
+          export PGPASSWORD=$(echo $DATABASE_URL | sed -n 's/.*:.*:.*@.*/\1/p')
+          export PGUSER=$(echo $DATABASE_URL | sed -n 's/postgresql:\/\/.*:.*/\1/p')
+          export PGHOST=$(echo $DATABASE_URL | sed -n 's/.*@.*:.*/\1/p')
+          export PGPORT=$(echo $DATABASE_URL | sed -n 's/.*:[0-9]*\/.*/\1/p')
+          export PGDATABASE=$(echo $DATABASE_URL | sed -n 's/.*\/.*/\1/p')
+          pg_dump --clean --if-exists --no-owner --format=c > backup/db_${BACKUP_TS}.sql
+
+      - name: Encrypt backup (GPG)
+        run: |
+          echo "${{ secrets.SECRET_KEY }}" | gpg --batch --yes --passphrase-fd 0 --symmetric --cipher-algo AES256 backup/db_${BACKUP_TS}.sql
+
+      - name: Clean up old backups
+        run: rm -f backup/*.sql
+
+      - name: Commit and push encrypted backup
+        run: |
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+          git add backup/
+          git commit -m "Encrypted backup - $BACKUP_TS"
+          git push
+
+      - name: Post Checkout repo
+        run: echo "Backup job finished."
