@@ -1,57 +1,56 @@
-name: Secure PostgreSQL Backup to Google Drive
+name: PostgreSQL Backup to Google Drive
 
 on:
-  schedule:
-    - cron: '0 3 * * *'  # Runs every day at 3:00 AM UTC
   workflow_dispatch:
+  schedule:
+    - cron: '0 0 * * *' # Runs daily at midnight UTC
 
 jobs:
   backup:
     runs-on: ubuntu-latest
 
-    steps:
-      - name: Set up job
-        run: echo "Starting PostgreSQL backup job..."
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      GDRIVE_SERVICE_KEY: ${{ secrets.GDRIVE_SERVICE_KEY }}
 
+    steps:
       - name: Checkout repo
         uses: actions/checkout@v3
 
       - name: Install tools
         run: |
           sudo apt-get update
-          sudo apt-get install -y gnupg curl postgresql-client
+          sudo apt-get install -y postgresql-client gnupg curl unzip
 
       - name: Create backup folder
-        run: mkdir -p backup
+        run: mkdir -p backups
 
       - name: Set timestamp (global)
-        run: echo "BACKUP_TS=$(date +'%Y-%m-%d_%H-%M-%S')" >> $GITHUB_ENV
+        id: timestamp
+        run: echo "timestamp=$(date +'%Y-%m-%d_%H-%M-%S')" >> $GITHUB_OUTPUT
 
       - name: Dump PostgreSQL database
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
         run: |
-          export PGPASSWORD=$(echo $DATABASE_URL | sed -n 's/.*:.*:.*@.*/\1/p')
-          export PGUSER=$(echo $DATABASE_URL | sed -n 's/postgresql:\/\/.*:.*/\1/p')
-          export PGHOST=$(echo $DATABASE_URL | sed -n 's/.*@.*:.*/\1/p')
-          export PGPORT=$(echo $DATABASE_URL | sed -n 's/.*:[0-9]*\/.*/\1/p')
-          export PGDATABASE=$(echo $DATABASE_URL | sed -n 's/.*\/.*/\1/p')
-          pg_dump --clean --if-exists --no-owner --format=c > backup/db_${BACKUP_TS}.sql
+          DB_HOST=$(echo $DATABASE_URL | sed -E 's|.*://.*:.*@(.*):[0-9]+/.*|\1|')
+          DB_PORT=$(echo $DATABASE_URL | sed -E 's|.*://.*:.*@.*:([0-9]+)/.*|\1|')
+          DB_NAME=$(echo $DATABASE_URL | sed -E 's|.*/(.*)\??.*|\1|')
+          DB_USER=$(echo $DATABASE_URL | sed -E 's|.*://(.*):.*@.*|\1|')
+          DB_PASSWORD=$(echo $DATABASE_URL | sed -E 's|.*://.*:(.*)@.*|\1|')
+
+          export PGPASSWORD=$DB_PASSWORD
+          pg_dump -h $DB_HOST -p $DB_PORT -U $DB_USER -d $DB_NAME -F c -f backups/db_backup_${{ steps.timestamp.outputs.timestamp }}.dump
 
       - name: Encrypt backup (GPG)
         run: |
-          echo "${{ secrets.SECRET_KEY }}" | gpg --batch --yes --passphrase-fd 0 --symmetric --cipher-algo AES256 backup/db_${BACKUP_TS}.sql
+          echo "$GDRIVE_SERVICE_KEY" > service_account.json
+          zip -P "$PGPASSWORD" backups/secure_backup_${{ steps.timestamp.outputs.timestamp }}.zip backups/*.dump
 
-      - name: Clean up old backups
-        run: rm -f backup/*.sql
+      - name: Upload to Google Drive
+        uses: lablup/actions-gdrive@v1
+        with:
+          service-account-json: ${{ secrets.GDRIVE_SERVICE_KEY }}
+          filename: backups/secure_backup_${{ steps.timestamp.outputs.timestamp }}.zip
+          folder: Dealcross_Backups
 
-      - name: Commit and push encrypted backup
-        run: |
-          git config user.name "GitHub Actions"
-          git config user.email "actions@github.com"
-          git add backup/
-          git commit -m "Encrypted backup - $BACKUP_TS"
-          git push
-
-      - name: Post Checkout repo
-        run: echo "Backup job finished."
+      - name: Cleanup old backups
+        run: rm -rf backups service_account.json
