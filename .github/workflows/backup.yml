@@ -9,11 +9,11 @@ jobs:
   backup:
     runs-on: ubuntu-latest
     env:
-      DB_USER:       ${{ secrets.DB_USER }}
-      DB_PASSWORD:   ${{ secrets.DB_PASSWORD }}
-      DB_HOST:       ${{ secrets.DB_HOST }}
-      DB_PORT:       ${{ secrets.DB_PORT }}
-      DB_NAME:       ${{ secrets.DB_NAME }}
+      DB_USER:           ${{ secrets.DB_USER }}
+      DB_PASSWORD:       ${{ secrets.DB_PASSWORD }}
+      DB_HOST:           ${{ secrets.DB_HOST }}
+      DB_PORT:           ${{ secrets.DB_PORT }}
+      DB_NAME:           ${{ secrets.DB_NAME }}
       GDRIVE_SERVICE_KEY: ${{ secrets.GDRIVE_SERVICE_KEY }}
       GDRIVE_FOLDER_ID:   1GcrVC_oYGJLqr_8EKf0DKR5ez7BAYOzE
 
