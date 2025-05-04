@@ -3,7 +3,7 @@ name: PostgreSQL Backup to Google Drive
 on:
   workflow_dispatch:
   schedule:
-    - cron: '0 1 * * *'  # Runs daily at 1:00 AM UTC
+    - cron: '0 1 * * *'  # Daily at 1 AM UTC
 
 jobs:
   backup:
@@ -17,25 +17,26 @@ jobs:
       GDRIVE_SERVICE_KEY: ${{ secrets.GDRIVE_SERVICE_KEY }}
 
     steps:
-      - name: Checkout repo
+      - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Install PostgreSQL
+      - name: Install PostgreSQL client
         run: sudo apt-get update && sudo apt-get install -y postgresql-client
 
-      - name: Write service key to file
+      - name: Write GDrive service key to file
         run: echo "$GDRIVE_SERVICE_KEY" > key.json
 
-      - name: Export backup
+      - name: Export PostgreSQL backup
         run: |
-          export PGPASSWORD=$DB_PASSWORD
-          pg_dump -h $DB_HOST -U $DB_USER -p $DB_PORT -d $DB_NAME -F c -b -v -f backup.dump
+          export PGPASSWORD="$DB_PASSWORD"
+          pg_dump -h "$DB_HOST" -U "$DB_USER" -p "$DB_PORT" -d "$DB_NAME" -F c -f backup.dump
 
       - name: Install gdrive
         run: |
           wget -O gdrive.tar.gz https://github.com/prasmussen/gdrive/releases/download/2.1.1/gdrive-linux-x64
-          chmod +x gdrive-linux-x64
-          sudo mv gdrive-linux-x64 /usr/local/bin/gdrive
+          chmod +x gdrive.tar.gz
+          mv gdrive.tar.gz gdrive
+          sudo mv gdrive /usr/local/bin/
 
       - name: Upload to Google Drive
         run: |
