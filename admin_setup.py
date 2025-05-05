@@ -6,7 +6,9 @@ from fastapi_admin.app import FastAPIAdmin
 from fastapi_admin.providers.login import UsernamePasswordProvider
 from tortoise.contrib.fastapi import register_tortoise
 from config import settings
-from core.security import verify_password  # You must have a `verify_password` function
+from core.security import verify_password  # Ensure this is implemented
+
+import os
 
 app = FastAPI(title="Dealcross Admin", docs_url=None, redoc_url=None)
 
@@ -14,7 +16,7 @@ app = FastAPI(title="Dealcross Admin", docs_url=None, redoc_url=None)
 async def startup():
     await admin_app.configure(
         logo_url="https://dealcross-frontend.onrender.com/logo192.png",
-        template_folders=[],
+        template_folders=[os.path.join(os.path.dirname(__file__), "templates")],  # <<=== add this
         providers=[
             UsernamePasswordProvider(
                 admin_model="models.user.User",
