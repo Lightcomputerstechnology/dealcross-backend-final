@@ -1,3 +1,5 @@
+# File: utils/email_sender.py
+
 import smtplib
 from email.message import EmailMessage
 import os
@@ -11,7 +13,7 @@ def send_contact_email(name: str, email: str, message: str):
 
     msg = EmailMessage()
     msg["Subject"] = f"New Contact Message from {name}"
-    msg["From"] = smtp_user
+    msg["From"] = f"Dealcross Support <{smtp_user}>"
     msg["To"] = recipient_email
     msg.set_content(f"From: {name} <{email}>\n\n{message}")
 
