@@ -1,141 +1,93 @@
-from fastapi_admin.resources import Model
-from fastapi_admin.widgets import inputs, displays
-from fastapi_admin.depends import get_current_admin
-from tortoise import fields
-from typing import Optional
+from fastapi_admin.resources import Model from fastapi_admin.widgets import inputs, displays, filters from fastapi_admin.depends import get_current_admin from tortoise import fields from typing import Optional
 
-# =====================
-# Access Control Example
-# =====================
+=====================
 
-class SecureModel(Model):
-    async def is_accessible(self, request):
-        admin = await get_current_admin(request)
-        return admin and admin.is_superuser  # Restrict to superadmin only
+Role-Based Access Control
 
+=====================
 
-# ==========================
-# Core Admin Control Panels
-# ==========================
+class SecureModel(Model): async def is_accessible(self, request): admin = await get_current_admin(request) return admin and getattr(admin, "is_superuser", False)
 
-class UserAdmin(SecureModel):
-    label = "Users"
-    model = "models.user.User"
-    icon = "fa fa-user"
+==========================
 
-class WalletAdmin(SecureModel):
-    label = "Wallets"
-    model = "models.wallet.Wallet"
+Core Admin Control Panels
 
-class WalletTransactionAdmin(SecureModel):
-    label = "Wallet Transactions"
-    model = "models.wallet_transaction.WalletTransaction"
+==========================
 
-class KYCAdmin(SecureModel):
-    label = "KYC"
-    model = "models.kyc.KYC"
+class UserAdmin(SecureModel): label = "Users" model = "models.user.User" icon = "fa fa-user" search_fields = ["username", "email"] filters = [filters.Search(name="username"), filters.Boolean(name="is_superuser")] fields = [ "id", inputs.Text(name="username"), inputs.Email(name="email"), inputs.Boolean(name="is_superuser"), displays.Datetime(name="created_at") ]
 
-class DealAdmin(SecureModel):
-    label = "Deals"
-    model = "models.deal.Deal"
+class WalletAdmin(SecureModel): label = "Wallets" model = "models.wallet.Wallet"
 
-class DisputeAdmin(SecureModel):
-    label = "Disputes"
-    model = "models.dispute.Dispute"
+class WalletTransactionAdmin(SecureModel): label = "Wallet Transactions" model = "models.wallet_transaction.WalletTransaction"
 
-class ReferralAdmin(SecureModel):
-    label = "Referrals"
-    model = "models.referral_reward.ReferralReward"
+class KYCAdmin(SecureModel): label = "KYC" model = "models.kyc.KYC"
 
-class EarningsAdmin(SecureModel):
-    label = "Earnings"
-    model = "models.platform_earnings.PlatformEarnings"
+class DealAdmin(SecureModel): label = "Deals" model = "models.deal.Deal"
 
+class DisputeAdmin(SecureModel): label = "Disputes" model = "models.dispute.Dispute"
 
-# =============================
-# Monitoring and Visualization
-# =============================
+class ReferralAdmin(SecureModel): label = "Referrals" model = "models.referral_reward.ReferralReward"
 
-class FraudAdmin(SecureModel):
-    label = "Fraud Reports"
-    model = "models.fraud.Fraud"
+class EarningsAdmin(SecureModel): label = "Earnings" model = "models.platform_earnings.PlatformEarnings"
 
-class AuditLogAdmin(SecureModel):
-    label = "Audit Logs"
-    model = "models.audit_log.AuditLog"
+=============================
 
-class AnalyticsOverview(SecureModel):
-    label = "Analytics"
-    model = "models.metric.Metric"
+Monitoring and Visualization
 
-class MetricsChartAdmin(SecureModel):
-    label = "Charts"
-    model = "models.chart.Chart"
+=============================
 
-class NotificationLogAdmin(SecureModel):
-    label = "Notifications"
-    model = "models.notification.Notification"
+class FraudAdmin(SecureModel): label = "Fraud Reports" model = "models.fraud.Fraud"
 
-class InvestorReportAdmin(SecureModel):
-    label = "Investor Reports"
-    model = "models.investor_report.InvestorReport"
+class AuditLogAdmin(SecureModel): label = "Audit Logs" model = "models.audit_log.AuditLog"
 
-class EscrowTrackerAdmin(SecureModel):
-    label = "Escrow Tracker"
-    model = "models.escrow.EscrowTracker"
+class AnalyticsOverview(SecureModel): label = "Analytics" model = "models.metric.Metric"
 
+class MetricsChartAdmin(SecureModel): label = "Charts" model = "models.chart.Chart"
 
-# =====================
-# Communication & Mods
-# =====================
+class NotificationLogAdmin(SecureModel): label = "Notifications" model = "models.notification.Notification"
 
-class AdminChatThreadAdmin(SecureModel):
-    label = "Deal Chats"
-    model = "models.chat.Chat"
+class InvestorReportAdmin(SecureModel): label = "Investor Reports" model = "models.investor_report.InvestorReport"
 
-class SupportTicketAdmin(SecureModel):
-    label = "Support Tickets"
-    model = "models.support.SupportTicket"
+class EscrowTrackerAdmin(SecureModel): label = "Escrow Tracker" model = "models.escrow.EscrowTracker"
 
+=====================
 
-# ==================
-# Share & Trading
-# ==================
+Communication & Mods
 
-class ShareTradingAdmin(SecureModel):
-    label = "Share Trading"
-    model = "models.share.Share"
+=====================
 
+class AdminChatThreadAdmin(SecureModel): label = "Deal Chats" model = "models.chat.Chat"
 
-# ========================
-# Security & Configs
-# ========================
+class SupportTicketAdmin(SecureModel): label = "Support Tickets" model = "models.support.SupportTicket"
 
-class AdminLoginsAdmin(SecureModel):
-    label = "Login Logs"
-    model = "models.login_attempt.LoginAttempt"
+==================
 
-class SystemSettingsAdmin(SecureModel):
-    label = "System Settings"
-    model = "models.settings.Settings"
+Share & Trading
 
-class PendingApprovalAdmin(SecureModel):
-    label = "Pending Approval"
-    model = "models.pending_approval.PendingApproval"
+==================
 
+class ShareTradingAdmin(SecureModel): label = "Share Trading" model = "models.share.Share"
 
-# ==================
-# UI & Permissions
-# ==================
+========================
 
-class BannerManagerAdmin(SecureModel):
-    label = "Banners"
-    model = "models.banner.Banner"
+Security & Configs
 
-class RolePermissionAdmin(SecureModel):
-    label = "Permissions"
-    model = "models.role.RolePermission"
+========================
 
-class WebhookLogAdmin(SecureModel):
-    label = "Webhooks"
-    model = "models.webhook.WebhookLog"
+class AdminLoginsAdmin(SecureModel): label = "Login Logs" model = "models.login_attempt.LoginAttempt"
+
+class SystemSettingsAdmin(SecureModel): label = "System Settings" model = "models.settings.Settings"
+
+class PendingApprovalAdmin(SecureModel): label = "Pending Approval" model = "models.pending_approval.PendingApproval"
+
+==================
+
+UI & Permissions
+
+==================
+
+class BannerManagerAdmin(SecureModel): label = "Banners" model = "models.banner.Banner"
+
+class RolePermissionAdmin(SecureModel): label = "Permissions" model = "models.role.RolePermission"
+
+class WebhookLogAdmin(SecureModel): label = "Webhooks" model = "models.webhook.WebhookLog"
