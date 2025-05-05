@@ -23,9 +23,10 @@ from routers.health import router as health_router
 from routers.subscription import router as subscription_router
 from app.api.routes import router as api_router
 
-# Admin password widget
-from admin.widgets.change_password import ChangePasswordWidget
+# Admin password change view
+from admin_views.change_password_view import router as change_password_view
 
+# Auth
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 # ──────────────────────────────────────────────
@@ -55,9 +56,10 @@ async def on_shutdown():
 # ──────────────────────────────────────────────
 
 app.add_middleware(RateLimitMiddleware)
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Update for production
+    allow_origins=["*"],  # Replace with frontend domain in production
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -70,14 +72,8 @@ app.add_middleware(
 # Admin Panel
 app.mount("/admin", admin_app)
 
-# Admin password change (separate secure route)
-@app.get("/admin/user/me/change-password")
-async def show_change_password(request: Request):
-    return await ChangePasswordWidget().render(request)
-
-@app.post("/admin/user/me/change-password")
-async def submit_change_password(request: Request):
-    return await ChangePasswordWidget().handle(request)
+# Admin Custom Routes (like password change)
+app.include_router(change_password_view, prefix="/admin")
 
 # User Routes
 app.include_router(user_router, prefix="/user")
@@ -85,12 +81,12 @@ app.include_router(wallet_router, prefix="/wallet")
 app.include_router(deals_router, prefix="/deals")
 app.include_router(kyc_router, prefix="/kyc")
 
-# Admin API Routes
+# Admin Routes
 app.include_router(admin_wallet_router, prefix="/admin-wallet")
 app.include_router(admin_referral_router, prefix="/admin-referral")
 app.include_router(admin_kyc_router, prefix="/admin/kyc")
 
-# Other Features
+# Other Feature Routes
 app.include_router(api_router)
 app.include_router(chart_router, prefix="/chart")
 app.include_router(chat_router, prefix="/chat")
@@ -98,7 +94,7 @@ app.include_router(health_router, prefix="/health")
 app.include_router(subscription_router, prefix="/subscription")
 
 # ──────────────────────────────────────────────
-# Demo Upgrade Route
+# DEMO: Plan Upgrade Route
 # ──────────────────────────────────────────────
 
 @app.post("/users/upgrade-plan")
