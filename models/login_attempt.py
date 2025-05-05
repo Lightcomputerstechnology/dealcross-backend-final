@@ -1,13 +1,17 @@
-from tortoise import Model, fields
+from tortoise import fields, models
 
-# ─────────── LOGIN ATTEMPTS MODEL ───────────
-
-class LoginAttempt(Model):
+class LoginAttempt(models.Model):
     id = fields.IntField(pk=True)
     user = fields.ForeignKeyField("models.User", related_name="login_attempts", on_delete=fields.CASCADE)
     ip_address = fields.CharField(max_length=255)
+    user_agent = fields.CharField(max_length=255, null=True)  # Added for device info
     successful = fields.BooleanField()
     timestamp = fields.DatetimeField(auto_now_add=True)
 
+    class Meta:
+        table = "login_attempts"
+        ordering = ["-timestamp"]
+
     def __str__(self):
-        return f"LoginAttempt(user_id={self.user_id}, ip={self.ip_address}, success={self.successful})"
+        status = "Success" if self.successful else "Failed"
+        return f"LoginAttempt(user_id={self.user_id}, IP={self.ip_address}, {status})"
