@@ -11,4 +11,5 @@ python-jose
 passlib[bcrypt]
 python-multipart
 email-validator
+fastapi-admin
 pydantic-settings
