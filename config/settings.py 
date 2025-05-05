@@ -1,0 +1,13 @@
+# File: config/settings.py
+
+from pydantic import BaseSettings
+
+class Settings(BaseSettings):
+    DATABASE_URL: str
+    SECRET_KEY: str = "super_secret"
+    DEBUG: bool = False
+
+    class Config:
+        env_file = ".env"
+
+settings = Settings()
