@@ -16,7 +16,6 @@ from routers.kyc import router as kyc_router
 from routers.admin_wallet import router as admin_wallet_router
 from routers.admin_referral import router as admin_referral_router
 from routers.admin_kyc import router as admin_kyc_router
-from admin_setup import app as admin_app
 
 
 # Other routes
