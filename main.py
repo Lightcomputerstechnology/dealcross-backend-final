@@ -10,6 +10,7 @@ from core.middleware import RateLimitMiddleware
 from admin_setup import app as admin_app  # Admin panel app
 
 # Routers
+from routers import contact  # ✅ import it
 from routers.user import router as user_router
 from routers.wallet import router as wallet_router
 from routers.deals import router as deals_router
@@ -76,6 +77,7 @@ app.mount("/admin", admin_app)
 app.include_router(change_password_view, prefix="/admin")
 
 # User Routes
+app.include_router(contact.router)  
 app.include_router(user_router, prefix="/user")
 app.include_router(wallet_router, prefix="/wallet")
 app.include_router(deals_router, prefix="/deals")
