@@ -1,5 +1,6 @@
 # File: admin_setup.py
 
+import os
 from fastapi import FastAPI
 from fastapi_admin.factory import app as admin_app
 from fastapi_admin.app import FastAPIAdmin
@@ -7,8 +8,7 @@ from fastapi_admin.providers.login import UsernamePasswordProvider
 from tortoise.contrib.fastapi import register_tortoise
 from config import settings
 from core.security import verify_password  # Ensure this is implemented
-
-import os
+from admin_views.change_password_view import router as change_password_view  # NEW
 
 app = FastAPI(title="Dealcross Admin", docs_url=None, redoc_url=None)
 
@@ -16,7 +16,7 @@ app = FastAPI(title="Dealcross Admin", docs_url=None, redoc_url=None)
 async def startup():
     await admin_app.configure(
         logo_url="https://dealcross-frontend.onrender.com/logo192.png",
-        template_folders=[os.path.join(os.path.dirname(__file__), "templates")],  # <<=== add this
+        template_folders=[os.path.join(os.path.dirname(__file__), "templates")],
         providers=[
             UsernamePasswordProvider(
                 admin_model="models.user.User",
@@ -29,6 +29,7 @@ async def startup():
         favicon_url="https://dealcross-frontend.onrender.com/favicon.ico"
     )
 
+# Register Tortoise ORM
 register_tortoise(
     app,
     db_url=settings.DATABASE_URL,
@@ -46,3 +47,6 @@ register_tortoise(
     ]},
     generate_schemas=False
 )
+
+# Include admin-only views (like password change)
+app.include_router(change_password_view, prefix="/admin")  # NEW
