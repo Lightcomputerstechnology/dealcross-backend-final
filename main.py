@@ -16,6 +16,8 @@ from routers.kyc import router as kyc_router
 from routers.admin_wallet import router as admin_wallet_router
 from routers.admin_referral import router as admin_referral_router
 from routers.admin_kyc import router as admin_kyc_router
+from admin_setup import app as admin_app
+
 
 # Other routes
 from routers.chart import router as chart_router
@@ -72,6 +74,7 @@ app.include_router(deals_router, prefix="/deals")
 app.include_router(kyc_router, prefix="/kyc")
 
 # Admin
+app.mount("/admin", admin_app)
 app.include_router(admin_wallet_router, prefix="/admin-wallet")
 app.include_router(admin_referral_router, prefix="/admin-referral")
 app.include_router(admin_kyc_router, prefix="/admin/kyc")
