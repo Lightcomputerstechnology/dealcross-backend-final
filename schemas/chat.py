@@ -7,7 +7,7 @@ from datetime import datetime
 
 class ChatMessageCreate(BaseModel):
     receiver_id: int
-    content: str
+    message: str  # ✅ changed from 'content' to match model field
     deal_id: Optional[int] = None
 
 
@@ -16,7 +16,7 @@ class ChatMessageOut(BaseModel):
     sender_id: int
     receiver_id: int
     deal_id: Optional[int]
-    content: str
+    message: str  # ✅ changed from 'content'
     is_read: bool
     timestamp: datetime
 
