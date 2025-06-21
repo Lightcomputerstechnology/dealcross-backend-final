@@ -3,35 +3,30 @@
 import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi_admin.factory import app as admin_app
-from fastapi_admin.app import FastAPIAdmin
+from fastapi_admin.app import app as admin_app
 from fastapi_admin.providers.login import UsernamePasswordProvider
 from tortoise.contrib.fastapi import register_tortoise
 from config import settings
-from core.security import verify_password  # Make sure this exists
+from core.security import verify_password
 from admin_views.change_password_view import router as change_password_view
 
-# Initialize FastAPI for Admin Panel
-app = FastAPI(
-    title="Dealcross Admin",
-    docs_url=None,
-    redoc_url=None
-)
+TEMPLATE_DIR = os.path.join(os.path.dirname(__file__), "templates")
 
-# Add CORS protection (optional but useful)
-app.add_middleware(
+# Setup AdminApp with metadata
+admin_app.title = "Dealcross Admin"
+admin_app.docs_url = None
+admin_app.redoc_url = None
+
+# Optional: Add CORS to admin panel
+admin_app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # TIP: restrict this in production
+    allow_origins=["*"],  # Restrict in production
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Template path for HTML views
-TEMPLATE_DIR = os.path.join(os.path.dirname(__file__), "templates")
-
-# Admin startup configuration
-@app.on_event("startup")
+@admin_app.on_event("startup")
 async def startup():
     await admin_app.configure(
         logo_url="https://dealcross-frontend.onrender.com/logo192.png",
@@ -48,9 +43,9 @@ async def startup():
         favicon_url="https://dealcross-frontend.onrender.com/favicon.ico"
     )
 
-# Tortoise ORM Registration
+# Register models
 register_tortoise(
-    app,
+    admin_app,
     db_url=settings.DATABASE_URL,
     modules={"models": [
         "models.user",
@@ -83,5 +78,8 @@ register_tortoise(
     generate_schemas=False
 )
 
-# Mount custom admin views (e.g. password change)
-app.include_router(change_password_view, prefix="/admin")
+# Custom admin view like password change
+admin_app.include_router(change_password_view, prefix="/admin")
+
+# Export admin_app so it can be mounted in main.py
+__all__ = ["admin_app"]
