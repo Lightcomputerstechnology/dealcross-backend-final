@@ -7,7 +7,7 @@ from fastapi.security import OAuth2PasswordBearer
 
 from core.db import init_db, close_db
 from core.middleware import RateLimitMiddleware
-from admin_setup import app as admin_app  # Admin panel app
+from admin_setup import admin_app  # Admin panel app
 
 # Routers
 from routers import contact  # ✅ import it
