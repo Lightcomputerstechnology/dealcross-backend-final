@@ -2,7 +2,7 @@ fastapi
 uvicorn
 tortoise-orm
 aerich
-aioredis==2.0.1
+redis>=4.5.4
 tomlkit
 asyncpg
 pydantic
