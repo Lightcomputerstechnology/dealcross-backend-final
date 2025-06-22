@@ -13,4 +13,4 @@ passlib[bcrypt]
 python-multipart
 email-validator
 pydantic-settings
-https://github.com/lightcomputers/fastapi-admin-no-aioredis/archive/refs/heads/main.zip  # ✅ public zip-based patched version
+git+https://github.com/Lightcomputerstechnology/fastapi-admin-patched@main#egg=fastapi-admin[tortoise]
