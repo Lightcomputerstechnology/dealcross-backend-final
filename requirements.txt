@@ -12,5 +12,5 @@ passlib[bcrypt]
 python-multipart
 email-validator
 fastapi-admin==1.0.4
-redis==4.6.0  # ✅ Use this instead of aioredis
+redis==4.6.0
 pydantic-settings
