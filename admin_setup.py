@@ -1,9 +1,8 @@
-# admin_setup.py (Final Fixed Version)
-
+# admin_setup.py
 import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi_admin.app import app as fastapi_admin_app  # ✅ CORRECT IMPORT
+from fastapi_admin.app import app as fastapi_admin_app  # ✅ CORRECT
 from fastapi_admin.providers.login import UsernamePasswordProvider
 from tortoise.contrib.fastapi import register_tortoise
 from config import settings
