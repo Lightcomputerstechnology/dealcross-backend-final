@@ -1,24 +1,22 @@
-# File: admin_setup.py
+# admin_setup.py
 
 import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi_admin.app import app as admin_app  # ✅ Correct import for 1.0.4
+from fastapi_admin.factory import app as fastapi_admin_app
 from fastapi_admin.providers.login import UsernamePasswordProvider
 from tortoise.contrib.fastapi import register_tortoise
 from config import settings
-from core.security import verify_password  # Ensure this exists
+from core.security import verify_password
 from admin_views.change_password_view import router as change_password_view
 
-# Initialize FastAPI for Admin Panel
-app = FastAPI(
+admin_app = FastAPI(
     title="Dealcross Admin",
     docs_url=None,
     redoc_url=None
 )
 
-# Optional: CORS
-app.add_middleware(
+admin_app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
     allow_credentials=True,
@@ -26,12 +24,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Templates path
 TEMPLATE_DIR = os.path.join(os.path.dirname(__file__), "templates")
 
-@app.on_event("startup")
+@admin_app.on_event("startup")
 async def startup():
-    await admin_app.configure(
+    await fastapi_admin_app.configure(
         logo_url="https://dealcross-frontend.onrender.com/logo192.png",
         template_folders=[TEMPLATE_DIR],
         providers=[
@@ -46,9 +43,8 @@ async def startup():
         favicon_url="https://dealcross-frontend.onrender.com/favicon.ico"
     )
 
-# Register models
 register_tortoise(
-    app,
+    admin_app,
     db_url=settings.DATABASE_URL,
     modules={"models": [
         "models.user",
@@ -81,4 +77,4 @@ register_tortoise(
     generate_schemas=False
 )
 
-app.include_router(change_password_view, prefix="/admin")
+admin_app.include_router(change_password_view, prefix="/admin")
