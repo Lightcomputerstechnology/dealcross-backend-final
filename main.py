@@ -1,4 +1,4 @@
-# File: main.py
+# main.py
 
 import os
 from fastapi import FastAPI, HTTPException, Depends, Request
@@ -7,7 +7,7 @@ from fastapi.security import OAuth2PasswordBearer
 
 from core.db import init_db, close_db
 from core.middleware import RateLimitMiddleware
-from admin_setup import app as admin_app  # ✅ Use `app as admin_app` from admin_setup.py
+from admin_setup import admin_app
 
 # Routers
 from routers import contact
@@ -27,19 +27,11 @@ from admin_views.change_password_view import router as change_password_view
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
-# ──────────────────────────────────────────────
-# MAIN BACKEND APP
-# ──────────────────────────────────────────────
-
 app = FastAPI(
     title="Dealcross Backend",
     version="1.0.0",
-    description="FastAPI backend for the Dealcross platform including escrow, wallet, analytics, subscriptions, and more."
+    description="FastAPI backend for the Dealcross platform"
 )
-
-# ──────────────────────────────────────────────
-# APP LIFECYCLE
-# ──────────────────────────────────────────────
 
 @app.on_event("startup")
 async def on_startup():
@@ -49,52 +41,36 @@ async def on_startup():
 async def on_shutdown():
     await close_db()
 
-# ──────────────────────────────────────────────
-# MIDDLEWARE
-# ──────────────────────────────────────────────
-
 app.add_middleware(RateLimitMiddleware)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Restrict in production
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# ──────────────────────────────────────────────
-# ROUTES
-# ──────────────────────────────────────────────
-
-# Mount admin panel at /admin (from admin_setup.py)
+# Mount admin panel
 app.mount("/admin", admin_app)
 
-# Admin views (change password, etc.)
+# Custom admin route (e.g., password change)
 app.include_router(change_password_view, prefix="/admin")
 
-# User-facing endpoints
+# Main routes
 app.include_router(contact.router)
 app.include_router(user_router, prefix="/user")
 app.include_router(wallet_router, prefix="/wallet")
 app.include_router(deals_router, prefix="/deals")
 app.include_router(kyc_router, prefix="/kyc")
-
-# Admin routes
 app.include_router(admin_wallet_router, prefix="/admin-wallet")
 app.include_router(admin_referral_router, prefix="/admin-referral")
 app.include_router(admin_kyc_router, prefix="/admin/kyc")
-
-# Core features
 app.include_router(api_router)
 app.include_router(chart_router, prefix="/chart")
 app.include_router(chat_router, prefix="/chat")
 app.include_router(health_router, prefix="/health")
 app.include_router(subscription_router, prefix="/subscription")
-
-# ──────────────────────────────────────────────
-# DEMO PLAN UPGRADE
-# ──────────────────────────────────────────────
 
 @app.post("/users/upgrade-plan")
 async def upgrade_plan(
