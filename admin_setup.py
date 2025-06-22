@@ -1,19 +1,17 @@
 # admin_setup.py
 import os
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi_admin.app import app as fastapi_admin_app  # ✅ CORRECT
+from fastapi_admin.app import app as admin_app  # ✅ This is the one to expose
 from fastapi_admin.providers.login import UsernamePasswordProvider
+from fastapi.middleware.cors import CORSMiddleware
 from tortoise.contrib.fastapi import register_tortoise
+
 from config import settings
 from core.security import verify_password
 from admin_views.change_password_view import router as change_password_view
 
-admin_app = FastAPI(
-    title="Dealcross Admin",
-    docs_url=None,
-    redoc_url=None
-)
+# ──────────────────────────────────────────────
+# MIDDLEWARE
+# ──────────────────────────────────────────────
 
 admin_app.add_middleware(
     CORSMiddleware,
@@ -23,11 +21,15 @@ admin_app.add_middleware(
     allow_headers=["*"],
 )
 
+# ──────────────────────────────────────────────
+# STARTUP CONFIG
+# ──────────────────────────────────────────────
+
 TEMPLATE_DIR = os.path.join(os.path.dirname(__file__), "templates")
 
 @admin_app.on_event("startup")
 async def startup():
-    await fastapi_admin_app.configure(
+    await admin_app.configure(
         logo_url="https://dealcross-frontend.onrender.com/logo192.png",
         template_folders=[TEMPLATE_DIR],
         providers=[
@@ -41,6 +43,10 @@ async def startup():
         title="Dealcross Admin",
         favicon_url="https://dealcross-frontend.onrender.com/favicon.ico"
     )
+
+# ──────────────────────────────────────────────
+# Tortoise ORM
+# ──────────────────────────────────────────────
 
 register_tortoise(
     admin_app,
@@ -75,5 +81,9 @@ register_tortoise(
     ]},
     generate_schemas=False
 )
+
+# ──────────────────────────────────────────────
+# CUSTOM ADMIN ROUTES
+# ──────────────────────────────────────────────
 
 admin_app.include_router(change_password_view, prefix="/admin")
