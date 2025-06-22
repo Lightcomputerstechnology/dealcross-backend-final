@@ -1,6 +1,7 @@
 fastapi
 uvicorn
 tortoise-orm
+aioredis==2.0.1
 aerich
 tomlkit
 asyncpg
