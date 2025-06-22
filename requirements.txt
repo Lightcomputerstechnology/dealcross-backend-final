@@ -2,6 +2,7 @@ fastapi
 uvicorn
 tortoise-orm
 aerich
+aioredis==2.0.1
 tomlkit
 asyncpg
 pydantic
@@ -11,6 +12,5 @@ python-jose
 passlib[bcrypt]
 python-multipart
 email-validator
-fastapi-admin==1.0.4
-redis==4.6.0
+fastapi-admin[tortoise]==1.0.4
 pydantic-settings
