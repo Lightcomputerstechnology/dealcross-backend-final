@@ -2,7 +2,7 @@ fastapi
 uvicorn
 tortoise-orm
 aerich
-redis==4.5.5                        # ✅ Modern async Redis client
+redis==4.5.5
 tomlkit
 asyncpg
 pydantic
@@ -13,4 +13,4 @@ passlib[bcrypt]
 python-multipart
 email-validator
 pydantic-settings
-https://github.com/DealcrossTeam/fastapi-admin-no-aioredis/archive/refs/heads/main.zip  # ✅ No Git auth needed
+https://github.com/lightcomputers/fastapi-admin-no-aioredis/archive/refs/heads/main.zip  # ✅ public zip-based patched version
