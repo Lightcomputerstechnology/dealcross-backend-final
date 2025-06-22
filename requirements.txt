@@ -2,7 +2,7 @@ fastapi
 uvicorn
 tortoise-orm
 aerich
-redis==4.5.5  # ✅ Modern Redis client with asyncio support (replaces deprecated aioredis)
+redis==4.5.5                        # ✅ Modern async Redis client
 tomlkit
 asyncpg
 pydantic
@@ -12,5 +12,5 @@ python-jose
 passlib[bcrypt]
 python-multipart
 email-validator
-fastapi-admin[tortoise]==1.0.4  # ✅ Stable version, still works with redis.asyncio
 pydantic-settings
+git+https://github.com/devdaves/fastapi-admin-no-aioredis@main#egg=fastapi-admin[tortoise]  # ✅ Patched fastapi-admin
