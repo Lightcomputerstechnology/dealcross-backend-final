@@ -12,5 +12,5 @@ python-jose
 passlib[bcrypt]
 python-multipart
 email-validator
-fastapi-admin[tortoise]
+fastapi-admin[tortoise]==1.0.0a8
 pydantic-settings
