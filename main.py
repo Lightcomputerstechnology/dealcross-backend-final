@@ -7,10 +7,10 @@ from fastapi.security import OAuth2PasswordBearer
 
 from core.db import init_db, close_db
 from core.middleware import RateLimitMiddleware
-from admin_setup import admin_app  # Admin panel app
+from admin_setup import app as admin_app  # ✅ Use `app as admin_app` from admin_setup.py
 
 # Routers
-from routers import contact  # ✅ import it
+from routers import contact
 from routers.user import router as user_router
 from routers.wallet import router as wallet_router
 from routers.deals import router as deals_router
@@ -23,25 +23,22 @@ from routers.chat import router as chat_router
 from routers.health import router as health_router
 from routers.subscription import router as subscription_router
 from app.api.routes import router as api_router
-
-# Admin password change view
 from admin_views.change_password_view import router as change_password_view
 
-# Auth
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 # ──────────────────────────────────────────────
-# MAIN APP
+# MAIN BACKEND APP
 # ──────────────────────────────────────────────
 
 app = FastAPI(
     title="Dealcross Backend",
     version="1.0.0",
-    description="FastAPI backend for the Dealcross platform including escrow, wallet, analytics, subscription, and more."
+    description="FastAPI backend for the Dealcross platform including escrow, wallet, analytics, subscriptions, and more."
 )
 
 # ──────────────────────────────────────────────
-# LIFECYCLE
+# APP LIFECYCLE
 # ──────────────────────────────────────────────
 
 @app.on_event("startup")
@@ -60,7 +57,7 @@ app.add_middleware(RateLimitMiddleware)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Replace with frontend domain in production
+    allow_origins=["*"],  # Restrict in production
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -70,25 +67,25 @@ app.add_middleware(
 # ROUTES
 # ──────────────────────────────────────────────
 
-# Admin Panel
+# Mount admin panel at /admin (from admin_setup.py)
 app.mount("/admin", admin_app)
 
-# Admin Custom Routes (like password change)
+# Admin views (change password, etc.)
 app.include_router(change_password_view, prefix="/admin")
 
-# User Routes
-app.include_router(contact.router)  
+# User-facing endpoints
+app.include_router(contact.router)
 app.include_router(user_router, prefix="/user")
 app.include_router(wallet_router, prefix="/wallet")
 app.include_router(deals_router, prefix="/deals")
 app.include_router(kyc_router, prefix="/kyc")
 
-# Admin Routes
+# Admin routes
 app.include_router(admin_wallet_router, prefix="/admin-wallet")
 app.include_router(admin_referral_router, prefix="/admin-referral")
 app.include_router(admin_kyc_router, prefix="/admin/kyc")
 
-# Other Feature Routes
+# Core features
 app.include_router(api_router)
 app.include_router(chart_router, prefix="/chart")
 app.include_router(chat_router, prefix="/chat")
@@ -96,7 +93,7 @@ app.include_router(health_router, prefix="/health")
 app.include_router(subscription_router, prefix="/subscription")
 
 # ──────────────────────────────────────────────
-# DEMO: Plan Upgrade Route
+# DEMO PLAN UPGRADE
 # ──────────────────────────────────────────────
 
 @app.post("/users/upgrade-plan")
