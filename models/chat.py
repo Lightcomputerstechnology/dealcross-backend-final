@@ -1,15 +1,19 @@
+# models/chat.py
+
 from tortoise import fields
 from tortoise.models import Model
 
-class ChartPoint(Model):
+class ChatMessage(Model):
     id = fields.IntField(pk=True)
-    label = fields.CharField(max_length=100)
-    value = fields.FloatField()
-    created_at = fields.DatetimeField(auto_now_add=True)
+    sender = fields.ForeignKeyField("models.User", related_name="sent_messages", on_delete=fields.CASCADE)
+    receiver = fields.ForeignKeyField("models.User", related_name="received_messages", on_delete=fields.CASCADE)
+    message = fields.TextField()
+    is_read = fields.BooleanField(default=False)
+    sent_at = fields.DatetimeField(auto_now_add=True)
 
     class Meta:
-        table = "chart_points"
-        ordering = ["-created_at"]
+        table = "chat_messages"
+        ordering = ["-sent_at"]
 
     def __str__(self):
-        return f"{self.label}: {self.value}"
+        return f"From {self.sender_id} to {self.receiver_id}"
