@@ -1,5 +1,4 @@
-# File: src/models/fee_transaction.py
-
+# --- models/fee_transaction.py ---
 from tortoise.models import Model
 from tortoise import fields
 import enum
@@ -13,7 +12,7 @@ class FeeType(str, enum.Enum):
 class FeeTransaction(Model):
     id = fields.IntField(pk=True)
     user = fields.ForeignKeyField(
-        "models.User",
+        "models.user.User",
         related_name="fee_transactions",
         null=True,
         on_delete=fields.SET_NULL
