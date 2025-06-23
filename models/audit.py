@@ -4,9 +4,11 @@ from tortoise import Model, fields
 
 class Audit(Model):
     id = fields.IntField(pk=True)
-    action = fields.TextField()  # Upgraded for flexibility (longer actions)
+    action = fields.TextField()  # Flexible length
     performed_by = fields.ForeignKeyField(
-        "models.User", related_name="audit_logs", on_delete=fields.CASCADE
+        "models.User",  # ✅ Correct format
+        related_name="audit_logs",
+        on_delete=fields.CASCADE
     )
     created_at = fields.DatetimeField(auto_now_add=True)
 
