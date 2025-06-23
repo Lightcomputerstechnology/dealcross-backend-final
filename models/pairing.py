@@ -5,12 +5,12 @@ from tortoise import Model, fields
 class Pairing(Model):
     id = fields.IntField(pk=True)
     creator = fields.ForeignKeyField(
-        "models.User",
+        "models.user.User",  # ✅ Fully qualified path
         related_name="created_pairings",
         on_delete=fields.CASCADE
     )
     counterparty = fields.ForeignKeyField(
-        "models.User",
+        "models.user.User",  # ✅ Fully qualified path
         related_name="received_pairings",
         on_delete=fields.CASCADE
     )
