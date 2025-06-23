@@ -9,12 +9,25 @@ class KYCStatus(str, enum.Enum):
 
 class KYCRequest(Model):
     id = fields.IntField(pk=True)
-    user = fields.ForeignKeyField("models.User", related_name="kyc_requests", on_delete=fields.CASCADE)
+
+    user = fields.ForeignKeyField(
+        "models.user.User",  # ✅ Fully qualified for user
+        related_name="kyc_requests",
+        on_delete=fields.CASCADE
+    )
+
     document_type = fields.CharField(max_length=255)
     document_url = fields.CharField(max_length=255)
     status = fields.CharEnumField(KYCStatus, default=KYCStatus.pending)
     submitted_at = fields.DatetimeField(auto_now_add=True)
-    reviewed_by = fields.ForeignKeyField("models.User", related_name="kyc_reviews", null=True, on_delete=fields.SET_NULL)
+
+    reviewed_by = fields.ForeignKeyField(
+        "models.user.User",  # ✅ Fully qualified for user
+        related_name="kyc_reviews",
+        null=True,
+        on_delete=fields.SET_NULL
+    )
+
     review_note = fields.TextField(null=True)
 
     class Meta:
