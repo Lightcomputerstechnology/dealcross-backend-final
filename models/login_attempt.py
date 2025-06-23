@@ -2,9 +2,15 @@ from tortoise import fields, models
 
 class LoginAttempt(models.Model):
     id = fields.IntField(pk=True)
-    user = fields.ForeignKeyField("models.User", related_name="login_attempts", on_delete=fields.CASCADE)
+
+    user = fields.ForeignKeyField(
+        "models.user.User",  # ✅ Correct reference format: "app_name.ModelName"
+        related_name="login_attempts",
+        on_delete=fields.CASCADE
+    )
+
     ip_address = fields.CharField(max_length=255)
-    user_agent = fields.CharField(max_length=255, null=True)  # Added for device info
+    user_agent = fields.CharField(max_length=255, null=True)  # Optional device info
     successful = fields.BooleanField()
     timestamp = fields.DatetimeField(auto_now_add=True)
 
