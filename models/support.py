@@ -1,9 +1,6 @@
-# File: models/support.py
-
-from tortoise import fields, models
+from tortoise import fields
 from tortoise.models import Model
 from enum import Enum
-
 
 class TicketStatus(str, Enum):
     OPEN = "open"
@@ -11,17 +8,15 @@ class TicketStatus(str, Enum):
     RESOLVED = "resolved"
     CLOSED = "closed"
 
-
 class TicketPriority(str, Enum):
     LOW = "Low"
     MEDIUM = "Medium"
     HIGH = "High"
     URGENT = "Urgent"
 
-
 class SupportTicket(Model):
     id = fields.IntField(pk=True)
-    user_id = fields.IntField(null=True, index=True)
+    user = fields.ForeignKeyField("models.User", related_name="support_tickets", null=True, on_delete=fields.SET_NULL)
     subject = fields.CharField(max_length=255)
     message = fields.TextField()
     status = fields.CharEnumField(TicketStatus, default=TicketStatus.OPEN)
