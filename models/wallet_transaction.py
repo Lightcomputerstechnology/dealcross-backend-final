@@ -1,18 +1,16 @@
-# File: src/models/wallet_transaction.py
-
 from tortoise import models, fields
 
 class WalletTransaction(models.Model):
     id = fields.IntField(pk=True)
     
     wallet = fields.ForeignKeyField(
-        "models.Wallet",
+        "models.Wallet",  # ✅ Correct format
         related_name="transactions",
         on_delete=fields.CASCADE
     )
     
     user = fields.ForeignKeyField(
-        "models.User",
+        "models.User",  # ✅ Correct format
         related_name="wallet_transactions",
         on_delete=fields.CASCADE
     )
