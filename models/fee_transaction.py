@@ -1,4 +1,3 @@
-# --- models/fee_transaction.py ---
 from tortoise.models import Model
 from tortoise import fields
 import enum
@@ -11,12 +10,14 @@ class FeeType(str, enum.Enum):
 
 class FeeTransaction(Model):
     id = fields.IntField(pk=True)
+
     user = fields.ForeignKeyField(
-        "models.user.User",
+        "models.user.User",  # ✅ Correct path using app.model format
         related_name="fee_transactions",
         null=True,
         on_delete=fields.SET_NULL
     )
+
     fee_type = fields.CharEnumField(FeeType)
     amount = fields.DecimalField(max_digits=12, decimal_places=2)
     created_at = fields.DatetimeField(auto_now_add=True)
