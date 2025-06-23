@@ -1,4 +1,4 @@
-from tortoise import fields, models
+from tortoise import models, fields
 
 class ReferralReward(models.Model):
     id = fields.IntField(pk=True)
@@ -14,14 +14,8 @@ class ReferralReward(models.Model):
         on_delete=fields.CASCADE
     )
 
-    source = fields.CharField(
-        max_length=30  # E.g., "wallet_funding", "deal_funding"
-    )
-
-    amount = fields.DecimalField(
-        max_digits=12, decimal_places=2
-    )
-
+    source = fields.CharField(max_length=30)  # e.g., "wallet_funding", "deal_funding"
+    amount = fields.DecimalField(max_digits=12, decimal_places=2)
     approved_by_admin = fields.BooleanField(default=False)
     created_at = fields.DatetimeField(auto_now_add=True)
 
@@ -31,6 +25,4 @@ class ReferralReward(models.Model):
         unique_together = ("referred", "source")
 
     def __str__(self):
-        return (
-            f"Reward {self.amount} from {self.referrer_id} for {self.referred_id} ({self.source})"
-        )
+        return f"Reward {self.amount} from referrer {self.referrer_id} to {self.referred_id} ({self.source})"
