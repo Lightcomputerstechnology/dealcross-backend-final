@@ -1,10 +1,6 @@
-# File: src/models/wallet.py
+from tortoise import models, fields
 
-from tortoise.models import Model
-from tortoise import fields
-from models.user import User
-
-class Wallet(Model):
+class Wallet(models.Model):
     id = fields.IntField(pk=True)
     user = fields.ForeignKeyField("models.User", related_name="wallet")
     balance = fields.DecimalField(max_digits=12, decimal_places=2, default=0.00)
