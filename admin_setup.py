@@ -1,4 +1,3 @@
-# admin_setup.py
 import os
 from fastapi_admin.app import app as admin_app  # ✅ This is the one to expose
 from fastapi_admin.providers.login import UsernamePasswordProvider
@@ -45,7 +44,7 @@ async def startup():
     )
 
 # ──────────────────────────────────────────────
-# Tortoise ORM
+# Tortoise ORM MODEL REGISTRATION
 # ──────────────────────────────────────────────
 
 register_tortoise(
@@ -56,10 +55,12 @@ register_tortoise(
         "models.wallet",
         "models.wallet_transaction",
         "models.admin_wallet",
+        "models.admin_wallet_log",
         "models.kyc",
         "models.deal",
         "models.dispute",
         "models.fraud",
+        "models.audit",
         "models.audit_log",
         "models.metric",
         "models.chart",
@@ -76,7 +77,13 @@ register_tortoise(
         "models.webhook",
         "models.notification",
         "models.investor_report",
-        "models.escrow",
+        "models.escrow_tracker",
+        "models.fee_transaction",
+        "models.pairing",
+        "models.blog",
+        "models.config",
+        "models.logs",
+        "models.aiinsight",
         "aerich.models"
     ]},
     generate_schemas=False
