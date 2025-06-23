@@ -1,4 +1,3 @@
-# --- models/audit_log.py ---
 from tortoise.models import Model
 from tortoise import fields
 
@@ -6,7 +5,7 @@ class AuditLog(Model):
     id = fields.IntField(pk=True)
     action = fields.CharField(max_length=255)
     performed_by = fields.ForeignKeyField(
-        "models.user.User",
+        "models.User",  # ✅ FIXED: Correct ForeignKey reference format
         related_name="audit_logs",
         on_delete=fields.CASCADE
     )
