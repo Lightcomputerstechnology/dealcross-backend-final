@@ -5,7 +5,7 @@ class PlatformEarning(models.Model):
     id = fields.IntField(pk=True)
 
     user = fields.ForeignKeyField(
-        "models.User",
+        "models.user.User",  # ✅ Correct format
         related_name="platform_earnings",
         on_delete=fields.CASCADE
     )
