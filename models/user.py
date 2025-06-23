@@ -1,6 +1,5 @@
 from enum import Enum
-from tortoise import Model, fields
-
+from tortoise import models, fields
 
 class UserRole(str, Enum):
     user = "user"
@@ -8,8 +7,7 @@ class UserRole(str, Enum):
     auditor = "auditor"
     admin = "admin"
 
-
-class User(Model):
+class User(models.Model):
     id = fields.IntField(pk=True)
 
     username = fields.CharField(max_length=50, unique=True)
@@ -19,7 +17,6 @@ class User(Model):
     role = fields.CharEnumField(UserRole, default=UserRole.user)
     is_superuser = fields.BooleanField(default=False)
     is_active = fields.BooleanField(default=True)
-
     status = fields.CharField(max_length=20, default="active")
     cumulative_sales = fields.DecimalField(max_digits=12, decimal_places=2, default=0)
 
@@ -33,9 +30,8 @@ class User(Model):
         on_delete=fields.SET_NULL
     )
 
-    # Role Permission Link (if RolePermission model exists)
     permission = fields.ForeignKeyField(
-        "models.role.RolePermission",
+        "models.role.RolePermission",  # ✅ Ensure this model is spelled and located correctly
         null=True,
         related_name="users",
         on_delete=fields.SET_NULL
