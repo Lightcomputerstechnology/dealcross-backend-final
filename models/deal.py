@@ -1,19 +1,14 @@
-from tortoise import Model, fields
-from models.user import User  # Ensure proper import if needed
+from tortoise import fields, models
 
-# ───────── DEAL MODEL ─────────
-
-class Deal(Model):
+class Deal(models.Model):
     id = fields.IntField(pk=True)
 
-    # Creator of the deal (the one who initiated it)
     creator = fields.ForeignKeyField(
         "models.User",
         related_name="created_deals",
         on_delete=fields.CASCADE
     )
 
-    # Counterparty (the user being paired with or seller/buyer)
     counterparty = fields.ForeignKeyField(
         "models.User",
         related_name="paired_deals",
@@ -26,8 +21,7 @@ class Deal(Model):
     amount = fields.DecimalField(max_digits=12, decimal_places=2)
     escrow_locked = fields.DecimalField(max_digits=12, decimal_places=2, default=0.00)
 
-    status = fields.CharField(max_length=50, default="pending")  # pending, active, completed, disputed, etc.
-
+    status = fields.CharField(max_length=50, default="pending")
     is_public = fields.BooleanField(default=True)
     pairing_confirmed = fields.BooleanField(default=False)
 
@@ -36,4 +30,3 @@ class Deal(Model):
 
     def __str__(self):
         return f"Deal(id={self.id}, status={self.status})"
-    
