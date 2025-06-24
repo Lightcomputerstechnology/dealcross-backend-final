@@ -6,7 +6,7 @@ class Audit(Model):
     id = fields.IntField(pk=True)
     action = fields.TextField()  # Flexible length
     performed_by = fields.ForeignKeyField(
-        "models.User",  # ✅ Correct format
+        "models.user.User",  # Fully qualified model reference
         related_name="audit_logs",
         on_delete=fields.CASCADE
     )
