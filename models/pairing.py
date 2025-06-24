@@ -1,18 +1,16 @@
 from tortoise import Model, fields
 
-# ─────────── DEAL PAIRING MODEL ───────────
-
 class Pairing(Model):
     id = fields.IntField(pk=True)
 
     creator = fields.ForeignKeyField(
-        "models.User",  # ✅ Corrected to "app.Model"
+        "models.User",  # ✅ Correct format: app.Model
         related_name="created_pairings",
         on_delete=fields.CASCADE
     )
 
     counterparty = fields.ForeignKeyField(
-        "models.User",  # ✅ Corrected to "app.Model"
+        "models.User",  # ✅ Correct format: app.Model
         related_name="received_pairings",
         on_delete=fields.CASCADE
     )
