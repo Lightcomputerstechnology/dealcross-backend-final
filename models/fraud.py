@@ -11,13 +11,15 @@ class FraudAlert(Model):
     id = fields.IntField(pk=True)
     
     deal = fields.ForeignKeyField(
-        "models.deal.Deal",  # ✅ Correct module path
-        related_name="fraud_alerts"
+        "models.Deal",  # ✅ FIXED: Use app.Model format
+        related_name="fraud_alerts",
+        on_delete=fields.CASCADE
     )
     
     reporter = fields.ForeignKeyField(
-        "models.user.User",  # ✅ Correct module path
-        related_name="reported_frauds"
+        "models.User",  # ✅ FIXED
+        related_name="reported_frauds",
+        on_delete=fields.CASCADE
     )
     
     reason = fields.CharField(max_length=255)
