@@ -5,20 +5,16 @@ class PlatformEarning(models.Model):
     id = fields.IntField(pk=True)
 
     user = fields.ForeignKeyField(
-        "models.user.User",  # ✅ Correct format
+        "models.User",  # ✅ Corrected: format is "app.Model"
         related_name="platform_earnings",
         on_delete=fields.CASCADE
     )
 
-    source = fields.CharField(
-        max_length=50
-    )  # E.g., 'funding', 'escrow', 'share_buy', etc.
+    source = fields.CharField(max_length=50)  # e.g., 'funding', 'escrow', etc.
 
-    amount = fields.DecimalField(
-        max_digits=12, decimal_places=2
-    )
+    amount = fields.DecimalField(max_digits=12, decimal_places=2)
 
-    note = fields.TextField(null=True)  # Optional extra explanation
+    note = fields.TextField(null=True)
 
     created_at = fields.DatetimeField(auto_now_add=True)
 
