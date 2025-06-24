@@ -4,13 +4,13 @@ class ReferralReward(models.Model):
     id = fields.IntField(pk=True)
 
     referrer = fields.ForeignKeyField(
-        "models.user.User",  # ✅ Correct reference
+        "models.User",  # ✅ Correct format
         related_name="referral_earnings",
         on_delete=fields.CASCADE
     )
 
     referred = fields.ForeignKeyField(
-        "models.user.User",  # ✅ Correct reference
+        "models.User",  # ✅ Correct format
         related_name="referral_rewards",
         on_delete=fields.CASCADE
     )
