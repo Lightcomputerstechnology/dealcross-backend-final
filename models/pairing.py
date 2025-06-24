@@ -4,16 +4,19 @@ from tortoise import Model, fields
 
 class Pairing(Model):
     id = fields.IntField(pk=True)
+
     creator = fields.ForeignKeyField(
-        "models.user.User",  # ✅ Fully qualified path
+        "models.User",  # ✅ Corrected to "app.Model"
         related_name="created_pairings",
         on_delete=fields.CASCADE
     )
+
     counterparty = fields.ForeignKeyField(
-        "models.user.User",  # ✅ Fully qualified path
+        "models.User",  # ✅ Corrected to "app.Model"
         related_name="received_pairings",
         on_delete=fields.CASCADE
     )
+
     status = fields.CharField(max_length=50, default="pending")
     created_at = fields.DatetimeField(auto_now_add=True)
 
