@@ -4,7 +4,7 @@ class LoginAttempt(models.Model):
     id = fields.IntField(pk=True)
 
     user = fields.ForeignKeyField(
-        "models.user.User",  # ✅ Correct reference format: "app_name.ModelName"
+        "models.User",  # ✅ Correct format: app_label.ModelName
         related_name="login_attempts",
         on_delete=fields.CASCADE
     )
