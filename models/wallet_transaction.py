@@ -4,13 +4,13 @@ class WalletTransaction(models.Model):
     id = fields.IntField(pk=True)
     
     wallet = fields.ForeignKeyField(
-        "models.wallet.Wallet",  # ✅ Fully qualified
+        "models.Wallet",  # ✅ Corrected format
         related_name="transactions",
         on_delete=fields.CASCADE
     )
     
     user = fields.ForeignKeyField(
-        "models.user.User",  # ✅ Fully qualified
+        "models.User",  # ✅ Corrected format
         related_name="wallet_transactions",
         on_delete=fields.CASCADE
     )
