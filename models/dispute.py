@@ -10,13 +10,13 @@ class Dispute(Model):
     id = fields.IntField(pk=True)
 
     deal = fields.ForeignKeyField(
-        "models.deal.Deal",  # ✅ Fully qualified
+        "models.Deal",  # ✅ Correct format
         related_name="disputes",
         on_delete=fields.CASCADE
     )
 
     user = fields.ForeignKeyField(
-        "models.user.User",  # ✅ Fully qualified
+        "models.User",  # ✅ Correct format
         related_name="disputes",
         on_delete=fields.CASCADE
     )
