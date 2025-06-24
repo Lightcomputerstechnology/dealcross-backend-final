@@ -5,7 +5,7 @@ class Notification(Model):
     id = fields.IntField(pk=True)
 
     user = fields.ForeignKeyField(
-        "models.user.User",  # ✅ Correct module path
+        "models.User",  # ✅ Fixed: Correct format for Tortoise ORM
         related_name="notifications",
         on_delete=fields.CASCADE
     )
