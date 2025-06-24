@@ -2,7 +2,13 @@ from tortoise import models, fields
 
 class Wallet(models.Model):
     id = fields.IntField(pk=True)
-    user = fields.ForeignKeyField("models.user.User", related_name="wallet")  # ✅ FIXED
+
+    user = fields.ForeignKeyField(
+        "models.User",  # ✅ Correct format: "models.Model"
+        related_name="wallet",
+        on_delete=fields.CASCADE
+    )
+
     balance = fields.DecimalField(max_digits=12, decimal_places=2, default=0.00)
     created_at = fields.DatetimeField(auto_now_add=True)
     updated_at = fields.DatetimeField(auto_now=True)
