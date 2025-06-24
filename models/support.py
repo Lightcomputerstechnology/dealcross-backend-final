@@ -16,12 +16,14 @@ class TicketPriority(str, Enum):
 
 class SupportTicket(Model):
     id = fields.IntField(pk=True)
+
     user = fields.ForeignKeyField(
-        "models.user.User",  # ✅ Fixed
+        "models.User",  # ✅ Fixed
         related_name="support_tickets",
         null=True,
         on_delete=fields.SET_NULL
     )
+
     subject = fields.CharField(max_length=255)
     message = fields.TextField()
     status = fields.CharEnumField(TicketStatus, default=TicketStatus.OPEN)
