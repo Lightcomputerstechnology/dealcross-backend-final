@@ -11,7 +11,7 @@ class KYCRequest(Model):
     id = fields.IntField(pk=True)
 
     user = fields.ForeignKeyField(
-        "models.user.User",  # ✅ Fully qualified for user
+        "models.User",  # ✅ FIXED
         related_name="kyc_requests",
         on_delete=fields.CASCADE
     )
@@ -22,7 +22,7 @@ class KYCRequest(Model):
     submitted_at = fields.DatetimeField(auto_now_add=True)
 
     reviewed_by = fields.ForeignKeyField(
-        "models.user.User",  # ✅ Fully qualified for user
+        "models.User",  # ✅ FIXED
         related_name="kyc_reviews",
         null=True,
         on_delete=fields.SET_NULL
