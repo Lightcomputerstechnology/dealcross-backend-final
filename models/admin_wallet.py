@@ -6,7 +6,7 @@ class AdminWallet(models.Model):
     currency = fields.CharField(max_length=10, default="USD")
 
     last_updated_by = fields.ForeignKeyField(
-        "models.user.User",  # ✅ Correct ForeignKey format
+        "models.User",  # ✅ FIXED: No dot notation
         related_name="admin_wallet_updates",
         null=True,
         on_delete=fields.SET_NULL
