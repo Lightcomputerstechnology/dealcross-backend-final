@@ -1,19 +1,16 @@
-
-
-
 from tortoise import fields, models
 
 class Deal(models.Model):
     id = fields.IntField(pk=True)
 
     creator = fields.ForeignKeyField(
-        "models.user.User",  # ✅ Fully qualified
+        "models.User",  # ✅ FIXED
         related_name="created_deals",
         on_delete=fields.CASCADE
     )
 
     counterparty = fields.ForeignKeyField(
-        "models.user.User",  # ✅ Fully qualified
+        "models.User",  # ✅ FIXED
         related_name="paired_deals",
         null=True,
         on_delete=fields.SET_NULL
