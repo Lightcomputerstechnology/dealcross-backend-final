@@ -24,14 +24,14 @@ class User(models.Model):
 
     referral_code = fields.CharField(max_length=20, unique=True, null=True)
     referred_by = fields.ForeignKeyField(
-        "models.User",
+        "models.user.User",  # ✅ Fixed
         related_name="referrals",
         null=True,
         on_delete=fields.SET_NULL
     )
 
     permission = fields.ForeignKeyField(
-        "models.role.RolePermission",  # ✅ Ensure this model is spelled and located correctly
+        "models.role.RolePermission",
         null=True,
         related_name="users",
         on_delete=fields.SET_NULL
