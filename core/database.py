@@ -9,7 +9,7 @@ TORTOISE_ORM = {
     "connections": {"default": DATABASE_URL},
     "apps": {
         "models": {
-            "models": ["src.models.__models__", "aerich.models"],  # ✅ Model registry + Aerich
+            "models": ["models", "aerich.models"],  # ✅ NO "src." — must match Tortoise label!
             "default_connection": "default",
         }
     }
@@ -18,7 +18,7 @@ TORTOISE_ORM = {
 # === Initialize Tortoise ORM ===
 async def init_db():
     await Tortoise.init(config=TORTOISE_ORM)
-    # await Tortoise.generate_schemas()  # ❌ Commented out if using Aerich for migrations
+    # await Tortoise.generate_schemas()  # ❌ Use Aerich for migrations instead
 
 # === Graceful DB Close ===
 async def close_db():
