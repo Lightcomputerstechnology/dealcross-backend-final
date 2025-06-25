@@ -7,7 +7,7 @@ from .kyc import KYCRequest
 from .deal import Deal
 from .dispute import Dispute
 from .fraud import FraudAlert
-from .audit import Audit  # ✅ Fixed import
+from .audit import Audit
 from .audit_log import AuditLog
 from .metric import Metric
 from .chart import ChartPoint
@@ -16,7 +16,7 @@ from .login_attempt import LoginAttempt
 from .platform_earnings import PlatformEarnings
 from .referral_reward import ReferralReward
 from .support import SupportTicket
-from .share import ShareAsset
+from .share import Share  # ✅ Fixed
 from .settings import AppSetting
 from .pending_approval import PendingApproval
 from .banner import Banner
@@ -42,7 +42,7 @@ __models__ = [
     Deal,
     Dispute,
     FraudAlert,
-    Audit,  # ✅ Fixed here too
+    Audit,
     AuditLog,
     Metric,
     ChartPoint,
@@ -51,7 +51,7 @@ __models__ = [
     PlatformEarnings,
     ReferralReward,
     SupportTicket,
-    ShareAsset,
+    Share,  # ✅ Fixed
     AppSetting,
     PendingApproval,
     Banner,
