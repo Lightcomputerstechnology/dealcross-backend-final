@@ -7,7 +7,7 @@ from .kyc import KYCRequest
 from .deal import Deal
 from .dispute import Dispute
 from .fraud import FraudAlert
-from .audit import AuditRecord
+from .audit import Audit  # ✅ Fixed import
 from .audit_log import AuditLog
 from .metric import Metric
 from .chart import ChartPoint
@@ -42,7 +42,7 @@ __models__ = [
     Deal,
     Dispute,
     FraudAlert,
-    AuditRecord,
+    Audit,  # ✅ Fixed here too
     AuditLog,
     Metric,
     ChartPoint,
