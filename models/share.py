@@ -2,7 +2,7 @@ from tortoise import Model, fields
 
 # ─────────── SHARE MODEL ───────────
 
-class Share(models.Model):  # ✅ Model class is now 'Share'
+class Share(Model):  # ✅ Use Model (already imported correctly)
     id = fields.IntField(pk=True)
     company_name = fields.CharField(max_length=255)
     price = fields.DecimalField(max_digits=12, decimal_places=2)
@@ -12,4 +12,4 @@ class Share(models.Model):  # ✅ Model class is now 'Share'
         return f"Share({self.company_name}: ${self.price})"
 
     class Meta:
-        table = "share_assets"  # ✅ Table name remains explicit and pluralized
+        table = "share_assets"  # ✅ Explicit table name (plural, consistent)
