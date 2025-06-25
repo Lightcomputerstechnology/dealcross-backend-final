@@ -5,7 +5,7 @@ from fastapi import FastAPI, HTTPException, Depends, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordBearer
 
-from core.db import init_db, close_db
+from core.database import init_db, close_db
 from core.middleware import RateLimitMiddleware
 from admin_setup import admin_app
 
