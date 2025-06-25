@@ -1,10 +1,11 @@
 # File: routers/wallet.py
 
-from utils.admin_wallet_logger import log_admin_wallet_activity
 from decimal import Decimal
 from datetime import datetime, timedelta
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
+
 from core.security import get_current_user
+from utils.admin_wallet_logger import log_admin_wallet_activity
 
 # MODELS
 from models.wallet import Wallet
@@ -16,17 +17,24 @@ from models.admin_wallet import AdminWallet
 from models.platform_earnings import PlatformEarnings
 from models.admin_wallet_log import AdminWalletLog
 
-# SERVICES / UTILS
-from services.fee_logic import calculate_fee
-
 # SCHEMAS
 from schemas.wallet import WalletOut, FundWallet, TransactionOut
 
+# SERVICES
+from services.fee_logic import calculate_fee
+from services.payment_gateways import (
+    initiate_paystack_payment,
+    initiate_flutterwave_payment,
+    initiate_nowpayments_crypto,
+)
+
 router = APIRouter(prefix="/wallet", tags=["Wallet Management"])
+
 
 # ─────────── FRAUD ALERT HELPER ───────────
 async def trigger_fraud_alert(user: User, alert_type: str, description: str):
     await FraudAlert.create(user=user, alert_type=alert_type, description=description)
+
 
 # ─────────── GET WALLET SUMMARY ───────────
 @router.get("/my-wallet", summary="Retrieve user's wallet balance and recent transactions")
@@ -71,7 +79,8 @@ async def get_my_wallet_summary(current_user: User = Depends(get_current_user)):
         "recent_transactions": [TransactionOut.model_validate(tx) for tx in recent_transactions]
     }
 
-# ─────────── FUND WALLET (w/ Admin Log) ───────────
+
+# ─────────── FUND WALLET (INTERNAL LOGIC ONLY) ───────────
 @router.post("/fund", summary="Fund user's wallet (fee applies)")
 async def fund_wallet(fund: FundWallet, current_user: User = Depends(get_current_user)):
     base_amount = Decimal(fund.amount)
@@ -97,7 +106,6 @@ async def fund_wallet(fund: FundWallet, current_user: User = Depends(get_current
     admin_wallet.balance += fee
     await admin_wallet.save()
 
-    # ✅ Corrected: use correct model name
     await PlatformEarnings.create(
         user=current_user,
         source="funding",
@@ -117,8 +125,35 @@ async def fund_wallet(fund: FundWallet, current_user: User = Depends(get_current
         "fee": float(fee)
     }
 
+
 # ─────────── GET ALL TRANSACTIONS ───────────
 @router.get("/transactions", summary="Retrieve all wallet transactions for the current user")
 async def get_all_transactions(current_user: User = Depends(get_current_user)):
     transactions = await WalletTransaction.filter(user=current_user).order_by("-timestamp")
     return [TransactionOut.model_validate(tx) for tx in transactions]
+
+
+# ─────────── EXTERNAL FUNDING ROUTES ───────────
+
+@router.post("/fund/card", summary="Fund wallet via Card (Paystack)")
+async def fund_wallet_card(request: Request, amount: float, current_user: User = Depends(get_current_user)):
+    if amount <= 0:
+        raise HTTPException(status_code=400, detail="Invalid amount.")
+    payment_url = await initiate_paystack_payment(current_user, amount)
+    return {"payment_url": payment_url}
+
+
+@router.post("/fund/bank", summary="Fund wallet via Bank Transfer (Flutterwave)")
+async def fund_wallet_bank(request: Request, amount: float, current_user: User = Depends(get_current_user)):
+    if amount <= 0:
+        raise HTTPException(status_code=400, detail="Invalid amount.")
+    payment_url = await initiate_flutterwave_payment(current_user, amount, payment_type="bank")
+    return {"payment_url": payment_url}
+
+
+@router.post("/fund/crypto", summary="Fund wallet via Crypto (NowPayments)")
+async def fund_wallet_crypto(request: Request, amount: float, crypto: str, current_user: User = Depends(get_current_user)):
+    if amount <= 0:
+        raise HTTPException(status_code=400, detail="Invalid amount.")
+    invoice_data = await initiate_nowpayments_crypto(current_user, amount, crypto)
+    return invoice_data
