@@ -10,7 +10,7 @@ from models.user import User
 from models.wallet import Wallet
 from models.wallet_transaction import WalletTransaction
 from models.admin_wallet import AdminWallet
-from models.platform_earnings import PlatformEarning
+from models.platform_earnings import PlatformEarnings
 from models.referral_reward import ReferralReward
 from models.admin_wallet_log import AdminWalletLog  # ✅ NEW
 
