@@ -1,6 +1,6 @@
 from tortoise import fields, models
 
-class Settings(models.Model):
+class AppSetting(models.Model):  # ✅ Renamed to match your import
     id = fields.IntField(pk=True)
 
     # Feature Toggles
