@@ -1,3 +1,5 @@
+# models/audit.py
+
 from tortoise import fields, models
 
 class Audit(models.Model):
@@ -5,7 +7,7 @@ class Audit(models.Model):
     action = fields.TextField()  # Flexible length
 
     performed_by = fields.ForeignKeyField(
-        "models.User",  # ✅ Use app.Model format, assuming 'models' is your Tortoise app label
+        "models.User",  # ✅ Correct Tortoise format: "app.Model"
         related_name="audit_logs",
         on_delete=fields.CASCADE
     )
@@ -13,7 +15,7 @@ class Audit(models.Model):
     created_at = fields.DatetimeField(auto_now_add=True)
 
     class Meta:
-        table = "audit_logs"  # ✅ Optional but clearer for DB naming
+        table = "audit_logs"  # Optional, but good for clarity
 
     def __str__(self):
         return f"Audit(id={self.id}, action='{self.action[:20]}...')"
