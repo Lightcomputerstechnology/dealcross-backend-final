@@ -1,6 +1,6 @@
 # File: routers/wallet.py
 
-from utils.admin_wallet_logger import log_admin_wallet_activity  # ✅ NEW
+from utils.admin_wallet_logger import log_admin_wallet_activity
 from decimal import Decimal
 from datetime import datetime, timedelta
 from fastapi import APIRouter, Depends, HTTPException
@@ -14,7 +14,7 @@ from models.fraud import FraudAlert
 from models.user import User
 from models.admin_wallet import AdminWallet
 from models.platform_earnings import PlatformEarnings
-from models.admin_wallet_log import AdminWalletLog  # ✅ NEW
+from models.admin_wallet_log import AdminWalletLog
 
 # SERVICES / UTILS
 from services.fee_logic import calculate_fee
@@ -97,14 +97,13 @@ async def fund_wallet(fund: FundWallet, current_user: User = Depends(get_current
     admin_wallet.balance += fee
     await admin_wallet.save()
 
-    # Log platform earning
-    await PlatformEarning.create(
+    # ✅ Corrected: use correct model name
+    await PlatformEarnings.create(
         user=current_user,
         source="funding",
         amount=fee
     )
 
-    # ✅ Log admin wallet activity
     await log_admin_wallet_activity(
         amount=fee,
         action="fee_credit",
