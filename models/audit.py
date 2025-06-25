@@ -4,10 +4,10 @@ from tortoise import fields, models
 
 class AuditRecord(models.Model):
     id = fields.IntField(pk=True)
-    action = fields.TextField()  # Flexible length
+    action = fields.TextField()
 
     performed_by = fields.ForeignKeyField(
-        "models.user.User",  # Fully qualified path: app_name.ModelName
+        "models.User",  # ✅ Correct format: "app_label.Model"
         related_name="audit_logs",
         on_delete=fields.CASCADE
     )
@@ -15,7 +15,7 @@ class AuditRecord(models.Model):
     created_at = fields.DatetimeField(auto_now_add=True)
 
     class Meta:
-        table = "audit_logs"  # Clear table name for DB
+        table = "audit_logs"
 
     def __str__(self):
         return f"Audit(id={self.id}, action='{self.action[:20]}...')"
