@@ -1,12 +1,18 @@
-from tortoise import Model, fields
+from tortoise import fields, models
 
-# ─────────── SYSTEM LOGS MODEL ───────────
+# ─────────── SYSTEM LOG ENTRY MODEL ───────────
 
-class Logs(Model):
+class LogEntry(models.Model):  # ✅ Matches `from .logs import LogEntry`
     id = fields.IntField(pk=True)
+    level = fields.CharField(max_length=20)  # e.g., INFO, WARNING, ERROR
     message = fields.TextField()
-    level = fields.CharField(max_length=50)  # Example: "INFO", "WARNING", "ERROR"
+    source = fields.CharField(max_length=100, null=True)  # e.g., 'auth', 'payment'
+    metadata = fields.JSONField(null=True)  # Optional structured data
     created_at = fields.DatetimeField(auto_now_add=True)
 
+    class Meta:
+        table = "log_entries"
+        ordering = ["-created_at"]
+
     def __str__(self):
-        return f"[{self.level}] {self.message[:30]}..."  # Show part of the log in admin/debug
+        return f"[{self.level}] {self.source or 'system'}: {self.message[:50]}..."
