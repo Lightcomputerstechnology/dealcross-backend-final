@@ -1,11 +1,11 @@
 from tortoise import fields, models
 from tortoise.contrib.pydantic import pydantic_model_creator
 
-class PlatformEarning(models.Model):
+class PlatformEarnings(models.Model):  # ✅ Renamed to match __init__.py
     id = fields.IntField(pk=True)
 
     user = fields.ForeignKeyField(
-        "models.User",  # ✅ Corrected: format is "app.Model"
+        "models.User",  # ✅ Correct format
         related_name="platform_earnings",
         on_delete=fields.CASCADE
     )
@@ -27,4 +27,4 @@ class PlatformEarning(models.Model):
         return f"Earning(user={self.user_id}, {self.source}, ₦{self.amount})"
 
 # Optional Pydantic version
-PlatformEarning_Pydantic = pydantic_model_creator(PlatformEarning, name="PlatformEarning")
+PlatformEarnings_Pydantic = pydantic_model_creator(PlatformEarnings, name="PlatformEarnings")
