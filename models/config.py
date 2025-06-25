@@ -1,15 +1,18 @@
 from tortoise import Model, fields
 
-# ─────────── CONFIGURATION SETTINGS MODEL ───────────
+# ─────────── SYSTEM LOG ENTRY MODEL ───────────
 
-class ConfigEntry(Model):  # ✅ Renamed to match your imports
+class LogEntry(Model):
     id = fields.IntField(pk=True)
-    key = fields.CharField(max_length=100, unique=True)  # Slimmer, safer
-    value = fields.TextField()  # Allow longer, flexible settings
-    is_active = fields.BooleanField(default=True)
+    level = fields.CharField(max_length=50)  # e.g., INFO, WARNING, ERROR
+    message = fields.TextField()
+    origin = fields.CharField(max_length=100, null=True)  # e.g., "auth_module"
+    metadata = fields.JSONField(null=True)  # Optional structured context
+    created_at = fields.DatetimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"ConfigEntry(key='{self.key}', active={self.is_active})"
+        return f"LogEntry(level={self.level}, message={self.message[:30]}...)"
 
     class Meta:
-        table = "config_entries"
+        table = "log_entries"
+        ordering = ["-created_at"]
