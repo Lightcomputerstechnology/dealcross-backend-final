@@ -13,7 +13,7 @@ from models.fee_transaction import FeeTransaction
 from models.fraud import FraudAlert
 from models.user import User
 from models.admin_wallet import AdminWallet
-from models.platform_earnings import PlatformEarning
+from models.platform_earnings import PlatformEarnings
 from models.admin_wallet_log import AdminWalletLog  # ✅ NEW
 
 # SERVICES / UTILS
