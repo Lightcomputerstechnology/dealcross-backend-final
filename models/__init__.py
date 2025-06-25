@@ -16,7 +16,7 @@ from .login_attempt import LoginAttempt
 from .platform_earnings import PlatformEarnings
 from .referral_reward import ReferralReward
 from .support import SupportTicket
-from .share import Share  # ✅ Fixed
+from .share import Share  # ✅ using Share not ShareAsset
 from .settings import AppSetting
 from .pending_approval import PendingApproval
 from .banner import Banner
@@ -51,7 +51,7 @@ __models__ = [
     PlatformEarnings,
     ReferralReward,
     SupportTicket,
-    Share,  # ✅ Fixed
+    Share,  # ✅ Consistency
     AppSetting,
     PendingApproval,
     Banner,
