@@ -4,7 +4,7 @@ class EscrowTracker(Model):
     id = fields.IntField(pk=True)
 
     deal = fields.ForeignKeyField(
-        "models.deal.Deal",  # ✅ Correct module path to Deal
+        "models.Deal",  # ✅ Correct format: "app_label.ModelName"
         related_name="escrow_trackers",
         on_delete=fields.CASCADE
     )
