@@ -1,14 +1,14 @@
 from tortoise import models, fields
 
-# ─────────── AUDIT LOG MODEL ───────────
+# ─────────── AUDIT MODEL ───────────
 
 class Audit(models.Model):
     id = fields.IntField(pk=True)
     action = fields.TextField()
 
     performed_by = fields.ForeignKeyField(
-        "models.User",  # ✅ Correct Tortoise format: "app.Model"
-        related_name="audit_logs",
+        "models.User",
+        related_name="performed_audits",  # ✅ renamed to avoid conflict
         on_delete=fields.CASCADE
     )
 
