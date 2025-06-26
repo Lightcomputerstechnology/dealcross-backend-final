@@ -1,17 +1,51 @@
 # core/settings.py
 
-import os
-from dotenv import load_dotenv
+from pydantic_settings import BaseSettings, SettingsConfigDict
 from pathlib import Path
 
-# Load environment variables from .env file
-env_path = Path(__file__).resolve().parent.parent / ".env"
-load_dotenv(dotenv_path=env_path)
+class Settings(BaseSettings):
+    # ─── GENERAL ───────────────
+    APP_NAME: str = "Dealcross"
+    APP_ENV: str = "production"
+    APP_PORT: int = 8000
 
-# Payment API Keys
-PAYSTACK_SECRET = os.getenv("PAYSTACK_SECRET")
-FLUTTERWAVE_SECRET = os.getenv("FLW_SECRET")
-NOWPAY_API_KEY = os.getenv("NOWPAY_API_KEY")
+    # ─── DATABASE ──────────────
+    DB_HOST: str
+    DB_PORT: int
+    DB_USER: str
+    DB_PASSWORD: str
+    DB_NAME: str
 
-# You can add more settings here later, e.g.:
-# DATABASE_URL = os.getenv("DATABASE_URL")
+    # ─── SECURITY ──────────────
+    SECRET_KEY: str
+    ALGORITHM: str
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
+
+    # ─── PAYMENT KEYS ──────────
+    PAYSTACK_SECRET: str
+    FLW_SECRET: str
+    NOWPAY_API_KEY: str
+
+    # ─── EMAIL (Optional) ──────
+    EMAIL_HOST: str | None = None
+    EMAIL_PORT: int | None = None
+    EMAIL_USER: str | None = None
+    EMAIL_PASSWORD: str | None = None
+    EMAIL_FROM_NAME: str | None = None
+
+    # ─── RATE LIMIT ────────────
+    RATE_LIMIT_MAX_REQUESTS: int = 100
+    RATE_LIMIT_TIME_WINDOW: int = 60
+
+    # ─── FRONTEND DOMAIN ───────
+    FRONTEND_URL: str
+
+    # ─── CALLBACK URLS ─────────
+    PAYSTACK_CALLBACK: str
+    FLUTTERWAVE_CALLBACK: str
+    NOWPAY_CALLBACK: str
+
+    model_config = SettingsConfigDict(env_file=Path(__file__).resolve().parent.parent / ".env")
+
+# Global instance
+settings = Settings()
