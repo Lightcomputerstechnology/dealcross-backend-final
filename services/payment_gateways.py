@@ -1,5 +1,4 @@
-# File: services/payment_gateways.py
-
+import os
 import httpx
 from models.user import User
 from core.settings import settings
@@ -10,13 +9,13 @@ from core.settings import settings
 async def initiate_paystack_payment(user: User, amount: float):
     url = "https://api.paystack.co/transaction/initialize"
     headers = {
-        "Authorization": f"Bearer {PAYSTACK_SECRET}",
+        "Authorization": f"Bearer {settings.paystack_secret}",
         "Content-Type": "application/json"
     }
     payload = {
         "email": user.email,
         "amount": int(amount * 100),  # Paystack expects amount in kobo
-        "callback_url": "https://yourdomain.com/payment/verify/paystack"
+        "callback_url": settings.paystack_callback,
     }
     async with httpx.AsyncClient() as client:
         res = await client.post(url, headers=headers, json=payload)
@@ -31,14 +30,14 @@ async def initiate_paystack_payment(user: User, amount: float):
 async def initiate_flutterwave_payment(user: User, amount: float, method="bank_transfer"):
     url = "https://api.flutterwave.com/v3/payments"
     headers = {
-        "Authorization": f"Bearer {FLUTTERWAVE_SECRET}",
+        "Authorization": f"Bearer {settings.flw_secret}",
         "Content-Type": "application/json"
     }
     payload = {
         "tx_ref": f"FLW-{user.id}-{os.urandom(4).hex()}",
         "amount": str(amount),
         "currency": "USD",
-        "redirect_url": "https://yourdomain.com/payment/verify/flutterwave",
+        "redirect_url": settings.flutterwave_callback,
         "payment_options": method,
         "customer": {
             "email": user.email,
@@ -62,7 +61,7 @@ async def initiate_flutterwave_payment(user: User, amount: float, method="bank_t
 async def initiate_nowpayments_crypto(user: User, amount: float, crypto="usdt"):
     url = "https://api.nowpayments.io/v1/invoice"
     headers = {
-        "x-api-key": NOWPAY_API_KEY,
+        "x-api-key": settings.nowpay_api_key,
         "Content-Type": "application/json"
     }
     payload = {
@@ -71,7 +70,7 @@ async def initiate_nowpayments_crypto(user: User, amount: float, crypto="usdt"):
         "pay_currency": crypto,
         "order_id": f"{user.id}",
         "order_description": user.email,
-        "ipn_callback_url": "https://yourdomain.com/webhooks/nowpayments",
+        "ipn_callback_url": settings.nowpay_callback,
         "success_url": "https://yourdomain.com/payment/success"
     }
     async with httpx.AsyncClient() as client:
