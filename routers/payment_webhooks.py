@@ -3,7 +3,6 @@
 from fastapi import APIRouter, Request, HTTPException
 from decimal import Decimal
 from tortoise.transactions import in_transaction
-from tortoise.expressions import Q
 
 # MODELS
 from models.user import User
@@ -17,6 +16,7 @@ from utils.admin_wallet_logger import log_admin_wallet_activity
 
 router = APIRouter(prefix="/webhooks", tags=["Payment Webhooks"])
 
+
 # ─────────── PAYSTACK ───────────
 @router.post("/paystack")
 async def handle_paystack_webhook(request: Request):
@@ -28,41 +28,38 @@ async def handle_paystack_webhook(request: Request):
 
     data = payload.get("data", {})
     email = data.get("customer", {}).get("email")
-    amount_raw = data.get("amount")  # Paystack sends in kobo
+    amount_raw = data.get("amount")
     reference = data.get("reference")
 
     if not email or not amount_raw or not reference:
-        raise HTTPException(status_code=400, detail="Invalid payload")
+        raise HTTPException(status_code=400, detail="Invalid Paystack payload")
 
     async with in_transaction():
         user = await User.get_or_none(email=email)
         if not user:
             raise HTTPException(status_code=404, detail="User not found")
 
-        # Prevent duplicate
         exists = await WalletTransaction.get_or_none(description__icontains=reference)
         if exists:
-            return {"message": "Duplicate payment"}
+            return {"message": "Duplicate Paystack payment"}
 
         wallet, _ = await Wallet.get_or_create(user=user, defaults={"balance": 0})
-        amount = Decimal(amount_raw) / 100  # Convert kobo to naira
+        amount = Decimal(amount_raw) / 100  # Kobo to Naira
+        fee = Decimal("0.01") * amount
+        net_amount = amount - fee
 
-        wallet.balance += amount
+        wallet.balance += net_amount
         await wallet.save()
 
         await WalletTransaction.create(
             wallet=wallet,
             user=user,
-            amount=amount,
+            amount=net_amount,
             transaction_type="fund",
             description=f"Paystack top-up: {reference}"
         )
 
-        admin_wallet = await AdminWallet.first()
-        if not admin_wallet:
-            admin_wallet = await AdminWallet.create(balance=0)
-
-        fee = Decimal("0.00")
+        admin_wallet = await AdminWallet.first() or await AdminWallet.create(balance=0)
         admin_wallet.balance += fee
         await admin_wallet.save()
 
@@ -70,7 +67,7 @@ async def handle_paystack_webhook(request: Request):
         await log_admin_wallet_activity(
             amount=fee,
             action="paystack_fee",
-            description=f"Fee from Paystack {reference}",
+            description=f"Paystack fee from ref {reference}",
             triggered_by=user
         )
 
@@ -104,23 +101,21 @@ async def handle_flutterwave_webhook(request: Request):
 
         wallet, _ = await Wallet.get_or_create(user=user, defaults={"balance": 0})
         amount = Decimal(str(amount))
+        fee = Decimal("0.01") * amount
+        net_amount = amount - fee
 
-        wallet.balance += amount
+        wallet.balance += net_amount
         await wallet.save()
 
         await WalletTransaction.create(
             wallet=wallet,
             user=user,
-            amount=amount,
+            amount=net_amount,
             transaction_type="fund",
             description=f"Flutterwave top-up: {tx_ref}"
         )
 
-        fee = Decimal("0.00")
-        admin_wallet = await AdminWallet.first()
-        if not admin_wallet:
-            admin_wallet = await AdminWallet.create(balance=0)
-
+        admin_wallet = await AdminWallet.first() or await AdminWallet.create(balance=0)
         admin_wallet.balance += fee
         await admin_wallet.save()
 
@@ -128,7 +123,7 @@ async def handle_flutterwave_webhook(request: Request):
         await log_admin_wallet_activity(
             amount=fee,
             action="flutterwave_fee",
-            description=f"Fee from Flutterwave {tx_ref}",
+            description=f"Flutterwave fee from ref {tx_ref}",
             triggered_by=user
         )
 
@@ -144,8 +139,8 @@ async def handle_nowpayments_webhook(request: Request):
     pay_address = payload.get("pay_address")
     pay_amount = payload.get("pay_amount")
 
-    if payment_status != "finished":
-        return {"message": "Payment not completed"}
+    if payment_status not in ("finished", "confirmed"):
+        return {"message": "NOWPayments not confirmed yet"}
 
     user = await User.get_or_none(id=order_id)
     if not user:
@@ -153,27 +148,25 @@ async def handle_nowpayments_webhook(request: Request):
 
     exists = await WalletTransaction.get_or_none(description__icontains=pay_address)
     if exists:
-        return {"message": "Duplicate crypto payment"}
+        return {"message": "Duplicate NOWPayments transaction"}
 
     wallet, _ = await Wallet.get_or_create(user=user, defaults={"balance": 0})
     amount = Decimal(str(pay_amount))
+    fee = Decimal("0.01") * amount
+    net_amount = amount - fee
 
-    wallet.balance += amount
+    wallet.balance += net_amount
     await wallet.save()
 
     await WalletTransaction.create(
         wallet=wallet,
         user=user,
-        amount=amount,
+        amount=net_amount,
         transaction_type="fund",
         description=f"Crypto funding to {pay_address}"
     )
 
-    fee = Decimal("0.00")
-    admin_wallet = await AdminWallet.first()
-    if not admin_wallet:
-        admin_wallet = await AdminWallet.create(balance=0)
-
+    admin_wallet = await AdminWallet.first() or await AdminWallet.create(balance=0)
     admin_wallet.balance += fee
     await admin_wallet.save()
 
@@ -181,7 +174,7 @@ async def handle_nowpayments_webhook(request: Request):
     await log_admin_wallet_activity(
         amount=fee,
         action="crypto_fee",
-        description=f"Fee from crypto funding {pay_address}",
+        description=f"Crypto fee from address {pay_address}",
         triggered_by=user
     )
 
