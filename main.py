@@ -1,6 +1,3 @@
-# File: main.py
-
-import os
 from fastapi import FastAPI, HTTPException, Depends, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordBearer
@@ -10,7 +7,7 @@ from core.middleware import RateLimitMiddleware
 from admin_setup import admin_app
 
 # Routers
-from routers import contact
+from routers import contact, payment_webhooks
 from routers.user import router as user_router
 from routers.wallet import router as wallet_router
 from routers.deals import router as deals_router
@@ -25,17 +22,20 @@ from routers.subscription import router as subscription_router
 from app.api.routes import router as api_router
 from admin_views.change_password_view import router as change_password_view
 
-# ✅ Added for webhook integration
-from routers import payment_webhooks
-
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
+# ─────────────────────────────────────
+# FastAPI App Initialization
+# ─────────────────────────────────────
 app = FastAPI(
     title="Dealcross Backend",
     version="1.0.0",
     description="FastAPI backend for the Dealcross platform"
 )
 
+# ─────────────────────────────────────
+# Startup / Shutdown Events
+# ─────────────────────────────────────
 @app.on_event("startup")
 async def on_startup():
     await init_db()
@@ -44,8 +44,10 @@ async def on_startup():
 async def on_shutdown():
     await close_db()
 
+# ─────────────────────────────────────
+# Global Middleware
+# ─────────────────────────────────────
 app.add_middleware(RateLimitMiddleware)
-
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -54,13 +56,15 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Mount admin panel
+# ─────────────────────────────────────
+# Mount Admin Panel
+# ─────────────────────────────────────
 app.mount("/admin", admin_app)
-
-# Custom admin route (e.g., password change)
 app.include_router(change_password_view, prefix="/admin")
 
-# Main routes
+# ─────────────────────────────────────
+# API Routers
+# ─────────────────────────────────────
 app.include_router(contact.router)
 app.include_router(user_router, prefix="/user")
 app.include_router(wallet_router, prefix="/wallet")
@@ -69,15 +73,16 @@ app.include_router(kyc_router, prefix="/kyc")
 app.include_router(admin_wallet_router, prefix="/admin-wallet")
 app.include_router(admin_referral_router, prefix="/admin-referral")
 app.include_router(admin_kyc_router, prefix="/admin/kyc")
-app.include_router(api_router)
 app.include_router(chart_router, prefix="/chart")
 app.include_router(chat_router, prefix="/chat")
 app.include_router(health_router, prefix="/health")
 app.include_router(subscription_router, prefix="/subscription")
-
-# ✅ Payment webhooks
+app.include_router(api_router)
 app.include_router(payment_webhooks.router, prefix="/webhooks")
 
+# ─────────────────────────────────────
+# Extra Routes
+# ─────────────────────────────────────
 @app.post("/users/upgrade-plan")
 async def upgrade_plan(
     request: Request,
