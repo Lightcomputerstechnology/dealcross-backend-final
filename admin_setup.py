@@ -1,3 +1,5 @@
+# File: admin_setup.py
+
 import os
 from fastapi_admin.app import app as admin_app
 from fastapi_admin.providers.login import UsernamePasswordProvider
@@ -30,18 +32,18 @@ TEMPLATE_DIR = os.path.join(os.path.dirname(__file__), "templates")
 async def startup():
     await Tortoise.init(
         db_url=settings.DATABASE_URL,
-        modules={"models": ["models"]},  # ✅ This must match your models/__init__.py setup
+        modules={"models": ["models.admin", "models.user", "models.wallet", "models.deal"]},  # ✅ Add all model modules
     )
 
     await admin_app.configure(
-        logo_url="https://dealcross-frontend.onrender.com/logo192.png",
-        favicon_url="https://dealcross-frontend.onrender.com/favicon.ico",
+        logo_url="https://dealcross.net/logo192.png",
+        favicon_url="https://dealcross.net/favicon.ico",
+        template_folders=[TEMPLATE_DIR],
         title="Dealcross Admin",
         admin_path="/admin",
-        template_folders=[TEMPLATE_DIR],
         providers=[
             UsernamePasswordProvider(
-                admin_model="models.User",  # ✅ FIXED: must be "models.ModelName"
+                admin_model="models.admin.Admin",  # ✅ This should point to your actual Admin model
                 verify_password=verify_password,
                 username_field="username"
             )
