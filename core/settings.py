@@ -6,10 +6,14 @@ class Settings(BaseSettings):
     secret_key: str = Field(..., alias="SECRET_KEY")
     algorithm: str = Field(..., alias="ALGORITHM")
 
-    # You can define more as needed...
+    # Optional: only include the keys you're actually using
+    paystack_secret: str = Field(..., alias="PAYSTACK_SECRET")
+    flw_secret: str = Field(..., alias="FLW_SECRET")
+    nowpay_api_key: str = Field(..., alias="NOWPAY_API_KEY")
 
     class Config:
-        env_file = None  # ⛔ Disable local .env on Render
-        extra = "ignore"  # ✅ Allow undeclared variables
+        env_file = None           # ✅ disables .env loading
+        extra = "ignore"          # ✅ ignores extra keys from Render
 
+# Global settings instance
 settings = Settings()
