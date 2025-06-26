@@ -1,5 +1,6 @@
 from pydantic_settings import BaseSettings
 from pydantic import Field
+from typing import Optional
 
 
 class Settings(BaseSettings):
@@ -8,6 +9,8 @@ class Settings(BaseSettings):
     APP_ENV: str = "production"
     APP_PORT: int = 8000
     DEBUG: bool = False
+    LOG_LEVEL: str = "info"
+    TIMEZONE: str = "UTC"
 
     # ─── Database ────────────────────────────
     DB_HOST: str
@@ -27,7 +30,7 @@ class Settings(BaseSettings):
     FLUTTERWAVE_SECRET: str = Field(..., alias="FLW_SECRET")
     NOWPAY_API_KEY: str
 
-    # ─── Email Settings ──────────────────────
+    # ─── Email SMTP ──────────────────────────
     EMAIL_HOST: str
     EMAIL_PORT: int
     EMAIL_USER: str
@@ -41,10 +44,24 @@ class Settings(BaseSettings):
     # ─── Frontend ────────────────────────────
     FRONTEND_URL: str
 
-    # ─── Callbacks ───────────────────────────
+    # ─── Webhook / Callback URLs ─────────────
     PAYSTACK_CALLBACK: str
     FLUTTERWAVE_CALLBACK: str
     NOWPAY_CALLBACK: str
+
+    # ─── Monitoring & Analytics (Optional) ───
+    SENTRY_DSN: Optional[str] = None
+    GOOGLE_ANALYTICS_ID: Optional[str] = None
+
+    # ─── Email Templates (Optional) ──────────
+    EMAIL_VERIFICATION_TEMPLATE: Optional[str] = "email/verify.html"
+    PASSWORD_RESET_TEMPLATE: Optional[str] = "email/reset.html"
+    KYC_APPROVAL_TEMPLATE: Optional[str] = "email/kyc_approved.html"
+
+    # ─── Two-Factor Auth (Optional) ──────────
+    ENABLE_2FA: bool = True
+    OTP_ISSUER_NAME: Optional[str] = "Dealcross"
+    OTP_EMAIL_TEMPLATE: Optional[str] = "email/otp_code.html"
 
     class Config:
         env_file = ".env"
