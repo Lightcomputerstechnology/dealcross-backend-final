@@ -1,4 +1,4 @@
-# main.py
+# File: main.py
 
 import os
 from fastapi import FastAPI, HTTPException, Depends, Request
@@ -24,6 +24,9 @@ from routers.health import router as health_router
 from routers.subscription import router as subscription_router
 from app.api.routes import router as api_router
 from admin_views.change_password_view import router as change_password_view
+
+# ✅ Added for webhook integration
+from routers import payment_webhooks
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
@@ -71,6 +74,9 @@ app.include_router(chart_router, prefix="/chart")
 app.include_router(chat_router, prefix="/chat")
 app.include_router(health_router, prefix="/health")
 app.include_router(subscription_router, prefix="/subscription")
+
+# ✅ Payment webhooks
+app.include_router(payment_webhooks.router, prefix="/webhooks")
 
 @app.post("/users/upgrade-plan")
 async def upgrade_plan(
