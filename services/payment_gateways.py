@@ -1,14 +1,8 @@
 # File: services/payment_gateways.py
 
 import httpx
-import os
 from models.user import User
-from core.settings import PAYSTACK_SECRET, FLUTTERWAVE_SECRET, NOWPAY_API_KEY
-
-# Load API secrets from environment
-PAYSTACK_SECRET = os.getenv("PAYSTACK_SECRET")
-FLUTTERWAVE_SECRET = os.getenv("FLW_SECRET")
-NOWPAY_API_KEY = os.getenv("NOWPAY_API_KEY")
+from core.settings import PAYSTACK_SECRET, FLUTTERWAVE_SECRET, NOWPAY_API_KEY  # ✅ Use centralized config
 
 # ─────────────────────────────────────────────
 # ✅ PAYSTACK STANDARD CARD PAYMENT
@@ -28,7 +22,7 @@ async def initiate_paystack_payment(user: User, amount: float):
         res = await client.post(url, headers=headers, json=payload)
         res.raise_for_status()
         data = res.json()["data"]
-        return data["authorization_url"]  # Return just the URL
+        return data["authorization_url"]
 
 
 # ─────────────────────────────────────────────
@@ -59,7 +53,7 @@ async def initiate_flutterwave_payment(user: User, amount: float, method="bank_t
         res = await client.post(url, headers=headers, json=payload)
         res.raise_for_status()
         data = res.json()["data"]
-        return data["link"]  # Return only the link
+        return data["link"]
 
 
 # ─────────────────────────────────────────────
@@ -75,8 +69,8 @@ async def initiate_nowpayments_crypto(user: User, amount: float, crypto="usdt"):
         "price_amount": amount,
         "price_currency": "usd",
         "pay_currency": crypto,
-        "order_id": f"{user.id}",  # Only the user ID needed for webhook lookup
-        "order_description": user.email,  # Used to re-identify user in webhook
+        "order_id": f"{user.id}",
+        "order_description": user.email,
         "ipn_callback_url": "https://yourdomain.com/webhooks/nowpayments",
         "success_url": "https://yourdomain.com/payment/success"
     }
@@ -84,4 +78,4 @@ async def initiate_nowpayments_crypto(user: User, amount: float, crypto="usdt"):
         res = await client.post(url, headers=headers, json=payload)
         res.raise_for_status()
         data = res.json()["data"]
-        return data["invoice_url"]  # Return only the invoice link
+        return data["invoice_url"]
