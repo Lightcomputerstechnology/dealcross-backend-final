@@ -2,7 +2,7 @@
 
 import httpx
 from models.user import User
-from core.settings import PAYSTACK_SECRET, FLUTTERWAVE_SECRET, NOWPAY_API_KEY  # ✅ Use centralized config
+from core.settings import settings FLUTTERWAVE_SECRET, NOWPAY_API_KEY  # ✅ Use centralized config
 
 # ─────────────────────────────────────────────
 # ✅ PAYSTACK STANDARD CARD PAYMENT
