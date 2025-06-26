@@ -1,13 +1,12 @@
-from tortoise import fields, models
+# File: models/admin.py
 
-# ─────────── ADMIN MODEL ───────────
+from fastapi_admin.models import AbstractAdmin
+from tortoise import fields
 
-class Admin(models.Model):
-    id = fields.IntField(pk=True)
-    name = fields.CharField(max_length=255)
-    email = fields.CharField(max_length=255, unique=True)
+class Admin(AbstractAdmin):
+    name = fields.CharField(max_length=255, null=True)
     role = fields.CharField(max_length=50, default="admin")
     created_at = fields.DatetimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"Admin(id={self.id}, email='{self.email}')"
+        return f"Admin(id={self.id}, username='{self.username}')"
