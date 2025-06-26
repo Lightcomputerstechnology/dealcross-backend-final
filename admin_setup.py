@@ -32,20 +32,20 @@ TEMPLATE_DIR = os.path.join(os.path.dirname(__file__), "templates")
 async def startup():
     await Tortoise.init(
         db_url=settings.DATABASE_URL,
-        modules={"models": ["models.admin", "models.user", "models.wallet", "models.deal"]},  # ✅ Add all model modules
+        modules={"models": ["models"]},  # ✅ Load all models if your __init__.py is configured properly
     )
 
     await admin_app.configure(
         logo_url="https://dealcross.net/logo192.png",
         favicon_url="https://dealcross.net/favicon.ico",
-        template_folders=[TEMPLATE_DIR],
         title="Dealcross Admin",
         admin_path="/admin",
+        template_folders=[TEMPLATE_DIR],
         providers=[
             UsernamePasswordProvider(
-                admin_model="models.admin.Admin",  # ✅ This should point to your actual Admin model
+                admin_model="models.admin.Admin",  # ✅ Admin model
                 verify_password=verify_password,
-                username_field="username"
+                username_field="email",  # ✅ Use "email" not "username" (since your Admin model has email not username)
             )
         ]
     )
