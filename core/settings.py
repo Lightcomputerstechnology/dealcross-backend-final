@@ -1,51 +1,53 @@
 # core/settings.py
 
-from pydantic_settings import BaseSettings, SettingsConfigDict
-from pathlib import Path
+from pydantic_settings import BaseSettings
+from pydantic import Field
+
 
 class Settings(BaseSettings):
-    # ─── GENERAL ───────────────
-    APP_NAME: str = "Dealcross"
-    APP_ENV: str = "production"
-    APP_PORT: int = 8000
+    # ─── General ─────────────────────────────
+    app_name: str = Field(..., alias="APP_NAME")
+    app_env: str = Field(..., alias="APP_ENV")
+    app_port: int = Field(..., alias="APP_PORT")
 
-    # ─── DATABASE ──────────────
-    DB_HOST: str
-    DB_PORT: int
-    DB_USER: str
-    DB_PASSWORD: str
-    DB_NAME: str
+    # ─── Database ────────────────────────────
+    db_host: str = Field(..., alias="DB_HOST")
+    db_port: int = Field(..., alias="DB_PORT")
+    db_user: str = Field(..., alias="DB_USER")
+    db_password: str = Field(..., alias="DB_PASSWORD")
+    db_name: str = Field(..., alias="DB_NAME")
 
-    # ─── SECURITY ──────────────
-    SECRET_KEY: str
-    ALGORITHM: str
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
+    # ─── Security ────────────────────────────
+    secret_key: str = Field(..., alias="SECRET_KEY")
+    algorithm: str = Field(..., alias="ALGORITHM")
+    access_token_expire_minutes: int = Field(..., alias="ACCESS_TOKEN_EXPIRE_MINUTES")
 
-    # ─── PAYMENT KEYS ──────────
-    PAYSTACK_SECRET: str
-    FLW_SECRET: str
-    NOWPAY_API_KEY: str
+    # ─── Payment Gateway Keys ────────────────
+    paystack_secret: str = Field(..., alias="PAYSTACK_SECRET")
+    flw_secret: str = Field(..., alias="FLW_SECRET")
+    nowpay_api_key: str = Field(..., alias="NOWPAY_API_KEY")
 
-    # ─── EMAIL (Optional) ──────
-    EMAIL_HOST: str | None = None
-    EMAIL_PORT: int | None = None
-    EMAIL_USER: str | None = None
-    EMAIL_PASSWORD: str | None = None
-    EMAIL_FROM_NAME: str | None = None
+    # ─── Email Config ────────────────────────
+    email_host: str = Field(..., alias="EMAIL_HOST")
+    email_port: int = Field(..., alias="EMAIL_PORT")
+    email_user: str = Field(..., alias="EMAIL_USER")
+    email_password: str = Field(..., alias="EMAIL_PASSWORD")
+    email_from_name: str = Field(..., alias="EMAIL_FROM_NAME")
 
-    # ─── RATE LIMIT ────────────
-    RATE_LIMIT_MAX_REQUESTS: int = 100
-    RATE_LIMIT_TIME_WINDOW: int = 60
+    # ─── Rate Limit ──────────────────────────
+    rate_limit_max_requests: int = Field(..., alias="RATE_LIMIT_MAX_REQUESTS")
+    rate_limit_time_window: int = Field(..., alias="RATE_LIMIT_TIME_WINDOW")
 
-    # ─── FRONTEND DOMAIN ───────
-    FRONTEND_URL: str
+    # ─── Frontend & Callback URLs ────────────
+    frontend_url: str = Field(..., alias="FRONTEND_URL")
+    paystack_callback: str = Field(..., alias="PAYSTACK_CALLBACK")
+    flutterwave_callback: str = Field(..., alias="FLUTTERWAVE_CALLBACK")
+    nowpay_callback: str = Field(..., alias="NOWPAY_CALLBACK")
 
-    # ─── CALLBACK URLS ─────────
-    PAYSTACK_CALLBACK: str
-    FLUTTERWAVE_CALLBACK: str
-    NOWPAY_CALLBACK: str
+    class Config:
+        env_file = ".env"
+        extra = "forbid"  # Only allow defined fields
 
-    model_config = SettingsConfigDict(env_file=Path(__file__).resolve().parent.parent / ".env")
 
-# Global instance
+# Export instance
 settings = Settings()
