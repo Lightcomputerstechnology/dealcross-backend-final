@@ -21,5 +21,8 @@ python-dotenv
 pydantic
 pydantic-settings
 
+# ─── HTTP Client ────────────────────────
+httpx>=0.23.0
+
 # ─── Admin Interface ────────────────────
 git+https://github.com/Lightcomputerstechnology/fastapi-admin-patched@main#egg=fastapi-admin[tortoise]
