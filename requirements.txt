@@ -1,16 +1,25 @@
+# ─── Core Framework ─────────────────────
 fastapi
 uvicorn
+
+# ─── ORM & DB Tools ─────────────────────
 tortoise-orm
 aerich
+asyncpg
 redis==4.5.5
 tomlkit
-asyncpg
-pydantic
-PyJWT==2.8.0
-python-dotenv
+
+# ─── Security & Auth ────────────────────
 python-jose
+PyJWT==2.8.0
 passlib[bcrypt]
 python-multipart
 email-validator
+
+# ─── Environment & Settings ─────────────
+python-dotenv
+pydantic
 pydantic-settings
+
+# ─── Admin Interface ────────────────────
 git+https://github.com/Lightcomputerstechnology/fastapi-admin-patched@main#egg=fastapi-admin[tortoise]
