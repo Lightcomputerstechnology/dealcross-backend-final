@@ -3,6 +3,7 @@
 import httpx
 import os
 from models.user import User
+from core.settings import PAYSTACK_SECRET, FLUTTERWAVE_SECRET, NOWPAY_API_KEY
 
 # Load API secrets from environment
 PAYSTACK_SECRET = os.getenv("PAYSTACK_SECRET")
