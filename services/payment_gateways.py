@@ -4,10 +4,10 @@ import httpx
 import os
 from models.user import User
 
-# Load from env or config\NPAYSTACK_SECRET = os.getenv("PAYSTACK_SECRET")
+# Load API secrets from environment
+PAYSTACK_SECRET = os.getenv("PAYSTACK_SECRET")
 FLUTTERWAVE_SECRET = os.getenv("FLW_SECRET")
 NOWPAY_API_KEY = os.getenv("NOWPAY_API_KEY")
-
 
 # ─────────────────────────────────────────────
 # ✅ PAYSTACK STANDARD CARD PAYMENT
@@ -20,13 +20,14 @@ async def initiate_paystack_payment(user: User, amount: float):
     }
     payload = {
         "email": user.email,
-        "amount": int(amount * 100),  # Paystack expects kobo
+        "amount": int(amount * 100),  # Paystack expects amount in kobo
         "callback_url": "https://yourdomain.com/payment/verify/paystack"
     }
     async with httpx.AsyncClient() as client:
         res = await client.post(url, headers=headers, json=payload)
         res.raise_for_status()
-        return res.json()["data"]
+        data = res.json()["data"]
+        return data["authorization_url"]  # Return just the URL
 
 
 # ─────────────────────────────────────────────
@@ -56,7 +57,8 @@ async def initiate_flutterwave_payment(user: User, amount: float, method="bank_t
     async with httpx.AsyncClient() as client:
         res = await client.post(url, headers=headers, json=payload)
         res.raise_for_status()
-        return res.json()["data"]
+        data = res.json()["data"]
+        return data["link"]  # Return only the link
 
 
 # ─────────────────────────────────────────────
@@ -72,13 +74,13 @@ async def initiate_nowpayments_crypto(user: User, amount: float, crypto="usdt"):
         "price_amount": amount,
         "price_currency": "usd",
         "pay_currency": crypto,
-        "order_id": f"CRYPTO-{user.id}-{os.urandom(4).hex()}",
-        "order_description": f"Wallet funding for {user.email}",
-        "ipn_callback_url": "https://yourdomain.com/payment/webhook/nowpayments",
+        "order_id": f"{user.id}",  # Only the user ID needed for webhook lookup
+        "order_description": user.email,  # Used to re-identify user in webhook
+        "ipn_callback_url": "https://yourdomain.com/webhooks/nowpayments",
         "success_url": "https://yourdomain.com/payment/success"
     }
     async with httpx.AsyncClient() as client:
         res = await client.post(url, headers=headers, json=payload)
         res.raise_for_status()
-        return res.json()["data"]
-                                
+        data = res.json()["data"]
+        return data["invoice_url"]  # Return only the invoice link
