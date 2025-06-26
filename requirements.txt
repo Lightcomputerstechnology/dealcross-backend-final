@@ -26,3 +26,6 @@ httpx>=0.23.0
 
 # ─── Admin Interface (Custom Patched Version) ─────────────
 git+https://github.com/Lightcomputerstechnology/fastapi-admin-patched@main#egg=fastapi-admin[tortoise]
+
+# ─── Optional Analytics / Monitoring ───
+sentry-sdk[fastapi]  # Optional: Sentry crash monitoring
