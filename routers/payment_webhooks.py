@@ -15,6 +15,7 @@ from models.platform_earnings import PlatformEarnings
 from utils.admin_wallet_logger import log_admin_wallet_activity
 
 router = APIRouter(prefix="/webhooks", tags=["Payment Webhooks"])
+
 # ─────────── PAYSTACK ───────────
 @router.post("/paystack")
 async def handle_paystack_webhook(request: Request):
