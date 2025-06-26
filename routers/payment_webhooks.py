@@ -13,12 +13,18 @@ from models.platform_earnings import PlatformEarnings
 
 # UTILS
 from utils.admin_wallet_logger import log_admin_wallet_activity
+from utils.verify_signature import (
+    verify_paystack_signature,
+    verify_flutterwave_signature,
+    verify_nowpayments_signature
+)
 
 router = APIRouter(prefix="/webhooks", tags=["Payment Webhooks"])
 
 # ─────────── PAYSTACK ───────────
 @router.post("/paystack")
 async def handle_paystack_webhook(request: Request):
+    await verify_paystack_signature(request)
     payload = await request.json()
     event = payload.get("event")
 
@@ -27,7 +33,7 @@ async def handle_paystack_webhook(request: Request):
 
     data = payload.get("data", {})
     email = data.get("customer", {}).get("email")
-    amount_raw = data.get("amount")  # Paystack sends in kobo
+    amount_raw = data.get("amount")  # In Kobo
     reference = data.get("reference")
 
     if not email or not amount_raw or not reference:
@@ -43,7 +49,7 @@ async def handle_paystack_webhook(request: Request):
             return {"message": "Duplicate Paystack payment"}
 
         wallet, _ = await Wallet.get_or_create(user=user, defaults={"balance": 0})
-        amount = Decimal(amount_raw) / 100  # Convert from Kobo
+        amount = Decimal(amount_raw) / 100
         fee = Decimal("0.01") * amount
         net_amount = amount - fee
 
@@ -71,9 +77,12 @@ async def handle_paystack_webhook(request: Request):
         )
 
     return {"message": "Paystack webhook processed"}
+
+
 # ─────────── FLUTTERWAVE ───────────
 @router.post("/flutterwave")
 async def handle_flutterwave_webhook(request: Request):
+    await verify_flutterwave_signature(request)
     payload = await request.json()
     data = payload.get("data", {})
     status = data.get("status")
@@ -130,9 +139,10 @@ async def handle_flutterwave_webhook(request: Request):
 # ─────────── NOWPAYMENTS (CRYPTO) ───────────
 @router.post("/nowpayments")
 async def handle_nowpayments_webhook(request: Request):
+    await verify_nowpayments_signature(request)
     payload = await request.json()
     payment_status = payload.get("payment_status")
-    order_id = payload.get("order_id")  # This should match user.id
+    order_id = payload.get("order_id")
     pay_address = payload.get("pay_address")
     pay_amount = payload.get("pay_amount")
 
