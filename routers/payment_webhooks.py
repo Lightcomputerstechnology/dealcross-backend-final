@@ -28,7 +28,7 @@ async def handle_paystack_webhook(request: Request):
 
     data = payload.get("data", {})
     email = data.get("customer", {}).get("email")
-    amount_raw = data.get("amount")
+    amount_raw = data.get("amount")  # Paystack sends in kobo
     reference = data.get("reference")
 
     if not email or not amount_raw or not reference:
@@ -44,7 +44,7 @@ async def handle_paystack_webhook(request: Request):
             return {"message": "Duplicate Paystack payment"}
 
         wallet, _ = await Wallet.get_or_create(user=user, defaults={"balance": 0})
-        amount = Decimal(amount_raw) / 100  # Kobo to Naira
+        amount = Decimal(amount_raw) / 100  # Convert from Kobo
         fee = Decimal("0.01") * amount
         net_amount = amount - fee
 
@@ -72,8 +72,6 @@ async def handle_paystack_webhook(request: Request):
         )
 
     return {"message": "Paystack webhook processed"}
-
-
 # ─────────── FLUTTERWAVE ───────────
 @router.post("/flutterwave")
 async def handle_flutterwave_webhook(request: Request):
@@ -130,17 +128,17 @@ async def handle_flutterwave_webhook(request: Request):
     return {"message": "Flutterwave webhook processed"}
 
 
-# ─────────── NOWPAYMENTS ───────────
+# ─────────── NOWPAYMENTS (CRYPTO) ───────────
 @router.post("/nowpayments")
 async def handle_nowpayments_webhook(request: Request):
     payload = await request.json()
     payment_status = payload.get("payment_status")
-    order_id = payload.get("order_id")
+    order_id = payload.get("order_id")  # This should match user.id
     pay_address = payload.get("pay_address")
     pay_amount = payload.get("pay_amount")
 
     if payment_status not in ("finished", "confirmed"):
-        return {"message": "NOWPayments not confirmed yet"}
+        return {"message": "NOWPayments not confirmed"}
 
     user = await User.get_or_none(id=order_id)
     if not user:
@@ -148,7 +146,7 @@ async def handle_nowpayments_webhook(request: Request):
 
     exists = await WalletTransaction.get_or_none(description__icontains=pay_address)
     if exists:
-        return {"message": "Duplicate NOWPayments transaction"}
+        return {"message": "Duplicate crypto payment"}
 
     wallet, _ = await Wallet.get_or_create(user=user, defaults={"balance": 0})
     amount = Decimal(str(pay_amount))
