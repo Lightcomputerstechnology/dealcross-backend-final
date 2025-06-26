@@ -1,13 +1,54 @@
-# File: config/settings.py
+from pydantic_settings import BaseSettings
+from pydantic import Field
 
-from pydantic import BaseSettings
 
 class Settings(BaseSettings):
-    DATABASE_URL: str
-    SECRET_KEY: str = "super_secret"
+    # ─── General ─────────────────────────────
+    APP_NAME: str = "Dealcross"
+    APP_ENV: str = "production"
+    APP_PORT: int = 8000
     DEBUG: bool = False
+
+    # ─── Database ────────────────────────────
+    DB_HOST: str
+    DB_PORT: int
+    DB_USER: str
+    DB_PASSWORD: str
+    DB_NAME: str
+    DATABASE_URL: str
+
+    # ─── Security ────────────────────────────
+    SECRET_KEY: str
+    ALGORITHM: str = "HS256"
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
+
+    # ─── Payment API Keys ────────────────────
+    PAYSTACK_SECRET: str
+    FLUTTERWAVE_SECRET: str = Field(..., alias="FLW_SECRET")
+    NOWPAY_API_KEY: str
+
+    # ─── Email Settings ──────────────────────
+    EMAIL_HOST: str
+    EMAIL_PORT: int
+    EMAIL_USER: str
+    EMAIL_PASSWORD: str
+    EMAIL_FROM_NAME: str
+
+    # ─── Rate Limiting ───────────────────────
+    RATE_LIMIT_MAX_REQUESTS: int = 100
+    RATE_LIMIT_TIME_WINDOW: int = 60
+
+    # ─── Frontend ────────────────────────────
+    FRONTEND_URL: str
+
+    # ─── Callbacks ───────────────────────────
+    PAYSTACK_CALLBACK: str
+    FLUTTERWAVE_CALLBACK: str
+    NOWPAY_CALLBACK: str
 
     class Config:
         env_file = ".env"
+        extra = "ignore"
+
 
 settings = Settings()
