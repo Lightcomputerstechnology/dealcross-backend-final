@@ -44,9 +44,8 @@ class Settings(BaseSettings):
     flutterwave_callback: str = Field(..., alias="FLUTTERWAVE_CALLBACK")
     nowpay_callback: str = Field(..., alias="NOWPAY_CALLBACK")
 
-    # ✅ Pydantic v2 - allow all other unknown env vars
-    model_config = {
-        "extra": "allow"
-    }
+    # ✅ FIXED: Allow unknown env vars (like in Render)
+    class Config:
+        extra = "allow"
 
 settings = Settings()
