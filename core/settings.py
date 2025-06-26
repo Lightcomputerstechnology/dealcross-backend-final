@@ -34,11 +34,11 @@ class Settings(BaseSettings):
     email_password: str = Field(..., alias="EMAIL_PASSWORD")
     email_from_name: str = Field(..., alias="EMAIL_FROM_NAME")
 
-    # ─── Rate Limit ──────────────────────────
+    # ─── Rate Limiting ───────────────────────
     rate_limit_max_requests: int = Field(..., alias="RATE_LIMIT_MAX_REQUESTS")
     rate_limit_time_window: int = Field(..., alias="RATE_LIMIT_TIME_WINDOW")
 
-    # ─── Frontend & Callback URLs ────────────
+    # ─── URLs ────────────────────────────────
     frontend_url: str = Field(..., alias="FRONTEND_URL")
     paystack_callback: str = Field(..., alias="PAYSTACK_CALLBACK")
     flutterwave_callback: str = Field(..., alias="FLUTTERWAVE_CALLBACK")
@@ -46,8 +46,8 @@ class Settings(BaseSettings):
 
     class Config:
         env_file = ".env"
-        extra = "forbid"  # Only allow defined fields
+        extra = "forbid"  # Disallow undeclared variables
 
 
-# Export instance
+# Create an instance to import elsewhere
 settings = Settings()
