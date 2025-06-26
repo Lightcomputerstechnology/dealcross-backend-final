@@ -16,7 +16,7 @@ from .login_attempt import LoginAttempt
 from .platform_earnings import PlatformEarnings
 from .referral_reward import ReferralReward
 from .support import SupportTicket
-from .share import Share  # ✅ using Share not ShareAsset
+from .share import Share
 from .settings import AppSetting
 from .pending_approval import PendingApproval
 from .banner import Banner
@@ -31,6 +31,7 @@ from .blog import BlogPost
 from .config import ConfigEntry
 from .logs import LogEntry
 from .aiinsight import AIInsightEntry
+from .admin import Admin  # ✅ Make sure this line is present
 
 __models__ = [
     User,
@@ -51,7 +52,7 @@ __models__ = [
     PlatformEarnings,
     ReferralReward,
     SupportTicket,
-    Share,  # ✅ Consistency
+    Share,
     AppSetting,
     PendingApproval,
     Banner,
@@ -66,4 +67,5 @@ __models__ = [
     ConfigEntry,
     LogEntry,
     AIInsightEntry,
+    Admin,  # ✅ Add this to ensure it's migrated
 ]
