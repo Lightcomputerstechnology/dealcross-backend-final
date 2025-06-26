@@ -1,15 +1,9 @@
 # File: utils/verify_signature.py
 
-import os
 import hmac
 import hashlib
 from fastapi import Request, HTTPException
-from core.settings import PAYSTACK_SECRET, FLUTTERWAVE_SECRET, NOWPAY_API_KEY
-
-PAYSTACK_SECRET = os.getenv("PAYSTACK_SECRET")
-FLUTTERWAVE_SECRET = os.getenv("FLW_SECRET")
-NOWPAY_API_KEY = os.getenv("NOWPAY_API_KEY")
-
+from core.settings import PAYSTACK_SECRET, FLUTTERWAVE_SECRET, NOWPAY_API_KEY  # ✅ Use centralized config
 
 async def verify_paystack_signature(request: Request):
     """Verify Paystack webhook signature using SHA512."""
