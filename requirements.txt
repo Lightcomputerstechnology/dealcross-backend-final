@@ -29,3 +29,8 @@ git+https://github.com/Lightcomputerstechnology/fastapi-admin-patched@main#egg=f
 
 # ─── Optional Analytics / Monitoring ───
 sentry-sdk[fastapi]  # Optional: Sentry crash monitoring
+
+# ─── Testing (Optional) ────────────────
+pytest
+httpx[http2]
+pytest-asyncio
