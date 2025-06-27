@@ -9,16 +9,15 @@ from config import settings
 from core.security import verify_password
 from admin_views.change_password_view import router as change_password_view
 
-# Optional: Redis session backend if you want admin login session scalability
 import redis.asyncio as redis
 
 # ───────────────────────────────
-# Redis client for scalable admin sessions
+# Redis client for session backend
 # ───────────────────────────────
 redis_client = redis.from_url(settings.REDIS_URL, decode_responses=True)
 
 # ───────────────────────────────
-# CORS Middleware
+# CORS Middleware for Admin
 # ───────────────────────────────
 admin_app.add_middleware(
     CORSMiddleware,
@@ -29,24 +28,24 @@ admin_app.add_middleware(
 )
 
 # ───────────────────────────────
-# Template Folder Setup
+# Template & Static folders
 # ───────────────────────────────
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 TEMPLATE_DIR = os.path.join(BASE_DIR, "templates")
 STATIC_DIR = os.path.join(BASE_DIR, "static")
 
 # ───────────────────────────────
-# Startup Event
+# Startup event for Admin
 # ───────────────────────────────
 @admin_app.on_event("startup")
 async def startup():
     # Initialize Tortoise ORM
     await Tortoise.init(
         db_url=settings.DATABASE_URL,
-        modules={"models": ["models"]},  # Load all models via models/__init__.py
+        modules={"models": ["models"]},
     )
 
-    # Ensure schemas are generated (only for development)
+    # Only for local development
     if settings.DEBUG:
         await Tortoise.generate_schemas()
 
@@ -61,10 +60,10 @@ async def startup():
             UsernamePasswordProvider(
                 admin_model="models.admin.Admin",
                 verify_password=verify_password,
-                username_field="email",  # Uses email as username field
+                username_field="email",
             )
         ],
-        redis=redis_client  # Allows scalable admin sessions
+        redis=redis_client
     )
 
 # ───────────────────────────────
