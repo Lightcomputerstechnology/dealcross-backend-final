@@ -1,7 +1,8 @@
+# File: config/settings.py
+
 from pydantic_settings import BaseSettings
 from pydantic import Field
 from typing import Optional
-
 
 class Settings(BaseSettings):
     # ─── General ─────────────────────────────
@@ -63,9 +64,11 @@ class Settings(BaseSettings):
     OTP_ISSUER_NAME: Optional[str] = "Dealcross"
     OTP_EMAIL_TEMPLATE: Optional[str] = "email/otp_code.html"
 
+    # ─── Redis (NEW, FIX) ─────────────────────
+    REDIS_URL: str = "redis://localhost:6379/0"  # ✅ Added for admin session scalability
+
     class Config:
         env_file = ".env"
         extra = "ignore"
-
 
 settings = Settings()
