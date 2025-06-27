@@ -1,0 +1,19 @@
+# File: core/config/tortoise_config.py
+
+import os
+from dotenv import load_dotenv
+
+load_dotenv()  # Ensure .env is loaded
+
+TORTOISE_ORM = {
+    "connections": {"default": os.getenv("DATABASE_URL")},
+    "apps": {
+        "models": {
+            "models": [
+                "models",          # Your main models
+                "aerich.models"    # Required for Aerich migrations tracking
+            ],
+            "default_connection": "default",
+        },
+    },
+}
