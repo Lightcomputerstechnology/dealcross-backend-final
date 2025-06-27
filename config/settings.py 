@@ -64,8 +64,8 @@ class Settings(BaseSettings):
     OTP_ISSUER_NAME: Optional[str] = "Dealcross"
     OTP_EMAIL_TEMPLATE: Optional[str] = "email/otp_code.html"
 
-    # ─── Redis (FIXED & ADDED) ───────────────
-    REDIS_URL: str = "redis://localhost:6379/0"
+    # ─── Redis (FIXED) ───────────────────────
+    REDIS_URL: str  # ✅ REQUIRED to be set on Render
 
     class Config:
         env_file = ".env"
