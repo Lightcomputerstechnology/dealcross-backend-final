@@ -1,12 +1,12 @@
-# routers/user_2fa.py
+# File: routers/user_2fa.py
+
 from fastapi import APIRouter, Depends, HTTPException
-from tortoise.transactions import in_transaction
 from models.user import User
 from utils.otp import generate_totp_secret, get_totp_uri, verify_totp_code
 from core.auth import get_current_user  # your custom JWT auth dependency
 from config.settings import settings
 
-router = APIRouter(prefix="/user/2fa", tags=["Two-Factor"])
+router = APIRouter(prefix="/user/2fa", tags=["Two-Factor Authentication"])
 
 @router.post("/enable")
 async def enable_2fa(current_user: User = Depends(get_current_user)):
@@ -14,9 +14,9 @@ async def enable_2fa(current_user: User = Depends(get_current_user)):
         raise HTTPException(status_code=400, detail="2FA is already enabled.")
 
     secret = generate_totp_secret()
-    uri = get_totp_uri(current_user, secret, settings.OTP_ISSUER_NAME)
+    uri = get_totp_uri(current_user.email, secret, settings.OTP_ISSUER_NAME)
 
-    # Save temporary secret for verification
+    # Store secret temporarily until verification
     current_user.totp_secret = secret
     await current_user.save()
 
@@ -28,11 +28,11 @@ async def enable_2fa(current_user: User = Depends(get_current_user)):
 @router.post("/verify")
 async def verify_2fa(code: str, current_user: User = Depends(get_current_user)):
     if not current_user.totp_secret:
-        raise HTTPException(status_code=400, detail="No secret found.")
+        raise HTTPException(status_code=400, detail="No 2FA secret found for this user.")
 
     if not verify_totp_code(current_user.totp_secret, code):
-        raise HTTPException(status_code=400, detail="Invalid code.")
+        raise HTTPException(status_code=400, detail="Invalid 2FA code provided.")
 
     current_user.is_2fa_enabled = True
     await current_user.save()
-    return {"message": "2FA enabled successfully."}
+    return {"message": "2FA enabled successfully for your account."}
