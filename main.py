@@ -1,11 +1,34 @@
+# File: main.py
+
+import os
+
 from fastapi import FastAPI, HTTPException, Depends, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordBearer
 
+from starlette.responses import JSONResponse
+from jose import jwt, JWTError
+from datetime import datetime, timedelta
+
+# ─────────────────────────────────────────────
+# Core imports
 from core.database import init_db, close_db
 from core.middleware import RateLimitMiddleware
-from admin_setup import admin_app
+from core.security import get_password_hash, verify_password
+from core.config import settings
 
+# ─────────────────────────────────────────────
+# Admin panel
+from admin_setup import admin_app
+from admin_views.change_password_view import router as change_password_view
+
+# ─────────────────────────────────────────────
+# Redis for session & 2FA sessions
+import redis.asyncio as redis
+
+redis_client = redis.from_url(settings.REDIS_URL, decode_responses=True)
+
+# ─────────────────────────────────────────────
 # Routers
 from routers import contact, payment_webhooks
 from routers.user import router as user_router
@@ -20,22 +43,34 @@ from routers.chat import router as chat_router
 from routers.health import router as health_router
 from routers.subscription import router as subscription_router
 from app.api.routes import router as api_router
-from admin_views.change_password_view import router as change_password_view
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+# ─────────────────────────────────────────────
+# Utils for OTP and TOTP
+from utils import otp as otp_utils
+from utils import email_otp as email_otp_utils
+from utils import send_email
 
-# ─────────────────────────────────────
+# ─────────────────────────────────────────────
+# Auth schema and user model
+from schemas.user_schema import UserCreate, UserOut
+from models.user import User
+
+# ─────────────────────────────────────────────
+# OAuth
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
+
+# ─────────────────────────────────────────────
 # FastAPI App Initialization
-# ─────────────────────────────────────
+# ─────────────────────────────────────────────
 app = FastAPI(
     title="Dealcross Backend",
     version="1.0.0",
     description="FastAPI backend for the Dealcross platform"
 )
 
-# ─────────────────────────────────────
-# Startup / Shutdown Events
-# ─────────────────────────────────────
+# ─────────────────────────────────────────────
+# Startup / Shutdown
+# ─────────────────────────────────────────────
 @app.on_event("startup")
 async def on_startup():
     await init_db()
@@ -44,10 +79,11 @@ async def on_startup():
 async def on_shutdown():
     await close_db()
 
-# ─────────────────────────────────────
-# Global Middleware
-# ─────────────────────────────────────
+# ─────────────────────────────────────────────
+# Middleware
+# ─────────────────────────────────────────────
 app.add_middleware(RateLimitMiddleware)
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -56,15 +92,15 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# ─────────────────────────────────────
-# Mount Admin Panel
-# ─────────────────────────────────────
+# ─────────────────────────────────────────────
+# Mount admin panel
+# ─────────────────────────────────────────────
 app.mount("/admin", admin_app)
 app.include_router(change_password_view, prefix="/admin")
 
-# ─────────────────────────────────────
+# ─────────────────────────────────────────────
 # API Routers
-# ─────────────────────────────────────
+# ─────────────────────────────────────────────
 app.include_router(contact.router)
 app.include_router(user_router, prefix="/user")
 app.include_router(wallet_router, prefix="/wallet")
@@ -80,9 +116,9 @@ app.include_router(subscription_router, prefix="/subscription")
 app.include_router(api_router)
 app.include_router(payment_webhooks.router, prefix="/webhooks")
 
-# ─────────────────────────────────────
-# Extra Routes
-# ─────────────────────────────────────
+# ─────────────────────────────────────────────
+# Sample extra route for upgrade plan
+# ─────────────────────────────────────────────
 @app.post("/users/upgrade-plan")
 async def upgrade_plan(
     request: Request,
