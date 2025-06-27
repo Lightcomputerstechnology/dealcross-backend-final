@@ -30,6 +30,7 @@ redis_client = redis.from_url(settings.REDIS_URL, decode_responses=True)
 
 # ─────────────────────────────────────────────
 # Routers
+from routers import user_2fa
 from routers import contact, payment_webhooks
 from routers.user import router as user_router
 from routers.wallet import router as wallet_router
@@ -101,6 +102,7 @@ app.include_router(change_password_view, prefix="/admin")
 # ─────────────────────────────────────────────
 # API Routers
 # ─────────────────────────────────────────────
+app.include_router(user_2fa.router)
 app.include_router(contact.router)
 app.include_router(user_router, prefix="/user")
 app.include_router(wallet_router, prefix="/wallet")
