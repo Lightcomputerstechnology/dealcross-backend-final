@@ -1,6 +1,6 @@
 #!/bin/bash
 
-export PYTHONPATH=$(pwd)
+export PYTHONPATH=/opt/render/project/src
 
 echo "=== Running smart Aerich migration check ==="
 
