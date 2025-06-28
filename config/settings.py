@@ -1,54 +1,60 @@
+# File: config/settings.py
+
 from pydantic_settings import BaseSettings
 from pydantic import Field
 
 
 class Settings(BaseSettings):
     # ─── GENERAL ─────────────────────────────
-    APP_NAME: str = Field(..., env="APP_NAME")
-    APP_ENV: str = Field(..., env="APP_ENV")
-    APP_PORT: int = Field(..., env="APP_PORT")
+    app_name: str = Field(..., alias="APP_NAME")
+    app_env: str = Field(..., alias="APP_ENV")
+    app_port: int = Field(..., alias="APP_PORT")
 
     # ─── DATABASE ────────────────────────────
-    DATABASE_URL: str = Field(..., env="DATABASE_URL")
-    DB_HOST: str = Field(default=None, env="DB_HOST")
-    DB_PORT: int = Field(default=5432, env="DB_PORT")
-    DB_USER: str = Field(default=None, env="DB_USER")
-    DB_PASSWORD: str = Field(default=None, env="DB_PASSWORD")
-    DB_NAME: str = Field(default=None, env="DB_NAME")
+    database_url: str = Field(..., alias="DATABASE_URL")
+    db_host: str = Field(None, alias="DB_HOST")
+    db_port: int = Field(5432, alias="DB_PORT")
+    db_user: str = Field(None, alias="DB_USER")
+    db_password: str = Field(None, alias="DB_PASSWORD")
+    db_name: str = Field(None, alias="DB_NAME")
 
     # ─── SECURITY ────────────────────────────
-    SECRET_KEY: str = Field(..., env="SECRET_KEY")
-    ALGORITHM: str = Field(..., env="ALGORITHM")
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = Field(default=60, env="ACCESS_TOKEN_EXPIRE_MINUTES")
+    secret_key: str = Field(..., alias="SECRET_KEY")
+    algorithm: str = Field(..., alias="ALGORITHM")
+    access_token_expire_minutes: int = Field(60, alias="ACCESS_TOKEN_EXPIRE_MINUTES")
 
     # ─── PAYMENT GATEWAYS ────────────────────
-    PAYSTACK_SECRET: str = Field(..., env="PAYSTACK_SECRET")
-    FLW_SECRET: str = Field(..., env="FLW_SECRET")
-    NOWPAY_API_KEY: str = Field(..., env="NOWPAY_API_KEY")
+    paystack_secret: str = Field(..., alias="PAYSTACK_SECRET")
+    flw_secret: str = Field(..., alias="FLW_SECRET")
+    nowpay_api_key: str = Field(..., alias="NOWPAY_API_KEY")
 
     # ─── EMAIL CONFIG ────────────────────────
-    EMAIL_HOST: str = Field(..., env="EMAIL_HOST")
-    EMAIL_PORT: int = Field(default=587, env="EMAIL_PORT")
-    EMAIL_USER: str = Field(..., env="EMAIL_USER")
-    EMAIL_PASSWORD: str = Field(..., env="EMAIL_PASSWORD")
-    EMAIL_FROM_NAME: str = Field(default="Dealcross", env="EMAIL_FROM_NAME")
+    email_host: str = Field(..., alias="EMAIL_HOST")
+    email_port: int = Field(587, alias="EMAIL_PORT")
+    email_user: str = Field(..., alias="EMAIL_USER")
+    email_password: str = Field(..., alias="EMAIL_PASSWORD")
+    email_from_name: str = Field("Dealcross", alias="EMAIL_FROM_NAME")
 
     # ─── RATE LIMIT ──────────────────────────
-    RATE_LIMIT_MAX_REQUESTS: int = Field(default=100, env="RATE_LIMIT_MAX_REQUESTS")
-    RATE_LIMIT_TIME_WINDOW: int = Field(default=60, env="RATE_LIMIT_TIME_WINDOW")
+    rate_limit_max_requests: int = Field(100, alias="RATE_LIMIT_MAX_REQUESTS")
+    rate_limit_time_window: int = Field(60, alias="RATE_LIMIT_TIME_WINDOW")
 
     # ─── FRONTEND ────────────────────────────
-    FRONTEND_URL: str = Field(..., env="FRONTEND_URL")
+    frontend_url: str = Field(..., alias="FRONTEND_URL")
 
     # ─── CALLBACKS ───────────────────────────
-    PAYSTACK_CALLBACK: str = Field(..., env="PAYSTACK_CALLBACK")
-    FLUTTERWAVE_CALLBACK: str = Field(..., env="FLUTTERWAVE_CALLBACK")
-    NOWPAY_CALLBACK: str = Field(..., env="NOWPAY_CALLBACK")
+    paystack_callback: str = Field(..., alias="PAYSTACK_CALLBACK")
+    flutterwave_callback: str = Field(..., alias="FLUTTERWAVE_CALLBACK")
+    nowpay_callback: str = Field(..., alias="NOWPAY_CALLBACK")
 
-    # ─── SETTINGS ────────────────────────────
+    # ─── REDIS ───────────────────────────────
+    redis_url: str = Field(..., alias="REDIS_URL")
+
+    # ─── CONFIG ──────────────────────────────
     class Config:
         env_file = ".env"
-        extra = "allow"  # prevents failure if other env vars exist
+        extra = "allow"  # will ignore unexpected env vars instead of erroring
 
 
+# Global singleton for imports across your app
 settings = Settings()
