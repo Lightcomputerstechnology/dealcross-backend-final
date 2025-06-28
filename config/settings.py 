@@ -1,69 +1,78 @@
-import os  # Added for direct environment debugging from pydantic_settings import BaseSettings from pydantic import Field from typing import Optional
+import os  # For direct environment debugging
+from pydantic_settings import BaseSettings
+from pydantic import Field
+from typing import Optional
 
-Debug print to verify direct environment loading
-
+# Debug print to verify direct environment loading
 print("Direct ENV REDIS_URL:", os.getenv("REDIS_URL"))
 
-class Settings(BaseSettings): # General APP_NAME: str = "Dealcross" APP_ENV: str = "production" APP_PORT: int = 8000 DEBUG: bool = False LOG_LEVEL: str = "info" TIMEZONE: str = "UTC"
+class Settings(BaseSettings):
+    # ─── General ─────────────────────────────
+    APP_NAME: str = "Dealcross"
+    APP_ENV: str = "production"
+    APP_PORT: int = 8000
+    DEBUG: bool = False
+    LOG_LEVEL: str = "info"
+    TIMEZONE: str = "UTC"
 
-# Database
-DB_HOST: str
-DB_PORT: int
-DB_USER: str
-DB_PASSWORD: str
-DB_NAME: str
-DATABASE_URL: str
+    # ─── Database ────────────────────────────
+    DB_HOST: str
+    DB_PORT: int
+    DB_USER: str
+    DB_PASSWORD: str
+    DB_NAME: str
+    DATABASE_URL: str
 
-# Security
-SECRET_KEY: str
-ALGORITHM: str = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
+    # ─── Security ────────────────────────────
+    SECRET_KEY: str
+    ALGORITHM: str = "HS256"
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
 
-# Payment API Keys
-PAYSTACK_SECRET: str
-FLUTTERWAVE_SECRET: str = Field(..., alias="FLW_SECRET")
-NOWPAY_API_KEY: str
+    # ─── Payment API Keys ────────────────────
+    PAYSTACK_SECRET: str
+    FLUTTERWAVE_SECRET: str = Field(..., alias="FLW_SECRET")
+    NOWPAY_API_KEY: str
 
-# Email SMTP
-EMAIL_HOST: str
-EMAIL_PORT: int
-EMAIL_USER: str
-EMAIL_PASSWORD: str
-EMAIL_FROM_NAME: str
+    # ─── Email SMTP ──────────────────────────
+    EMAIL_HOST: str
+    EMAIL_PORT: int
+    EMAIL_USER: str
+    EMAIL_PASSWORD: str
+    EMAIL_FROM_NAME: str
 
-# Rate Limiting
-RATE_LIMIT_MAX_REQUESTS: int = 100
-RATE_LIMIT_TIME_WINDOW: int = 60
+    # ─── Rate Limiting ───────────────────────
+    RATE_LIMIT_MAX_REQUESTS: int = 100
+    RATE_LIMIT_TIME_WINDOW: int = 60
 
-# Frontend
-FRONTEND_URL: str
+    # ─── Frontend ────────────────────────────
+    FRONTEND_URL: str
 
-# Webhook / Callback URLs
-PAYSTACK_CALLBACK: str
-FLUTTERWAVE_CALLBACK: str
-NOWPAY_CALLBACK: str
+    # ─── Webhook / Callback URLs ─────────────
+    PAYSTACK_CALLBACK: str
+    FLUTTERWAVE_CALLBACK: str
+    NOWPAY_CALLBACK: str
 
-# Monitoring & Analytics (Optional)
-SENTRY_DSN: Optional[str] = None
-GOOGLE_ANALYTICS_ID: Optional[str] = None
+    # ─── Monitoring & Analytics (Optional) ───
+    SENTRY_DSN: Optional[str] = None
+    GOOGLE_ANALYTICS_ID: Optional[str] = None
 
-# Email Templates (Optional)
-EMAIL_VERIFICATION_TEMPLATE: Optional[str] = "email/verify.html"
-PASSWORD_RESET_TEMPLATE: Optional[str] = "email/reset.html"
-KYC_APPROVAL_TEMPLATE: Optional[str] = "email/kyc_approved.html"
+    # ─── Email Templates (Optional) ──────────
+    EMAIL_VERIFICATION_TEMPLATE: Optional[str] = "email/verify.html"
+    PASSWORD_RESET_TEMPLATE: Optional[str] = "email/reset.html"
+    KYC_APPROVAL_TEMPLATE: Optional[str] = "email/kyc_approved.html"
 
-# Two-Factor Auth (Optional)
-ENABLE_2FA: bool = True
-OTP_ISSUER_NAME: Optional[str] = "Dealcross"
-OTP_EMAIL_TEMPLATE: Optional[str] = "email/otp_code.html"
+    # ─── Two-Factor Auth (Optional) ──────────
+    ENABLE_2FA: bool = True
+    OTP_ISSUER_NAME: Optional[str] = "Dealcross"
+    OTP_EMAIL_TEMPLATE: Optional[str] = "email/otp_code.html"
 
-# Redis (FIXED)
-REDIS_URL: str  # Required to be set on Render
+    # ─── Redis ───────────────────────────────
+    REDIS_URL: str  # Required for admin session backend
 
-class Config:
-    env_file = ".env" if os.getenv("APP_ENV") != "production" else None  # Updated to prioritize system environment in production
-    env_file_encoding = 'utf-8'
-    case_sensitive = True
+    class Config:
+        # Use system environment in production, .env locally
+        env_file = ".env" if os.getenv("APP_ENV") != "production" else None
+        env_file_encoding = 'utf-8'
+        case_sensitive = True
 
 settings = Settings()
-
