@@ -1,12 +1,10 @@
 # core/database.py
 
 from tortoise import Tortoise
-from config import settings
+from config.settings import settings  # ✅ explicitly from config.settings
 
-# Correct: call the method, not attribute
 DATABASE_URL = settings.get_effective_database_url()
 
-# Aerich-compatible config
 TORTOISE_ORM = {
     "connections": {"default": DATABASE_URL},
     "apps": {
