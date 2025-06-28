@@ -46,7 +46,7 @@ class Settings(BaseSettings):
     flutterwave_callback: str = Field(..., alias="FLUTTERWAVE_CALLBACK")
     nowpay_callback: str = Field(..., alias="NOWPAY_CALLBACK")
 
-    # REDIS ✅ THIS IS THE CRUCIAL MISSING PIECE
+    # REDIS ✅ CRITICAL FIX
     redis_url: str = Field(..., alias="REDIS_URL")
 
     class Config:
