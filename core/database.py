@@ -1,15 +1,17 @@
+# File: core/database.py
+
 from tortoise import Tortoise
 from config import settings  # from your config/settings.py
 
 # Use Pydantic settings to load env vars
-DATABASE_URL = settings.DATABASE_URL
+DATABASE_URL = settings.database_url  # ✅ FIXED
 
 # === Aerich-Compatible ORM Config ===
 TORTOISE_ORM = {
     "connections": {"default": DATABASE_URL},
     "apps": {
         "models": {
-            "models": ["models", "aerich.models"],  # ✅ NO "src." — must match Tortoise label!
+            "models": ["models", "aerich.models"],  # ✅ correct
             "default_connection": "default",
         }
     }
