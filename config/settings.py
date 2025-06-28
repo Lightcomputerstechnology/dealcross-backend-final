@@ -1,7 +1,6 @@
 # config/settings.py
 
 from pydantic_settings import BaseSettings
-from pydantic import Field
 from dotenv import load_dotenv
 from pathlib import Path
 
@@ -11,37 +10,33 @@ print(f"Loading .env from: {env_path.resolve()}")
 load_dotenv(dotenv_path=env_path)
 
 class Settings(BaseSettings):
-    # Core Auth Settings
-    secret_key: str = Field(..., env="SECRET_KEY")
-    algorithm: str = Field(..., env="ALGORITHM")
+    SECRET_KEY: str
+    ALGORITHM: str
 
-    # Database
-    database_url: str | None = Field(None, env="DATABASE_URL")
-    db_host: str = Field("", env="DB_HOST")
-    db_port: int = Field(5432, env="DB_PORT")
-    db_user: str = Field("", env="DB_USER")
-    db_password: str = Field("", env="DB_PASSWORD")
-    db_name: str = Field("", env="DB_NAME")
+    DATABASE_URL: str | None = None
+    DB_HOST: str = ""
+    DB_PORT: int = 5432
+    DB_USER: str = ""
+    DB_PASSWORD: str = ""
+    DB_NAME: str = ""
 
-    # Redis
-    redis_url: str = Field("", env="REDIS_URL")
+    REDIS_URL: str = ""
 
     class Config:
         env_file = ".env"
         extra = "allow"
 
-    @property
-    def effective_database_url(self) -> str:
-        if self.database_url:
-            return self.database_url
-        if self.db_user and self.db_password and self.db_host and self.db_name:
-            return f"postgres://{self.db_user}:{self.db_password}@{self.db_host}:{self.db_port}/{self.db_name}"
+    def get_effective_database_url(self):
+        if self.DATABASE_URL:
+            return self.DATABASE_URL
+        if self.DB_USER and self.DB_PASSWORD and self.DB_HOST and self.DB_NAME:
+            return f"postgres://{self.DB_USER}:{self.DB_PASSWORD}@{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}"
         raise ValueError("DATABASE_URL is not set and DB connection parts are incomplete.")
 
 settings = Settings()
 
-# Debug dump for Render verification
-print("[DEBUG] settings.database_url:", settings.database_url)
-print("[DEBUG] settings.effective_database_url:", settings.effective_database_url)
-print("[DEBUG] settings.secret_key:", settings.secret_key)
-print("[DEBUG] settings.redis_url:", settings.redis_url)
+# Debug dump
+print("[DEBUG] settings.DATABASE_URL:", settings.DATABASE_URL)
+print("[DEBUG] settings.get_effective_database_url:", settings.get_effective_database_url())
+print("[DEBUG] settings.SECRET_KEY:", settings.SECRET_KEY)
+print("[DEBUG] settings.REDIS_URL:", settings.REDIS_URL)
