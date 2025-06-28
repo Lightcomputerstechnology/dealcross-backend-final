@@ -4,7 +4,7 @@ from pydantic_settings import BaseSettings
 from dotenv import load_dotenv
 from pathlib import Path
 
-# Explicitly load .env using absolute path
+# Explicitly load .env
 env_path = Path(__file__).parent.parent / '.env'
 print(f"Loading .env from: {env_path.resolve()}")
 load_dotenv(dotenv_path=env_path)
