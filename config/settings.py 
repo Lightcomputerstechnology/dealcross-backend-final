@@ -66,18 +66,17 @@ class Settings(BaseSettings):
     otp_issuer_name: Optional[str] = Field("Dealcross", alias="OTP_ISSUER_NAME")
     otp_email_template: Optional[str] = Field("email/otp_code.html", alias="OTP_EMAIL_TEMPLATE")
 
-    # ─── REDIS (FIXED) ───────────────────────
+    # ─── REDIS ───────────────────────────────
     redis_url: str = Field(..., alias="REDIS_URL")
 
-    # ─── CONFIGURATION ───────────────────────
-    model_config = {
-        "env_file": ".env" if os.getenv("APP_ENV") != "production" else None,
-        "env_file_encoding": "utf-8",
-        "case_sensitive": True,
-        "extra": "allow"
-    }
+    class Config:
+        env_file = ".env" if os.getenv("APP_ENV") != "production" else None
+        env_file_encoding = "utf-8"
+        case_sensitive = True
+        extra = "allow"
 
+# Initialize settings instance globally
 settings = Settings()
 
-# Confirm loaded REDIS_URL for debugging
+# Debug confirm after instantiation
 print("SETTINGS redis_url:", settings.redis_url)
