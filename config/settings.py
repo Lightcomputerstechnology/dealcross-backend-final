@@ -1,42 +1,54 @@
-# config/settings.py
-
 from pydantic_settings import BaseSettings
-from dotenv import load_dotenv
-from pathlib import Path
+from pydantic import Field
 
-# Explicitly load .env
-env_path = Path(__file__).parent.parent / '.env'
-print(f"Loading .env from: {env_path.resolve()}")
-load_dotenv(dotenv_path=env_path)
 
 class Settings(BaseSettings):
-    SECRET_KEY: str
-    ALGORITHM: str
+    # ─── GENERAL ─────────────────────────────
+    APP_NAME: str = Field(..., env="APP_NAME")
+    APP_ENV: str = Field(..., env="APP_ENV")
+    APP_PORT: int = Field(..., env="APP_PORT")
 
-    DATABASE_URL: str | None = None
-    DB_HOST: str = ""
-    DB_PORT: int = 5432
-    DB_USER: str = ""
-    DB_PASSWORD: str = ""
-    DB_NAME: str = ""
+    # ─── DATABASE ────────────────────────────
+    DATABASE_URL: str = Field(..., env="DATABASE_URL")
+    DB_HOST: str = Field(default=None, env="DB_HOST")
+    DB_PORT: int = Field(default=5432, env="DB_PORT")
+    DB_USER: str = Field(default=None, env="DB_USER")
+    DB_PASSWORD: str = Field(default=None, env="DB_PASSWORD")
+    DB_NAME: str = Field(default=None, env="DB_NAME")
 
-    REDIS_URL: str = ""
+    # ─── SECURITY ────────────────────────────
+    SECRET_KEY: str = Field(..., env="SECRET_KEY")
+    ALGORITHM: str = Field(..., env="ALGORITHM")
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = Field(default=60, env="ACCESS_TOKEN_EXPIRE_MINUTES")
 
+    # ─── PAYMENT GATEWAYS ────────────────────
+    PAYSTACK_SECRET: str = Field(..., env="PAYSTACK_SECRET")
+    FLW_SECRET: str = Field(..., env="FLW_SECRET")
+    NOWPAY_API_KEY: str = Field(..., env="NOWPAY_API_KEY")
+
+    # ─── EMAIL CONFIG ────────────────────────
+    EMAIL_HOST: str = Field(..., env="EMAIL_HOST")
+    EMAIL_PORT: int = Field(default=587, env="EMAIL_PORT")
+    EMAIL_USER: str = Field(..., env="EMAIL_USER")
+    EMAIL_PASSWORD: str = Field(..., env="EMAIL_PASSWORD")
+    EMAIL_FROM_NAME: str = Field(default="Dealcross", env="EMAIL_FROM_NAME")
+
+    # ─── RATE LIMIT ──────────────────────────
+    RATE_LIMIT_MAX_REQUESTS: int = Field(default=100, env="RATE_LIMIT_MAX_REQUESTS")
+    RATE_LIMIT_TIME_WINDOW: int = Field(default=60, env="RATE_LIMIT_TIME_WINDOW")
+
+    # ─── FRONTEND ────────────────────────────
+    FRONTEND_URL: str = Field(..., env="FRONTEND_URL")
+
+    # ─── CALLBACKS ───────────────────────────
+    PAYSTACK_CALLBACK: str = Field(..., env="PAYSTACK_CALLBACK")
+    FLUTTERWAVE_CALLBACK: str = Field(..., env="FLUTTERWAVE_CALLBACK")
+    NOWPAY_CALLBACK: str = Field(..., env="NOWPAY_CALLBACK")
+
+    # ─── SETTINGS ────────────────────────────
     class Config:
         env_file = ".env"
-        extra = "allow"
+        extra = "allow"  # prevents failure if other env vars exist
 
-    def get_effective_database_url(self):
-        if self.DATABASE_URL:
-            return self.DATABASE_URL
-        if self.DB_USER and self.DB_PASSWORD and self.DB_HOST and self.DB_NAME:
-            return f"postgres://{self.DB_USER}:{self.DB_PASSWORD}@{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}"
-        raise ValueError("DATABASE_URL is not set and DB connection parts are incomplete.")
 
 settings = Settings()
-
-# Debug dump
-print("[DEBUG] settings.DATABASE_URL:", settings.DATABASE_URL)
-print("[DEBUG] settings.get_effective_database_url:", settings.get_effective_database_url())
-print("[DEBUG] settings.SECRET_KEY:", settings.SECRET_KEY)
-print("[DEBUG] settings.REDIS_URL:", settings.REDIS_URL)
