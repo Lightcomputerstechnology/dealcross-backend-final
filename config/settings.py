@@ -1,64 +1,69 @@
-# File: config/settings.py
-
+import os
 from pydantic_settings import BaseSettings
-from pydantic import Field
 from typing import Optional
-
 
 class Settings(BaseSettings):
     # ─── GENERAL ─────────────────────────────
-    app_name: str = Field(..., alias="APP_NAME")
-    app_env: str = Field(..., alias="APP_ENV")
-    app_port: int = Field(..., alias="APP_PORT")
+    APP_NAME: str = "Dealcross"
+    APP_ENV: str = "production"
+    APP_PORT: int = 8000
+    DEBUG: bool = False
+    LOG_LEVEL: str = "info"
+    TIMEZONE: str = "UTC"
 
-    # ─── DATABASE CONFIG ─────────────────────
-    db_host: str = Field(..., alias="DB_HOST")
-    db_port: int = Field(..., alias="DB_PORT")
-    db_user: str = Field(..., alias="DB_USER")
-    db_password: str = Field(..., alias="DB_PASSWORD")
-    db_name: str = Field(..., alias="DB_NAME")
-    database_url: str = Field(..., alias="DATABASE_URL")
+    # ─── DATABASE ────────────────────────────
+    DATABASE_URL: str
 
-    # ─── SECURITY KEYS ───────────────────────
-    secret_key: str = Field(..., alias="SECRET_KEY")
-    algorithm: str = Field(..., alias="ALGORITHM")
-    access_token_expire_minutes: int = Field(..., alias="ACCESS_TOKEN_EXPIRE_MINUTES")
+    # ─── SECURITY ────────────────────────────
+    SECRET_KEY: str
+    ALGORITHM: str = "HS256"
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
 
-    # ─── PAYMENT GATEWAYS ────────────────────
-    paystack_secret: str = Field(..., alias="PAYSTACK_SECRET")
-    flutterwave_secret: str = Field(..., alias="FLW_SECRET")
-    nowpay_api_key: str = Field(..., alias="NOWPAY_API_KEY")
+    # ─── PAYMENT API KEYS ────────────────────
+    PAYSTACK_SECRET: str
+    FLW_SECRET: str
+    NOWPAY_API_KEY: str
 
-    # ─── EMAIL SENDER ────────────────────────
-    email_host: str = Field(..., alias="EMAIL_HOST")
-    email_port: int = Field(..., alias="EMAIL_PORT")
-    email_user: str = Field(..., alias="EMAIL_USER")
-    email_password: str = Field(..., alias="EMAIL_PASSWORD")
-    email_from_name: str = Field(..., alias="EMAIL_FROM_NAME")
+    # ─── EMAIL SMTP ──────────────────────────
+    EMAIL_HOST: str
+    EMAIL_PORT: int
+    EMAIL_USER: str
+    EMAIL_PASSWORD: str
+    EMAIL_FROM_NAME: str
 
-    # ─── RATE LIMIT ──────────────────────────
-    rate_limit_max_requests: int = Field(..., alias="RATE_LIMIT_MAX_REQUESTS")
-    rate_limit_time_window: int = Field(..., alias="RATE_LIMIT_TIME_WINDOW")
+    # ─── RATE LIMITING ───────────────────────
+    RATE_LIMIT_MAX_REQUESTS: int = 100
+    RATE_LIMIT_TIME_WINDOW: int = 60
 
-    # ─── TORTOISE ORM ────────────────────────
-    tortoise_orm: str = Field(..., alias="TORTOISE_ORM")
+    # ─── FRONTEND ────────────────────────────
+    FRONTEND_URL: str
 
-    # ─── FRONTEND DOMAIN ─────────────────────
-    frontend_url: str = Field(..., alias="FRONTEND_URL")
+    # ─── CALLBACK / WEBHOOK URLs ─────────────
+    PAYSTACK_CALLBACK: str
+    FLUTTERWAVE_CALLBACK: str
+    NOWPAY_CALLBACK: str
 
-    # ─── REDIS URL ───────────────────────────
-    redis_url: str = Field(..., alias="REDIS_URL")
+    # ─── MONITORING & ANALYTICS ──────────────
+    SENTRY_DSN: Optional[str] = None
+    GOOGLE_ANALYTICS_ID: Optional[str] = None
 
-    # ─── CALLBACK/WEBHOOK URLs ───────────────
-    paystack_callback: str = Field(..., alias="PAYSTACK_CALLBACK")
-    flutterwave_callback: str = Field(..., alias="FLUTTERWAVE_CALLBACK")
-    nowpay_callback: str = Field(..., alias="NOWPAY_CALLBACK")
+    # ─── EMAIL TEMPLATES (OPTIONAL) ──────────
+    EMAIL_VERIFICATION_TEMPLATE: Optional[str] = "email/verify.html"
+    PASSWORD_RESET_TEMPLATE: Optional[str] = "email/reset.html"
+    KYC_APPROVAL_TEMPLATE: Optional[str] = "email/kyc_approved.html"
+
+    # ─── TWO-FACTOR AUTH ─────────────────────
+    ENABLE_2FA: bool = True
+    OTP_ISSUER_NAME: Optional[str] = "Dealcross"
+    OTP_EMAIL_TEMPLATE: Optional[str] = "email/otp_code.html"
+
+    # ─── REDIS ───────────────────────────────
+    REDIS_URL: str
 
     class Config:
         env_file = ".env"
         env_file_encoding = "utf-8"
         case_sensitive = True
-        extra = "forbid"  # Strictly forbid undeclared env vars
-
+        extra = "allow"
 
 settings = Settings()
