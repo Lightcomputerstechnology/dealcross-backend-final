@@ -47,7 +47,7 @@ class Settings(BaseSettings):
     nowpay_callback: str = Field(..., alias="NOWPAY_CALLBACK")
 
     # ─── REDIS (REQUIRED) ────────────────────
-    redis_url: str = Field(..., alias="REDIS_URL")
+    redis_url: str = Field(..., alias="REDIS_URL")  # ✅ Added to map REDIS_URL env variable
 
     # ─── CONFIGURATION ───────────────────────
     model_config = {
