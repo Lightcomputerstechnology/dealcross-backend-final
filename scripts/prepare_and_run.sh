@@ -1,5 +1,7 @@
 #!/bin/bash
 
+export PYTHONPATH=$(pwd)
+
 echo "=== Running smart Aerich migration check ==="
 
 # Safety: Show Python & pip versions
