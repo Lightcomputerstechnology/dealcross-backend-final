@@ -1,36 +1,41 @@
-─── Core Framework ─────────────────────
+# ─── Core Framework ─────────────────────
+fastapi
+uvicorn
 
-fastapi uvicorn
+# ─── ORM & DB Tools ─────────────────────
+tortoise-orm
+aerich
+asyncpg
+redis==4.5.5
+tomlkit
 
-─── ORM & DB Tools ─────────────────────
+# ─── Security & Auth ────────────────────
+python-jose
+PyJWT==2.8.0
+passlib[bcrypt]
+python-multipart
+email-validator
 
-tortoise-orm aerich asyncpg redis==4.5.5 tomlkit
+# ─── Environment & Settings ─────────────
+python-dotenv
+pydantic
+pydantic-settings
 
-─── Security & Auth ────────────────────
-
-python-jose PyJWT==2.8.0 passlib[bcrypt] python-multipart email-validator
-
-─── Environment & Settings ─────────────
-
-python-dotenv pydantic pydantic-settings
-
-─── HTTP Client ────────────────────────
-
+# ─── HTTP Client ────────────────────────
 httpx>=0.23.0
 
-─── Admin Interface (Custom Patched Version) ─────────────
-
+# ─── Admin Interface (Custom Patched Version) ─────────────
 git+https://github.com/Lightcomputerstechnology/fastapi-admin-patched@main#egg=fastapi-admin[tortoise]
 
-─── Optional Analytics / Monitoring ───
-
+# ─── Optional Analytics / Monitoring ───
 sentry-sdk[fastapi]  # Optional: Sentry crash monitoring
 
-─── Testing (Optional) ────────────────
+# ─── Testing (Optional) ────────────────
+pytest
+httpx[http2]
+pytest-asyncio
 
-pytest httpx[http2] pytest-asyncio
-
-─── TOTP / 2FA ─────────────────────────
+#─── TOTP / 2FA ─────────────────────────
 
 pyotp>=2.8.0
 
