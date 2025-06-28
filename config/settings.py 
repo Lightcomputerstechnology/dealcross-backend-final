@@ -1,78 +1,83 @@
-import os  # For direct environment debugging
+import os
 from pydantic_settings import BaseSettings
 from pydantic import Field
 from typing import Optional
 
-# Debug print to verify direct environment loading
+# Debug print to verify environment loading during container startup
 print("Direct ENV REDIS_URL:", os.getenv("REDIS_URL"))
 
 class Settings(BaseSettings):
-    # ─── General ─────────────────────────────
-    APP_NAME: str = "Dealcross"
-    APP_ENV: str = "production"
-    APP_PORT: int = 8000
-    DEBUG: bool = False
-    LOG_LEVEL: str = "info"
-    TIMEZONE: str = "UTC"
+    # ─── GENERAL ─────────────────────────────
+    app_name: str = Field("Dealcross", alias="APP_NAME")
+    app_env: str = Field("production", alias="APP_ENV")
+    app_port: int = Field(8000, alias="APP_PORT")
+    debug: bool = Field(False, alias="DEBUG")
+    log_level: str = Field("info", alias="LOG_LEVEL")
+    timezone: str = Field("UTC", alias="TIMEZONE")
 
-    # ─── Database ────────────────────────────
-    DB_HOST: str
-    DB_PORT: int
-    DB_USER: str
-    DB_PASSWORD: str
-    DB_NAME: str
-    DATABASE_URL: str
+    # ─── DATABASE ────────────────────────────
+    db_host: str = Field(..., alias="DB_HOST")
+    db_port: int = Field(..., alias="DB_PORT")
+    db_user: str = Field(..., alias="DB_USER")
+    db_password: str = Field(..., alias="DB_PASSWORD")
+    db_name: str = Field(..., alias="DB_NAME")
+    database_url: str = Field(..., alias="DATABASE_URL")
 
-    # ─── Security ────────────────────────────
-    SECRET_KEY: str
-    ALGORITHM: str = "HS256"
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
+    # ─── SECURITY ────────────────────────────
+    secret_key: str = Field(..., alias="SECRET_KEY")
+    algorithm: str = Field("HS256", alias="ALGORITHM")
+    access_token_expire_minutes: int = Field(60, alias="ACCESS_TOKEN_EXPIRE_MINUTES")
 
-    # ─── Payment API Keys ────────────────────
-    PAYSTACK_SECRET: str
-    FLUTTERWAVE_SECRET: str = Field(..., alias="FLW_SECRET")
-    NOWPAY_API_KEY: str
+    # ─── PAYMENT API KEYS ────────────────────
+    paystack_secret: str = Field(..., alias="PAYSTACK_SECRET")
+    flutterwave_secret: str = Field(..., alias="FLW_SECRET")
+    nowpay_api_key: str = Field(..., alias="NOWPAY_API_KEY")
 
-    # ─── Email SMTP ──────────────────────────
-    EMAIL_HOST: str
-    EMAIL_PORT: int
-    EMAIL_USER: str
-    EMAIL_PASSWORD: str
-    EMAIL_FROM_NAME: str
+    # ─── EMAIL SMTP ──────────────────────────
+    email_host: str = Field(..., alias="EMAIL_HOST")
+    email_port: int = Field(..., alias="EMAIL_PORT")
+    email_user: str = Field(..., alias="EMAIL_USER")
+    email_password: str = Field(..., alias="EMAIL_PASSWORD")
+    email_from_name: str = Field(..., alias="EMAIL_FROM_NAME")
 
-    # ─── Rate Limiting ───────────────────────
-    RATE_LIMIT_MAX_REQUESTS: int = 100
-    RATE_LIMIT_TIME_WINDOW: int = 60
+    # ─── RATE LIMITING ───────────────────────
+    rate_limit_max_requests: int = Field(100, alias="RATE_LIMIT_MAX_REQUESTS")
+    rate_limit_time_window: int = Field(60, alias="RATE_LIMIT_TIME_WINDOW")
 
-    # ─── Frontend ────────────────────────────
-    FRONTEND_URL: str
+    # ─── FRONTEND ────────────────────────────
+    frontend_url: str = Field(..., alias="FRONTEND_URL")
 
-    # ─── Webhook / Callback URLs ─────────────
-    PAYSTACK_CALLBACK: str
-    FLUTTERWAVE_CALLBACK: str
-    NOWPAY_CALLBACK: str
+    # ─── WEBHOOK / CALLBACK URLs ─────────────
+    paystack_callback: str = Field(..., alias="PAYSTACK_CALLBACK")
+    flutterwave_callback: str = Field(..., alias="FLUTTERWAVE_CALLBACK")
+    nowpay_callback: str = Field(..., alias="NOWPAY_CALLBACK")
 
-    # ─── Monitoring & Analytics (Optional) ───
-    SENTRY_DSN: Optional[str] = None
-    GOOGLE_ANALYTICS_ID: Optional[str] = None
+    # ─── MONITORING & ANALYTICS ──────────────
+    sentry_dsn: Optional[str] = Field(None, alias="SENTRY_DSN")
+    google_analytics_id: Optional[str] = Field(None, alias="GOOGLE_ANALYTICS_ID")
 
-    # ─── Email Templates (Optional) ──────────
-    EMAIL_VERIFICATION_TEMPLATE: Optional[str] = "email/verify.html"
-    PASSWORD_RESET_TEMPLATE: Optional[str] = "email/reset.html"
-    KYC_APPROVAL_TEMPLATE: Optional[str] = "email/kyc_approved.html"
+    # ─── EMAIL TEMPLATES ─────────────────────
+    email_verification_template: Optional[str] = Field("email/verify.html", alias="EMAIL_VERIFICATION_TEMPLATE")
+    password_reset_template: Optional[str] = Field("email/reset.html", alias="PASSWORD_RESET_TEMPLATE")
+    kyc_approval_template: Optional[str] = Field("email/kyc_approved.html", alias="KYC_APPROVAL_TEMPLATE")
 
-    # ─── Two-Factor Auth (Optional) ──────────
-    ENABLE_2FA: bool = True
-    OTP_ISSUER_NAME: Optional[str] = "Dealcross"
-    OTP_EMAIL_TEMPLATE: Optional[str] = "email/otp_code.html"
+    # ─── TWO-FACTOR AUTH ─────────────────────
+    enable_2fa: bool = Field(True, alias="ENABLE_2FA")
+    otp_issuer_name: Optional[str] = Field("Dealcross", alias="OTP_ISSUER_NAME")
+    otp_email_template: Optional[str] = Field("email/otp_code.html", alias="OTP_EMAIL_TEMPLATE")
 
-    # ─── Redis ───────────────────────────────
-    REDIS_URL: str  # Required for admin session backend
+    # ─── REDIS (FIXED) ───────────────────────
+    redis_url: str = Field(..., alias="REDIS_URL")
 
-    class Config:
-        # Use system environment in production, .env locally
-        env_file = ".env" if os.getenv("APP_ENV") != "production" else None
-        env_file_encoding = 'utf-8'
-        case_sensitive = True
+    # ─── CONFIGURATION ───────────────────────
+    model_config = {
+        "env_file": ".env" if os.getenv("APP_ENV") != "production" else None,
+        "env_file_encoding": "utf-8",
+        "case_sensitive": True,
+        "extra": "allow"
+    }
 
 settings = Settings()
+
+# Confirm loaded REDIS_URL for debugging
+print("SETTINGS redis_url:", settings.redis_url)
