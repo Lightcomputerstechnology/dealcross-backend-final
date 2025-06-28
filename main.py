@@ -1,4 +1,4 @@
-# File: main.py
+# File: main.py (fully fixed, ready to redeploy)
 
 import os
 
@@ -26,7 +26,11 @@ from admin_views.change_password_view import router as change_password_view
 # Redis for session & 2FA sessions
 import redis.asyncio as redis
 
-redis_client = redis.from_url(settings.REDIS_URL, decode_responses=True)
+# Debug prints for verification
+print("ENV REDIS_URL:", os.getenv("REDIS_URL"))
+print("settings.redis_url:", settings.redis_url)
+
+redis_client = redis.from_url(settings.redis_url, decode_responses=True)
 
 # ─────────────────────────────────────────────
 # Routers
