@@ -1,6 +1,7 @@
+# File: core/settings.py
+
 from pydantic_settings import BaseSettings
 from pydantic import Field
-
 
 class Settings(BaseSettings):
     # ─── GENERAL ─────────────────────────────
@@ -45,12 +46,14 @@ class Settings(BaseSettings):
     flutterwave_callback: str = Field(..., alias="FLUTTERWAVE_CALLBACK")
     nowpay_callback: str = Field(..., alias="NOWPAY_CALLBACK")
 
+    # ─── REDIS (REQUIRED) ────────────────────
+    redis_url: str = Field(..., alias="REDIS_URL")
+
     # ─── CONFIGURATION ───────────────────────
     model_config = {
-        "env_file": ".env",         # Load from .env if local
+        "env_file": ".env",         # Loads from .env locally
         "env_file_encoding": "utf-8",
-        "extra": "allow"            # Accept extra env vars silently (good for Render)
+        "extra": "allow"            # Ignores extra env vars safely (Render-safe)
     }
-
 
 settings = Settings()
