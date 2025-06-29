@@ -1,7 +1,7 @@
 # Use the official lightweight Python image
 FROM python:3.11-slim
 
-# Set environment variables
+# Environment settings
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 
@@ -15,10 +15,10 @@ RUN apt-get update && apt-get install -y build-essential
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy project
+# Copy project files
 COPY . .
 
-# Expose port (Fly will respect this or your fly.toml PORT)
+# Expose port for Fly
 EXPOSE 8080
 
 # Start FastAPI with uvicorn
