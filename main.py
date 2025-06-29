@@ -1,4 +1,4 @@
-# File: main.py (fully fixed, ready to redeploy)
+# File: main.py (final clean, ready for Render deploy)
 
 import os
 
@@ -28,9 +28,9 @@ import redis.asyncio as redis
 
 # Debug prints for verification
 print("ENV REDIS_URL:", os.getenv("REDIS_URL"))
-print("settings.redis_url:", settings.redis_url)
+print("settings.REDIS_URL:", settings.REDIS_URL)
 
-redis_client = redis.from_url(settings.redis_url, decode_responses=True)
+redis_client = redis.from_url(settings.REDIS_URL, decode_responses=True)
 
 # ─────────────────────────────────────────────
 # Routers
@@ -66,7 +66,6 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
 
 # ─────────────────────────────────────────────
 # FastAPI App Initialization
-# ─────────────────────────────────────────────
 app = FastAPI(
     title="Dealcross Backend",
     version="1.0.0",
@@ -75,7 +74,6 @@ app = FastAPI(
 
 # ─────────────────────────────────────────────
 # Startup / Shutdown
-# ─────────────────────────────────────────────
 @app.on_event("startup")
 async def on_startup():
     await init_db()
@@ -86,7 +84,6 @@ async def on_shutdown():
 
 # ─────────────────────────────────────────────
 # Middleware
-# ─────────────────────────────────────────────
 app.add_middleware(RateLimitMiddleware)
 
 app.add_middleware(
@@ -99,13 +96,11 @@ app.add_middleware(
 
 # ─────────────────────────────────────────────
 # Mount admin panel
-# ─────────────────────────────────────────────
 app.mount("/admin", admin_app)
 app.include_router(change_password_view, prefix="/admin")
 
 # ─────────────────────────────────────────────
 # API Routers
-# ─────────────────────────────────────────────
 app.include_router(user_2fa.router)
 app.include_router(contact.router)
 app.include_router(user_router, prefix="/user")
@@ -124,7 +119,6 @@ app.include_router(payment_webhooks.router, prefix="/webhooks")
 
 # ─────────────────────────────────────────────
 # Sample extra route for upgrade plan
-# ─────────────────────────────────────────────
 @app.post("/users/upgrade-plan")
 async def upgrade_plan(
     request: Request,
