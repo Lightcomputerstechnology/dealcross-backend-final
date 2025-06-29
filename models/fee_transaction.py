@@ -1,56 +1,52 @@
-This is, fee_transaction.py
+# File: models/fee_transaction.py
 
 from enum import Enum
 from tortoise import models, fields
+from decimal import Decimal
 
-class UserRole(str, Enum):
-user = "user"
-moderator = "moderator"
-auditor = "auditor"
-admin = "admin"
+# Transaction Status Enum
+class TransactionStatus(str, Enum):
+    pending = "pending"
+    completed = "completed"
+    failed = "failed"
+    refunded = "refunded"
 
-class User(models.Model):
-id = fields.IntField(pk=True)
+# Transaction Type Enum
+class TransactionType(str, Enum):
+    deposit = "deposit"
+    withdrawal = "withdrawal"
+    fee = "fee"
+    adjustment = "adjustment"
 
-username = fields.CharField(max_length=50, unique=True)  
-email = fields.CharField(max_length=255, unique=True)  
-full_name = fields.CharField(max_length=255, null=True)  
+# FeeTransaction Model
+class FeeTransaction(models.Model):
+    id = fields.IntField(pk=True)
 
-role = fields.CharEnumField(UserRole, default=UserRole.user)  
-is_superuser = fields.BooleanField(default=False)  
-is_active = fields.BooleanField(default=True)  
-status = fields.CharField(max_length=20, default="active")  
-cumulative_sales = fields.DecimalField(max_digits=12, decimal_places=2, default=0)  
+    user = fields.ForeignKeyField(
+        "models.User",  # ✅ correct reference
+        related_name="fee_transactions",
+        on_delete=fields.CASCADE
+    )
 
-hashed_password = fields.CharField(max_length=128)  
+    amount = fields.DecimalField(max_digits=12, decimal_places=2)
+    currency = fields.CharField(max_length=10, default="USD")
 
-referral_code = fields.CharField(max_length=20, unique=True, null=True)  
-referred_by = fields.ForeignKeyField(  
-    "models.User",  
-    related_name="referrals",  
-    null=True,  
-    on_delete=fields.SET_NULL  
-)  
+    transaction_type = fields.CharEnumField(TransactionType)
+    status = fields.CharEnumField(TransactionStatus, default=TransactionStatus.pending)
 
-permission = fields.ForeignKeyField(  
-    "models.RolePermission",  
-    null=True,  
-    related_name="users",  
-    on_delete=fields.SET_NULL  
-)  
+    description = fields.TextField(null=True)
 
-# ✅ 2FA fields  
-is_2fa_enabled = fields.BooleanField(default=False)  
-two_fa_method = fields.CharField(max_length=10, null=True)  # "totp" or "email"  
-two_fa_secret = fields.CharField(max_length=64, null=True)  # for TOTP apps  
+    reference = fields.CharField(max_length=100, unique=True)
 
-created_at = fields.DatetimeField(auto_now_add=True)  
-updated_at = fields.DatetimeField(auto_now=True)  
+    created_at = fields.DatetimeField(auto_now_add=True)
+    updated_at = fields.DatetimeField(auto_now=True)
 
-class Meta:  
-    table = "user"  # ✅ match your migration (not "users")  
-    ordering = ["-created_at"]  
+    class Meta:
+        table = "fee_transactions"
+        ordering = ["-created_at"]
 
-def __str__(self):  
-    return f"{self.username} ({self.email})"
-
+    def __str__(self):
+        return (
+            f"FeeTransaction {self.id} | User {self.user_id} | "
+            f"{self.amount} {self.currency} | {self.status}"
+        )
