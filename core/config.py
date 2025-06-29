@@ -1,30 +1,34 @@
 # File: core/config.py
 
 from pydantic_settings import BaseSettings
+from pydantic import Field
 
 class Settings(BaseSettings):
-    # Core Auth Settings
-    SECRET_KEY: str
-    ALGORITHM: str
+    # ─── GENERAL ─────────────────────────────
+    APP_NAME: str
+    APP_ENV: str
+    APP_PORT: int
 
-    # DB Settings
+    # ─── DATABASE ────────────────────────────
     DATABASE_URL: str
 
-    # Optional Email Configs
+    # ─── SECURITY ────────────────────────────
+    SECRET_KEY: str
+    ALGORITHM: str
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
+
+    # ─── REDIS ───────────────────────────────
+    REDIS_URL: str
+
+    # ─── OPTIONAL EMAIL ──────────────────────
     SMTP_SERVER: str = ""
     SMTP_PORT: int = 587
     SMTP_USERNAME: str = ""
     SMTP_PASSWORD: str = ""
     SMTP_FROM: str = ""
 
-    # Redis (Optional)
-    REDIS_URL: str = ""  # or without default if mandatory
-
-    # Pydantic v2 compatible config
-    model_config = {
-        "env_file": ".env",
-        "env_file_encoding": "utf-8",
-        "extra": "allow"
-    }
+    class Config:
+        env_file = ".env"
+        extra = "allow"
 
 settings = Settings()
