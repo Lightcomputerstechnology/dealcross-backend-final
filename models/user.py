@@ -1,13 +1,11 @@
 from enum import Enum
 from tortoise import models, fields
 
-
 class UserRole(str, Enum):
     user = "user"
     moderator = "moderator"
     auditor = "auditor"
     admin = "admin"
-
 
 class User(models.Model):
     id = fields.IntField(pk=True)
@@ -48,7 +46,8 @@ class User(models.Model):
     updated_at = fields.DatetimeField(auto_now=True)
 
     class Meta:
-        table = "users"
+        table = "user"  # ✅ match your migration (not "users")
+        ordering = ["-created_at"]
 
     def __str__(self):
         return f"{self.username} ({self.email})"
