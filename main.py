@@ -1,4 +1,4 @@
-# File: main.py (final clean, ready for Render deploy)
+# File: main.py
 
 import os
 
@@ -15,7 +15,7 @@ from datetime import datetime, timedelta
 from core.database import init_db, close_db
 from core.middleware import RateLimitMiddleware
 from core.security import get_password_hash, verify_password
-from core.config import settings
+from project_config.dealcross_config import dealcross_settings
 
 # ─────────────────────────────────────────────
 # Admin panel
@@ -28,9 +28,9 @@ import redis.asyncio as redis
 
 # Debug prints for verification
 print("ENV REDIS_URL:", os.getenv("REDIS_URL"))
-print("settings.REDIS_URL:", settings.REDIS_URL)
+print("dealcross_settings.redis_url:", dealcross_settings.redis_url)
 
-redis_client = redis.from_url(settings.REDIS_URL, decode_responses=True)
+redis_client = redis.from_url(dealcross_settings.redis_url, decode_responses=True)
 
 # ─────────────────────────────────────────────
 # Routers
