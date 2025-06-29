@@ -1,7 +1,7 @@
 # File: project_config/dealcross_config.py
 
 from pydantic_settings import BaseSettings
-from pydantic import Field, root_validator
+from pydantic import Field, model_validator
 import logging
 
 logger = logging.getLogger("dealcross.settings")
@@ -47,20 +47,20 @@ class Settings(BaseSettings):
     # REDIS
     redis_url: str = Field(..., alias="REDIS_URL")
 
-    # CONFIGURATION (Pydantic v2 style)
+    # CONFIGURATION
     model_config = {
         "env_file": ".env",
         "env_file_encoding": "utf-8",
         "extra": "allow"
     }
 
-    @root_validator
-    def check_critical(cls, values):
+    @model_validator(mode="after")
+    def check_critical(self):
         critical_fields = ["database_url", "secret_key", "redis_url"]
         for field in critical_fields:
-            if not values.get(field):
+            if not getattr(self, field, None):
                 raise ValueError(f"{field} is required in environment configuration")
-        return values
+        return self
 
     def get_effective_database_url(self) -> str:
         """Allow future dynamic db switching if needed."""
