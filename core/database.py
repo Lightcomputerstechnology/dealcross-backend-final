@@ -1,9 +1,9 @@
 # File: core/database.py
 
 from tortoise import Tortoise
-from project_config.dealcross_config import settings  # ✅ Consistent, correct import
+from core.settings import settings  # ✅ Use the unified settings import
 
-# ✅ Use the lowercase attribute which now works
+# ✅ Correct lowercase attribute usage
 DATABASE_URL = settings.database_url
 
 # === Tortoise ORM Configuration (Aerich Compatible) ===
@@ -11,7 +11,7 @@ TORTOISE_ORM = {
     "connections": {"default": DATABASE_URL},
     "apps": {
         "models": {
-            "models": ["models", "aerich.models"],  # ✅ Always match your models + aerich
+            "models": ["models", "aerich.models"],  # ✅ Match your project structure
             "default_connection": "default",
         }
     }
