@@ -5,17 +5,17 @@ from fastapi_admin.app import app as admin_app
 from fastapi_admin.providers.login import UsernamePasswordProvider
 from fastapi.middleware.cors import CORSMiddleware
 from tortoise import Tortoise
-from project_config.dealcross_config import settings
+from project_config.dealcross_config import dealcross_settings
 from core.security import verify_password
 from admin_views.change_password_view import router as change_password_view
 import redis.asyncio as redis
 
 # Debug prints to verify REDIS_URL loading
 print("RENDER ENV REDIS_URL:", os.getenv("REDIS_URL"))
-print("SETTINGS REDIS_URL:", settings.REDIS_URL)
+print("dealcross_settings.redis_url:", dealcross_settings.redis_url)
 
 # Redis client for session backend
-redis_client = redis.from_url(settings.REDIS_URL, decode_responses=True)
+redis_client = redis.from_url(dealcross_settings.redis_url, decode_responses=True)
 
 # CORS Middleware for Admin
 admin_app.add_middleware(
@@ -36,12 +36,12 @@ STATIC_DIR = os.path.join(BASE_DIR, "static")
 async def startup():
     # Initialize Tortoise ORM
     await Tortoise.init(
-        db_url=settings.database_url,
+        db_url=dealcross_settings.database_url,
         modules={"models": ["models"]},
     )
 
     # Only for local development
-    if settings.app_env != "production":
+    if dealcross_settings.app_env != "production":
         await Tortoise.generate_schemas()
 
     # Configure FastAPI Admin
