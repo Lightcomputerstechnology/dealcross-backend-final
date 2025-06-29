@@ -5,7 +5,7 @@ from fastapi_admin.app import app as admin_app
 from fastapi_admin.providers.login import UsernamePasswordProvider
 from fastapi.middleware.cors import CORSMiddleware
 from tortoise import Tortoise
-from config import settings
+from project_config.dealcross_config import settings
 from core.security import verify_password
 from admin_views.change_password_view import router as change_password_view
 import redis.asyncio as redis
