@@ -15,9 +15,9 @@ import random, string, secrets
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
 
-# ✅ FIXED: Use snake_case consistently with Pydantic BaseSettings
-SECRET_KEY = settings.secret_key
-ALGORITHM = settings.algorithm
+# ✅ FIXED: Use exact casing from Pydantic Settings
+SECRET_KEY = settings.SECRET_KEY
+ALGORITHM = settings.ALGORITHM
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
 
