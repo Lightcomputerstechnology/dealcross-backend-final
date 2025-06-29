@@ -1,29 +1,34 @@
 # File: core/config.py
 
 from pydantic_settings import BaseSettings
-from pydantic import Field
 
 class Settings(BaseSettings):
-    SECRET_KEY: str = Field(..., alias="SECRET_KEY")
-    ALGORITHM: str = Field(..., alias="ALGORITHM")
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = Field(60, alias="ACCESS_TOKEN_EXPIRE_MINUTES")
+    # ─── GENERAL ─────────────────────────────
+    APP_NAME: str
+    APP_ENV: str
+    APP_PORT: int
 
-    DATABASE_URL: str = Field(..., alias="DATABASE_URL")
-    REDIS_URL: str = Field("", alias="REDIS_URL")
+    # ─── DATABASE ────────────────────────────
+    DATABASE_URL: str
 
-    SMTP_SERVER: str = Field("", alias="SMTP_SERVER")
-    SMTP_PORT: int = Field(587, alias="SMTP_PORT")
-    SMTP_USERNAME: str = Field("", alias="SMTP_USERNAME")
-    SMTP_PASSWORD: str = Field("", alias="SMTP_PASSWORD")
-    SMTP_FROM: str = Field("", alias="SMTP_FROM")
+    # ─── SECURITY ────────────────────────────
+    SECRET_KEY: str
+    ALGORITHM: str
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
 
-    APP_NAME: str = Field("", alias="APP_NAME")
-    APP_ENV: str = Field("", alias="APP_ENV")
-    APP_PORT: int = Field(8000, alias="APP_PORT")
+    # ─── REDIS ───────────────────────────────
+    REDIS_URL: str
+
+    # ─── OPTIONAL EMAIL ──────────────────────
+    SMTP_SERVER: str = ""
+    SMTP_PORT: int = 587
+    SMTP_USERNAME: str = ""
+    SMTP_PASSWORD: str = ""
+    SMTP_FROM: str = ""
 
     class Config:
         env_file = ".env"
+        env_file_encoding = "utf-8"
         extra = "allow"
-        allow_population_by_field_name = True  # ✅ allow usage by field name if ever needed
 
 settings = Settings()
