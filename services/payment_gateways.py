@@ -1,12 +1,15 @@
 import os
 import httpx
 from models.user import User
-from core.settings import settings
+from project_config.dealcross_config import settings  # ✅ Use unified global settings
 
 # ─────────────────────────────────────────────
 # ✅ PAYSTACK STANDARD CARD PAYMENT
 # ─────────────────────────────────────────────
 async def initiate_paystack_payment(user: User, amount: float):
+    """
+    Initiate a Paystack card payment and return the authorization URL.
+    """
     url = "https://api.paystack.co/transaction/initialize"
     headers = {
         "Authorization": f"Bearer {settings.paystack_secret}",
@@ -28,6 +31,9 @@ async def initiate_paystack_payment(user: User, amount: float):
 # ✅ FLUTTERWAVE BANK TRANSFER
 # ─────────────────────────────────────────────
 async def initiate_flutterwave_payment(user: User, amount: float, method="bank_transfer"):
+    """
+    Initiate a Flutterwave payment and return the payment link.
+    """
     url = "https://api.flutterwave.com/v3/payments"
     headers = {
         "Authorization": f"Bearer {settings.flw_secret}",
@@ -45,7 +51,7 @@ async def initiate_flutterwave_payment(user: User, amount: float, method="bank_t
         },
         "customizations": {
             "title": "Dealcross Wallet Funding",
-            "logo": "https://yourdomain.com/logo.png"
+            "logo": "https://dealcross.net/logo192.png"  # ✅ Replace with your real logo URL
         }
     }
     async with httpx.AsyncClient() as client:
@@ -59,6 +65,9 @@ async def initiate_flutterwave_payment(user: User, amount: float, method="bank_t
 # ✅ NOWPAYMENTS CRYPTO PAYMENT
 # ─────────────────────────────────────────────
 async def initiate_nowpayments_crypto(user: User, amount: float, crypto="usdt"):
+    """
+    Initiate a NowPayments crypto invoice and return the invoice URL.
+    """
     url = "https://api.nowpayments.io/v1/invoice"
     headers = {
         "x-api-key": settings.nowpay_api_key,
@@ -68,10 +77,10 @@ async def initiate_nowpayments_crypto(user: User, amount: float, crypto="usdt"):
         "price_amount": amount,
         "price_currency": "usd",
         "pay_currency": crypto,
-        "order_id": f"{user.id}",
+        "order_id": str(user.id),
         "order_description": user.email,
         "ipn_callback_url": settings.nowpay_callback,
-        "success_url": "https://yourdomain.com/payment/success"
+        "success_url": "https://dealcross.net/payment/success"  # ✅ Replace with your real URL
     }
     async with httpx.AsyncClient() as client:
         res = await client.post(url, headers=headers, json=payload)
