@@ -4,7 +4,7 @@
 import random
 import redis.asyncio as redis
 from fastapi_mail import FastMail, MessageSchema
-from config import settings
+from project_config.dealcross_config import settings
 
 r = redis.Redis(host="localhost", port=6379, db=0)
 
