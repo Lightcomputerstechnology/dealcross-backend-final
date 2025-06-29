@@ -8,8 +8,8 @@ ENV PYTHONUNBUFFERED=1
 # Set work directory
 WORKDIR /usr/src/app
 
-# Install system dependencies
-RUN apt-get update && apt-get install -y build-essential
+# Install system dependencies, including git for pip install of fastapi-admin-patched
+RUN apt-get update && apt-get install -y build-essential git
 
 # Install Python dependencies
 COPY requirements.txt .
