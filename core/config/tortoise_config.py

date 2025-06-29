@@ -1,17 +1,17 @@
-# core/config/tortoise_config.py
+# File: core/config/tortoise_config.py
 
-from config.settings import settings  # ✅ Use unified settings
+from project_config.dealcross_config import settings  # ✅ Use unified, correct settings import
 
-# Construct the effective DATABASE_URL consistently
-DATABASE_URL = settings.get_effective_database_url()
+# Construct the effective DATABASE_URL
+DATABASE_URL = settings.database_url  # ✅ Direct attribute access
 
+# === Tortoise ORM Configuration ===
 TORTOISE_ORM = {
     "connections": {"default": DATABASE_URL},
     "apps": {
-        "models": [
-            "models",          # Your main models
-            "aerich.models"    # Required for Aerich migrations tracking
-        ],
-        "default_connection": "default",
+        "models": {
+            "models": ["models", "aerich.models"],  # Your app models and Aerich tracking
+            "default_connection": "default",
+        }
     },
 }
