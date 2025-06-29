@@ -1,12 +1,16 @@
+# File: models/user.py
+
 from enum import Enum
 from tortoise import models, fields
 
+# User roles enum
 class UserRole(str, Enum):
     user = "user"
     moderator = "moderator"
     auditor = "auditor"
     admin = "admin"
 
+# User model
 class User(models.Model):
     id = fields.IntField(pk=True)
 
@@ -37,16 +41,16 @@ class User(models.Model):
         on_delete=fields.SET_NULL
     )
 
-    # ✅ 2FA fields
+    # 2FA fields
     is_2fa_enabled = fields.BooleanField(default=False)
-    two_fa_method = fields.CharField(max_length=10, null=True)  # "totp" or "email"
-    two_fa_secret = fields.CharField(max_length=64, null=True)  # for TOTP apps
+    two_fa_method = fields.CharField(max_length=10, null=True)  # e.g., "totp", "email"
+    two_fa_secret = fields.CharField(max_length=64, null=True)  # TOTP secret
 
     created_at = fields.DatetimeField(auto_now_add=True)
     updated_at = fields.DatetimeField(auto_now=True)
 
     class Meta:
-        table = "user"  # ✅ match your migration (not "users")
+        table = "user"  # ✅ matches your live migration
         ordering = ["-created_at"]
 
     def __str__(self):
