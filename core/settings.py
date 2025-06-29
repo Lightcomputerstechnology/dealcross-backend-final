@@ -15,23 +15,23 @@ class Settings(BaseSettings):
     """
 
     # ─── GENERAL ─────────────────────────────
-    app_name: str = Field(..., alias="APP_NAME")
-    app_env: str = Field(..., alias="APP_ENV")
-    app_port: int = Field(..., alias="APP_PORT")
+    APP_NAME: str = Field(..., alias="APP_NAME")
+    APP_ENV: str = Field(..., alias="APP_ENV")
+    APP_PORT: int = Field(..., alias="APP_PORT")
 
     # ─── DATABASE ────────────────────────────
-    database_url: str = Field(..., alias="DATABASE_URL")
+    DATABASE_URL: str = Field(..., alias="DATABASE_URL")
 
     # ─── REDIS ───────────────────────────────
-    redis_url: str = Field(..., alias="REDIS_URL")
+    REDIS_URL: str = Field(..., alias="REDIS_URL")
 
     # ─── SECURITY ────────────────────────────
-    secret_key: str = Field(..., alias="SECRET_KEY")
-    algorithm: str = Field(..., alias="ALGORITHM")
-    access_token_expire_minutes: int = Field(60, alias="ACCESS_TOKEN_EXPIRE_MINUTES")
+    SECRET_KEY: str = Field(..., alias="SECRET_KEY")
+    ALGORITHM: str = Field(..., alias="ALGORITHM")
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = Field(60, alias="ACCESS_TOKEN_EXPIRE_MINUTES")
 
     # ─── FRONTEND ────────────────────────────
-    frontend_url: str = Field(..., alias="FRONTEND_URL")
+    FRONTEND_URL: str = Field(..., alias="FRONTEND_URL")
 
     # ─── CONFIGURATION ───────────────────────
     model_config = {
@@ -44,11 +44,11 @@ class Settings(BaseSettings):
         """
         Allow dynamic database switching or formatting in the future if needed.
         """
-        return self.database_url
+        return self.DATABASE_URL
 
 # Initialize once for the entire app
 settings = Settings()
 
 # Structured, non-blocking confirmation for production logs
-logger.info(f"✅ Dealcross settings loaded: {settings.app_name} ({settings.app_env})")
-logger.info(f"✅ Redis URL: {settings.redis_url}")
+logger.info(f"✅ Dealcross settings loaded: {settings.APP_NAME} ({settings.APP_ENV})")
+logger.info(f"✅ Redis URL: {settings.REDIS_URL}")
