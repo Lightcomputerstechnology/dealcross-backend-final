@@ -65,8 +65,8 @@ class DealcrossSettings(BaseSettings):
     def get_effective_database_url(self) -> str:
         return self.database_url
 
-# Initialize settings globally
-dealcross_settings = DealcrossSettings()
+# Initialize settings globally with the correct name
+settings = DealcrossSettings()
 
 logger.info("✅ Dealcross settings loaded successfully.")
-logger.info(f"✅ REDIS_URL: {dealcross_settings.redis_url}")
+logger.info(f"✅ REDIS_URL: {settings.redis_url}")
