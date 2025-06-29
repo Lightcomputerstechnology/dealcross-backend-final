@@ -1,7 +1,8 @@
 # File: core/database.py
 
 from tortoise import Tortoise
-from config.settings import settings  # ✅ Consistent, correct import
+from project_config.dealcross_config import settings
+Consistent, correct import
 
 # ✅ Use the lowercase attribute which now works
 DATABASE_URL = settings.database_url
