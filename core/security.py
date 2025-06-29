@@ -6,10 +6,10 @@ from passlib.context import CryptContext
 from datetime import datetime, timedelta
 import jwt
 
-from project_config.dealcross_config import settings  # ✅ Correct, consistent import
+from core.settings import settings  # ✅ Correct, consistent import
 
 # OAuth2 setup
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
 
 # Password hashing
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
