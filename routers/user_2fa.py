@@ -2,7 +2,7 @@
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from models.user import User
-from utils.otp import generate_totp_secret, get_totp_uri, verify_totp_code
+from utils.otp import generate_totp_secret, generate_totp_uri, verify_totp_code
 from core.auth import get_current_user
 from project_config.dealcross_config import settings  # ✅ Updated import path
 
