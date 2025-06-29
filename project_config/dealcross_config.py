@@ -6,46 +6,46 @@ import logging
 
 logger = logging.getLogger("dealcross.settings")
 
-class Settings(BaseSettings):
+class DealcrossSettings(BaseSettings):
     # GENERAL
-    APP_NAME: str = Field(..., alias="APP_NAME")
-    APP_ENV: str = Field(..., alias="APP_ENV")
-    APP_PORT: int = Field(..., alias="APP_PORT")
+    app_name: str = Field(..., alias="APP_NAME")
+    app_env: str = Field(..., alias="APP_ENV")
+    app_port: int = Field(..., alias="APP_PORT")
 
     # DATABASE
-    DATABASE_URL: str = Field(..., alias="DATABASE_URL")
+    database_url: str = Field(..., alias="DATABASE_URL")
 
     # SECURITY
-    SECRET_KEY: str = Field(..., alias="SECRET_KEY")
-    ALGORITHM: str = Field(..., alias="ALGORITHM")
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = Field(60, alias="ACCESS_TOKEN_EXPIRE_MINUTES")
+    secret_key: str = Field(..., alias="SECRET_KEY")
+    algorithm: str = Field(..., alias="ALGORITHM")
+    access_token_expire_minutes: int = Field(60, alias="ACCESS_TOKEN_EXPIRE_MINUTES")
 
     # PAYMENT
-    PAYSTACK_SECRET: str = Field(..., alias="PAYSTACK_SECRET")
-    FLW_SECRET: str = Field(..., alias="FLW_SECRET")
-    NOWPAY_API_KEY: str = Field(..., alias="NOWPAY_API_KEY")
+    paystack_secret: str = Field(..., alias="PAYSTACK_SECRET")
+    flw_secret: str = Field(..., alias="FLW_SECRET")
+    nowpay_api_key: str = Field(..., alias="NOWPAY_API_KEY")
 
     # EMAIL
-    EMAIL_HOST: str = Field(..., alias="EMAIL_HOST")
-    EMAIL_PORT: int = Field(587, alias="EMAIL_PORT")
-    EMAIL_USER: str = Field(..., alias="EMAIL_USER")
-    EMAIL_PASSWORD: str = Field(..., alias="EMAIL_PASSWORD")
-    EMAIL_FROM_NAME: str = Field("Dealcross", alias="EMAIL_FROM_NAME")
+    email_host: str = Field(..., alias="EMAIL_HOST")
+    email_port: int = Field(587, alias="EMAIL_PORT")
+    email_user: str = Field(..., alias="EMAIL_USER")
+    email_password: str = Field(..., alias="EMAIL_PASSWORD")
+    email_from_name: str = Field("Dealcross", alias="EMAIL_FROM_NAME")
 
     # RATE LIMIT
-    RATE_LIMIT_MAX_REQUESTS: int = Field(100, alias="RATE_LIMIT_MAX_REQUESTS")
-    RATE_LIMIT_TIME_WINDOW: int = Field(60, alias="RATE_LIMIT_TIME_WINDOW")
+    rate_limit_max_requests: int = Field(100, alias="RATE_LIMIT_MAX_REQUESTS")
+    rate_limit_time_window: int = Field(60, alias="RATE_LIMIT_TIME_WINDOW")
 
     # FRONTEND
-    FRONTEND_URL: str = Field(..., alias="FRONTEND_URL")
+    frontend_url: str = Field(..., alias="FRONTEND_URL")
 
     # CALLBACKS
-    PAYSTACK_CALLBACK: str = Field(..., alias="PAYSTACK_CALLBACK")
-    FLUTTERWAVE_CALLBACK: str = Field(..., alias="FLUTTERWAVE_CALLBACK")
-    NOWPAY_CALLBACK: str = Field(..., alias="NOWPAY_CALLBACK")
+    paystack_callback: str = Field(..., alias="PAYSTACK_CALLBACK")
+    flutterwave_callback: str = Field(..., alias="FLUTTERWAVE_CALLBACK")
+    nowpay_callback: str = Field(..., alias="NOWPAY_CALLBACK")
 
     # REDIS
-    REDIS_URL: str = Field(..., alias="REDIS_URL")
+    redis_url: str = Field(..., alias="REDIS_URL")
 
     # CONFIGURATION
     model_config = {
@@ -56,19 +56,17 @@ class Settings(BaseSettings):
 
     @model_validator(mode="after")
     def check_critical(self):
-        critical_fields = ["DATABASE_URL", "SECRET_KEY", "REDIS_URL"]
+        critical_fields = ["database_url", "secret_key", "redis_url"]
         for field in critical_fields:
             if not getattr(self, field, None):
                 raise ValueError(f"{field} is required in environment configuration")
         return self
 
     def get_effective_database_url(self) -> str:
-        """Allow future dynamic db switching if needed."""
-        return self.DATABASE_URL
+        return self.database_url
 
-# Initialize settings once globally
-settings = Settings()
+# Initialize settings globally
+dealcross_settings = DealcrossSettings()
 
-# Structured log confirmation on startup
 logger.info("✅ Dealcross settings loaded successfully.")
-logger.info(f"✅ REDIS_URL: {settings.REDIS_URL}")
+logger.info(f"✅ REDIS_URL: {dealcross_settings.redis_url}")
