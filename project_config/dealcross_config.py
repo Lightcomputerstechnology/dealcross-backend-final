@@ -1,5 +1,10 @@
+# File: project_config/dealcross_config.py
+
 from pydantic_settings import BaseSettings
-from pydantic import Field
+from pydantic import Field, root_validator
+import logging
+
+logger = logging.getLogger("dealcross.settings")
 
 class Settings(BaseSettings):
     # GENERAL
@@ -42,11 +47,28 @@ class Settings(BaseSettings):
     # REDIS
     redis_url: str = Field(..., alias="REDIS_URL")
 
-    class Config:
-        env_file = ".env"
-        extra = "allow"
+    # CONFIGURATION (Pydantic v2 style)
+    model_config = {
+        "env_file": ".env",
+        "env_file_encoding": "utf-8",
+        "extra": "allow"
+    }
 
+    @root_validator
+    def check_critical(cls, values):
+        critical_fields = ["database_url", "secret_key", "redis_url"]
+        for field in critical_fields:
+            if not values.get(field):
+                raise ValueError(f"{field} is required in environment configuration")
+        return values
+
+    def get_effective_database_url(self) -> str:
+        """Allow future dynamic db switching if needed."""
+        return self.database_url
+
+# Initialize settings once globally
 settings = Settings()
 
-print("✅ LOADED SETTINGS SUCCESSFULLY")
-print("✅ REDIS_URL:", settings.redis_url)
+# Structured log confirmation on startup
+logger.info("✅ Dealcross settings loaded successfully.")
+logger.info(f"✅ REDIS_URL: {settings.redis_url}")
