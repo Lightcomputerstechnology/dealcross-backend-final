@@ -4,37 +4,26 @@ from pydantic_settings import BaseSettings
 from pydantic import Field
 
 class Settings(BaseSettings):
-    # ─── GENERAL ─────────────────────────────
-    app_name: str = Field(..., alias="APP_NAME")
-    app_env: str = Field(..., alias="APP_ENV")
-    app_port: int = Field(..., alias="APP_PORT")
+    SECRET_KEY: str = Field(..., alias="SECRET_KEY")
+    ALGORITHM: str = Field(..., alias="ALGORITHM")
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = Field(60, alias="ACCESS_TOKEN_EXPIRE_MINUTES")
 
-    # ─── DATABASE ────────────────────────────
-    database_url: str = Field(..., alias="DATABASE_URL")
+    DATABASE_URL: str = Field(..., alias="DATABASE_URL")
+    REDIS_URL: str = Field("", alias="REDIS_URL")
 
-    # ─── SECURITY ────────────────────────────
-    secret_key: str = Field(..., alias="SECRET_KEY")
-    algorithm: str = Field(..., alias="ALGORITHM")
-    access_token_expire_minutes: int = Field(60, alias="ACCESS_TOKEN_EXPIRE_MINUTES")
+    SMTP_SERVER: str = Field("", alias="SMTP_SERVER")
+    SMTP_PORT: int = Field(587, alias="SMTP_PORT")
+    SMTP_USERNAME: str = Field("", alias="SMTP_USERNAME")
+    SMTP_PASSWORD: str = Field("", alias="SMTP_PASSWORD")
+    SMTP_FROM: str = Field("", alias="SMTP_FROM")
 
-    # ─── REDIS ───────────────────────────────
-    redis_url: str = Field(..., alias="REDIS_URL")
+    APP_NAME: str = Field("", alias="APP_NAME")
+    APP_ENV: str = Field("", alias="APP_ENV")
+    APP_PORT: int = Field(8000, alias="APP_PORT")
 
-    # ─── OPTIONAL EMAIL CONFIGS ──────────────
-    smtp_server: str = Field("", alias="SMTP_SERVER")
-    smtp_port: int = Field(587, alias="SMTP_PORT")
-    smtp_username: str = Field("", alias="SMTP_USERNAME")
-    smtp_password: str = Field("", alias="SMTP_PASSWORD")
-    smtp_from: str = Field("", alias="SMTP_FROM")
-
-    # ─── FRONTEND URL ────────────────────────
-    frontend_url: str = Field(..., alias="FRONTEND_URL")
-
-    # ─── Pydantic v2 compatible config ──────
-    model_config = {
-        "env_file": ".env",
-        "env_file_encoding": "utf-8",
-        "extra": "allow",
-    }
+    class Config:
+        env_file = ".env"
+        extra = "allow"
+        allow_population_by_field_name = True  # ✅ allow usage by field name if ever needed
 
 settings = Settings()
