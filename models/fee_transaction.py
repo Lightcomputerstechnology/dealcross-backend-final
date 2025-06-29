@@ -1,29 +1,46 @@
-from tortoise.models import Model
-from tortoise import fields
-import enum
+# File: models/fee_transaction.py
 
-class FeeType(str, enum.Enum):
-    funding = "funding"
-    escrow = "escrow"
-    share_buy = "share_buy"
-    share_sell = "share_sell"
+from enum import Enum
+from tortoise import models, fields
+from decimal import Decimal
 
-class FeeTransaction(Model):
+class TransactionStatus(str, Enum):
+    pending = "pending"
+    completed = "completed"
+    failed = "failed"
+    refunded = "refunded"
+
+class TransactionType(str, Enum):
+    deposit = "deposit"
+    withdrawal = "withdrawal"
+    fee = "fee"
+    adjustment = "adjustment"
+
+class FeeTransaction(models.Model):
     id = fields.IntField(pk=True)
 
     user = fields.ForeignKeyField(
-        "models.User",  # ✅ FIXED: Correct format
+        "models.User",
         related_name="fee_transactions",
-        null=True,
-        on_delete=fields.SET_NULL
+        on_delete=fields.CASCADE
     )
 
-    fee_type = fields.CharEnumField(FeeType)
     amount = fields.DecimalField(max_digits=12, decimal_places=2)
+    currency = fields.CharField(max_length=10, default="USD")
+
+    transaction_type = fields.CharEnumField(TransactionType)
+    status = fields.CharEnumField(TransactionStatus, default=TransactionStatus.pending)
+
+    description = fields.TextField(null=True, blank=True)
+
+    reference = fields.CharField(max_length=100, unique=True)
+
     created_at = fields.DatetimeField(auto_now_add=True)
+    updated_at = fields.DatetimeField(auto_now=True)
 
     class Meta:
         table = "fee_transactions"
+        ordering = ["-created_at"]
 
     def __str__(self):
-        return f"FeeTransaction(user={self.user_id}, type={self.fee_type}, amount={self.amount})"
+        return f"FeeTransaction {self.id} | User {self.user_id} | {self.amount} {self.currency} | {self.status}"
