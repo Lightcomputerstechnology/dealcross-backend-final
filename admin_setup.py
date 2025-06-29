@@ -12,10 +12,10 @@ import redis.asyncio as redis
 
 # Debug prints to verify REDIS_URL loading
 print("RENDER ENV REDIS_URL:", os.getenv("REDIS_URL"))
-print("SETTINGS REDIS_URL:", settings.redis_url)
+print("SETTINGS REDIS_URL:", settings.REDIS_URL)
 
 # Redis client for session backend
-redis_client = redis.from_url(settings.redis_url, decode_responses=True)
+redis_client = redis.from_url(settings.REDIS_URL, decode_responses=True)
 
 # CORS Middleware for Admin
 admin_app.add_middleware(
