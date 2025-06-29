@@ -1,0 +1,11 @@
+{
+    "connections": {
+        "default": "your_database_url_here"
+    },
+    "apps": {
+        "models": {
+            "models": ["models", "aerich.models"],
+            "default_connection": "default"
+        }
+    }
+}
