@@ -20,7 +20,7 @@ async def enable_2fa(current_user: User = Depends(get_current_user)):
     uri = generate_totp_uri(
         user_email=current_user.email,
         secret=secret,
-        issuer_name=getattr(settings, "OTP_ISSUER_NAME", "Dealcross")  # ✅ Defensive fallback
+        issuer_name=getattr(settings, "otp_issuer_name", "Dealcross")  # ✅ Defensive fallback with lowercase
     )
 
     current_user.totp_secret = secret
