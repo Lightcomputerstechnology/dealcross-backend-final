@@ -15,7 +15,7 @@ from datetime import datetime, timedelta
 from core.database import init_db, close_db
 from core.middleware import RateLimitMiddleware
 from core.security import get_password_hash, verify_password
-from project_config.dealcross_config import settings
+from project_config.dealcross_config import settings  # ✅ consistent import
 
 # ─────────────────────────────────────────────
 # Admin panel
@@ -30,7 +30,7 @@ import redis.asyncio as redis
 print("ENV REDIS_URL:", os.getenv("REDIS_URL"))
 print("settings.redis_url:", settings.redis_url)
 
-redis_client = redis.from_url(dealcross_settings.redis_url, decode_responses=True)
+redis_client = redis.from_url(settings.redis_url, decode_responses=True)  # ✅ fixed reference
 
 # ─────────────────────────────────────────────
 # Routers
