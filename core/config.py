@@ -4,14 +4,23 @@ from pydantic_settings import BaseSettings
 from pydantic import Field
 
 class Settings(BaseSettings):
+    # ─── GENERAL ─────────────────────────────
     app_name: str = Field(..., alias="APP_NAME")
     app_env: str = Field(..., alias="APP_ENV")
     app_port: int = Field(..., alias="APP_PORT")
+
+    # ─── DATABASE ────────────────────────────
     database_url: str = Field(..., alias="DATABASE_URL")
+
+    # ─── SECURITY ────────────────────────────
     jwt_secret: str = Field(..., alias="JWT_SECRET")
     algorithm: str = Field(..., alias="ALGORITHM")
     access_token_expire_minutes: int = Field(60, alias="ACCESS_TOKEN_EXPIRE_MINUTES")
+
+    # ─── REDIS ───────────────────────────────
     redis_url: str = Field(..., alias="REDIS_URL")
+
+    # ─── OPTIONAL EMAIL ──────────────────────
     smtp_server: str = Field("", alias="SMTP_SERVER")
     smtp_port: int = Field(587, alias="SMTP_PORT")
     smtp_username: str = Field("", alias="SMTP_USERNAME")
@@ -26,6 +35,7 @@ class Settings(BaseSettings):
 
 settings = Settings()
 
+# ─── TORTOISE ORM CONFIGURATION FOR AERICH ─────────────
 TORTOISE_ORM = {
     "connections": {
         "default": settings.database_url,
@@ -33,10 +43,8 @@ TORTOISE_ORM = {
     "apps": {
         "models": {
             "models": [
-                "models.admin",
-                "models.user",
-                "models.role_permission",  # ✅ added to fix Aerich migration errors
-                "aerich.models"
+                "models",               # ✅ load all your models automatically if __all__ used
+                "aerich.models"         # ✅ needed for migrations
             ],
             "default_connection": "default",
         }
