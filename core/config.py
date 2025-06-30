@@ -13,7 +13,7 @@ class Settings(BaseSettings):
     database_url: str = Field(..., alias="DATABASE_URL")
 
     # ─── SECURITY ────────────────────────────
-    jwt_secret: str = Field(..., alias="JWT_SECRET")  # ✅ matches exactly your .env
+    jwt_secret: str = Field(..., alias="JWT_SECRET")
     algorithm: str = Field(..., alias="ALGORITHM")
     access_token_expire_minutes: int = Field(60, alias="ACCESS_TOKEN_EXPIRE_MINUTES")
 
@@ -34,3 +34,16 @@ class Settings(BaseSettings):
     }
 
 settings = Settings()
+
+# ─── TORTOISE ORM CONFIGURATION FOR AERICH ─────────────
+TORTOISE_ORM = {
+    "connections": {
+        "default": settings.database_url,
+    },
+    "apps": {
+        "models": {
+            "models": ["models.admin", "models.user", "aerich.models"],
+            "default_connection": "default",
+        }
+    }
+}
