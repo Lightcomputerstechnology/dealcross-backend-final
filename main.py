@@ -28,7 +28,7 @@ import redis.asyncio as redis
 
 # Debug prints for verification
 print("ENV REDIS_URL:", os.getenv("REDIS_URL"))
-print("dealcross_settings.redis_url:", dealcross_settings.redis_url)
+print("settings.redis_url:", dealcross_settings.redis_url)
 
 redis_client = redis.from_url(dealcross_settings.redis_url, decode_responses=True)
 
