@@ -1,4 +1,4 @@
-#File: project_config/dealcross_config.py
+# File: project_config/dealcross_config.py
 
 from pydantic_settings import BaseSettings
 from pydantic import Field, model_validator
@@ -16,7 +16,7 @@ class DealcrossSettings(BaseSettings):
     database_url: str = Field(..., alias="DATABASE_URL")
 
     # SECURITY
-    jwt_secret: str = Field(..., alias="JWT_SECRET")  # ✅ renamed
+    jwt_secret: str = Field(..., alias="JWT_SECRET")
     algorithm: str = Field(..., alias="ALGORITHM")
     access_token_expire_minutes: int = Field(60, alias="ACCESS_TOKEN_EXPIRE_MINUTES")
 
@@ -65,8 +65,8 @@ class DealcrossSettings(BaseSettings):
     def get_effective_database_url(self) -> str:
         return self.database_url
 
-# Global settings initialization
-dealcross_settings = DealcrossSettings()
+# ✅ FIX: Global settings initialization
+settings = DealcrossSettings()
 
 logger.info("✅ Dealcross settings loaded successfully.")
-logger.info(f"✅ REDIS_URL: {dealcross_settings.redis_url}")
+logger.info(f"✅ REDIS_URL: {settings.redis_url}")
