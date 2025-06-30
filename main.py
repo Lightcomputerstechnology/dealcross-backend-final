@@ -15,7 +15,7 @@ from datetime import datetime, timedelta
 from core.database import init_db, close_db
 from core.middleware import RateLimitMiddleware
 from core.security import get_password_hash, verify_password
-from project_config.dealcross_config import dealcross_settings
+from project_config.dealcross_config import settings
 
 # ─────────────────────────────────────────────
 # Admin panel
