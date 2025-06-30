@@ -26,7 +26,7 @@ class Settings(BaseSettings):
     redis_url: str = Field(..., alias="REDIS_URL")
 
     # ─── SECURITY ────────────────────────────
-    secret_key: str = Field(..., alias="SECRET_KEY")
+    jwt_secret: str = Field(..., alias="JWT_SECRET")    # ✅ updated to match your .env
     algorithm: str = Field(..., alias="ALGORITHM")
     access_token_expire_minutes: int = Field(60, alias="ACCESS_TOKEN_EXPIRE_MINUTES")
 
