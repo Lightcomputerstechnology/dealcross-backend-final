@@ -31,7 +31,7 @@ from .blog import BlogPost
 from .config import ConfigEntry
 from .logs import LogEntry
 from .aiinsight import AIInsightEntry
-from .admin import Admin  # ✅ Make sure this line is present
+from .admin import Admin  # ✅ Ensure admin included for migrations
 
 __models__ = [
     User,
@@ -67,5 +67,5 @@ __models__ = [
     ConfigEntry,
     LogEntry,
     AIInsightEntry,
-    Admin,  # ✅ Add this to ensure it's migrated
+    Admin,  # ✅ Required for admin migration
 ]
