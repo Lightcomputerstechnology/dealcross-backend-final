@@ -30,7 +30,7 @@ import redis.asyncio as redis
 print("ENV REDIS_URL:", os.getenv("REDIS_URL"))
 print("settings.redis_url:", settings.redis_url)
 
-redis_client = redis.from_url(settings.redis_url, decode_responses=True)  # ✅ fixed reference
+redis_client = redis.from_url(settings.redis_url, decode_responses=True)  # ✅ maintained clean reference
 
 # ─────────────────────────────────────────────
 # Routers
