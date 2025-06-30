@@ -4,13 +4,13 @@ from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from jose import jwt, JWTError
 from models.user import User
-from core.config import settings
+from project_config.dealcross_config import settings  # ✅ Correct import path
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
 
-# Load secret and algorithm from your config
-SECRET_KEY = settings.SECRET_KEY
-ALGORITHM = settings.ALGORITHM
+# ✅ Correct usage: match your config keys
+SECRET_KEY = settings.jwt_secret
+ALGORITHM = settings.algorithm
 
 async def verify_token(token: str) -> User:
     """
