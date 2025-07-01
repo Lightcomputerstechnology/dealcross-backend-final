@@ -1,3 +1,5 @@
+# File: models/dispute.py
+
 from tortoise import fields
 from tortoise.models import Model
 import enum
@@ -10,13 +12,14 @@ class Dispute(Model):
     id = fields.IntField(pk=True)
 
     deal = fields.ForeignKeyField(
-        "models.Deal",  # ✅ Correct format
+        "models.Deal",
         related_name="disputes",
-        on_delete=fields.CASCADE
+        on_delete=fields.CASCADE,
+        defer_fk=True  # ✅ added to break cyclic FK creation issues
     )
 
     user = fields.ForeignKeyField(
-        "models.User",  # ✅ Correct format
+        "models.User",
         related_name="disputes",
         on_delete=fields.CASCADE
     )
