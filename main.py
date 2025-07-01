@@ -1,41 +1,33 @@
 # File: main.py
 
 import os
-
 from fastapi import FastAPI, HTTPException, Depends, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordBearer
 
-from starlette.responses import JSONResponse
 from jose import jwt, JWTError
 from datetime import datetime, timedelta
 
-# ─────────────────────────────────────────────
-# Core imports
+# ──────────────── Core imports ────────────────
 from core.database import init_db, close_db
 from core.middleware import RateLimitMiddleware
 from core.security import get_password_hash, verify_password
-from project_config.dealcross_config import settings # ✅ consistent import
+from project_config.dealcross_config import settings  # ✅ consistent import
 
-# ─────────────────────────────────────────────
-# Admin panel
+# ──────────────── Admin setup ────────────────
 from admin_setup import admin_app
 from admin_views.change_password_view import router as change_password_view
 
-# ─────────────────────────────────────────────
-# Redis for session & 2FA sessions
+# ──────────────── Redis setup ────────────────
 import redis.asyncio as redis
 
-# Debug prints for verification
-print("ENV REDIS_URL:", os.getenv("REDIS_URL"))
-print("settings.redis_url:", settings.redis_url)
+print("✅ ENV REDIS_URL:", os.getenv("REDIS_URL"))
+print("✅ settings.redis_url:", settings.redis_url)
 
-redis_client = redis.from_url(settings.redis_url, decode_responses=True)  # ✅ maintained clean reference
+redis_client = redis.from_url(settings.redis_url, decode_responses=True)
 
-# ─────────────────────────────────────────────
-# Routers
-from routers import user_2fa
-from routers import contact, payment_webhooks
+# ──────────────── Routers ────────────────
+from routers import user_2fa, contact, payment_webhooks
 from routers.user import router as user_router
 from routers.wallet import router as wallet_router
 from routers.deals import router as deals_router
@@ -49,31 +41,22 @@ from routers.health import router as health_router
 from routers.subscription import router as subscription_router
 from app.api.routes import router as api_router
 
-# ─────────────────────────────────────────────
-# Utils for OTP and TOTP
+# ──────────────── Utils ────────────────
 from utils import otp as otp_utils
 from utils import email_otp as email_otp_utils
 from utils import send_email
 
-# ─────────────────────────────────────────────
-# Auth schema and user model
-from schemas.user_schema import UserCreate, UserOut
-from models.user import User
-
-# ─────────────────────────────────────────────
-# OAuth
+# ──────────────── OAuth2 ────────────────
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
 
-# ─────────────────────────────────────────────
-# FastAPI App Initialization
+# ──────────────── FastAPI initialization ────────────────
 app = FastAPI(
     title="Dealcross Backend",
     version="1.0.0",
     description="FastAPI backend for the Dealcross platform"
 )
 
-# ─────────────────────────────────────────────
-# Startup / Shutdown
+# ──────────────── Startup and Shutdown ────────────────
 @app.on_event("startup")
 async def on_startup():
     await init_db()
@@ -82,10 +65,8 @@ async def on_startup():
 async def on_shutdown():
     await close_db()
 
-# ─────────────────────────────────────────────
-# Middleware
+# ──────────────── Middleware ────────────────
 app.add_middleware(RateLimitMiddleware)
-
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -94,13 +75,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# ─────────────────────────────────────────────
-# Mount admin panel
+# ──────────────── Admin Mount ────────────────
 app.mount("/admin", admin_app)
 app.include_router(change_password_view, prefix="/admin")
 
-# ─────────────────────────────────────────────
-# API Routers
+# ──────────────── API Routers ────────────────
 app.include_router(user_2fa.router)
 app.include_router(contact.router)
 app.include_router(user_router, prefix="/user")
@@ -117,8 +96,7 @@ app.include_router(subscription_router, prefix="/subscription")
 app.include_router(api_router)
 app.include_router(payment_webhooks.router, prefix="/webhooks")
 
-# ─────────────────────────────────────────────
-# Sample extra route for upgrade plan
+# ──────────────── Example Upgrade Plan Route ────────────────
 @app.post("/users/upgrade-plan")
 async def upgrade_plan(
     request: Request,
