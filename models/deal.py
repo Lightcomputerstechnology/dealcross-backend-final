@@ -1,3 +1,5 @@
+# File: models/deal.py
+
 from tortoise import fields, models
 
 class Deal(models.Model):
