@@ -1,5 +1,3 @@
-# File: models/user.py
-
 from enum import Enum
 from tortoise import models, fields
 
@@ -27,12 +25,13 @@ class User(models.Model):
     hashed_password = fields.CharField(max_length=128)
 
     referral_code = fields.CharField(max_length=20, unique=True, null=True)
-    referred_by = fields.ForeignKeyField(
-        "models.User",
-        related_name="referrals",
-        null=True,
-        on_delete=fields.SET_NULL
-    )
+    # referred_by = fields.ForeignKeyField(
+    #     "models.User",
+    #     related_name="referrals",
+    #     null=True,
+    #     on_delete=fields.SET_NULL
+    # )
+    referred_by_id = fields.IntField(null=True)  # 🚩 temporary replacement
 
     permission = fields.ForeignKeyField(
         "models.RolePermission",
