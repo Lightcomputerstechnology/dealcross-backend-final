@@ -1,18 +1,21 @@
+# File: models/referral_reward.py
+
 from tortoise import models, fields
 
 class ReferralReward(models.Model):
     id = fields.IntField(pk=True)
 
     referrer = fields.ForeignKeyField(
-        "models.User",  # ✅ Correct format
+        "models.User",
         related_name="referral_earnings",
         on_delete=fields.CASCADE
     )
 
     referred = fields.ForeignKeyField(
-        "models.User",  # ✅ Correct format
+        "models.User",
         related_name="referral_rewards",
-        on_delete=fields.CASCADE
+        on_delete=fields.CASCADE,
+        defer_fk=True  # ✅ added to break cyclic FK creation issues
     )
 
     source = fields.CharField(max_length=30)  # e.g., "wallet_funding", "deal_funding"
