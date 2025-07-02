@@ -22,11 +22,9 @@ pip uninstall -y aioredis || echo "✅ aioredis not found or already removed."
 # Run Aerich migrations smartly
 echo "🛠️ Running Aerich migration steps..."
 
-# Check for aerich.ini presence
 if [ -f "aerich.ini" ]; then
     echo "✅ Found aerich.ini"
 
-    # Run `aerich init` if migrations folder is missing
     if [ ! -d "migrations/models" ]; then
         echo "📂 Migrations folder not found, initializing Aerich..."
         aerich init -t core.config.TORTOISE_ORM || echo "✅ Aerich init already done."
@@ -35,10 +33,8 @@ if [ -f "aerich.ini" ]; then
         echo "✅ Migrations folder found, skipping init."
     fi
 
-    # Run migrations
     echo "⚙️ Attempting Aerich upgrade..."
     aerich upgrade || echo "✅ Aerich upgrade failed or already up-to-date."
-
 else
     echo "⚠️ No aerich.ini found. Skipping Aerich migrations."
 fi
@@ -47,7 +43,7 @@ fi
 echo "✅ Environment variables in use:"
 env | grep -E 'DATABASE_URL|DB_|REDIS_URL|JWT_SECRET|APP_ENV|PORT'
 
-# Determine port to use (Render/Heroku use $PORT, fallback to 10000)
+# Determine port to use (Render/Fly/Heroku use $PORT, fallback to 10000)
 PORT=${PORT:-10000}
 
 echo "🚀 Starting FastAPI app on port ${PORT}..."
