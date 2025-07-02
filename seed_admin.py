@@ -34,3 +34,10 @@ async def create_admin():
 
 if __name__ == "__main__":
     asyncio.run(create_admin())
+
+def get_password_hash(password: str) -> str:
+    try:
+        return pwd_context.hash(password)
+    except Exception as e:
+        print("❌ Password hashing failed:", e)
+        return None
