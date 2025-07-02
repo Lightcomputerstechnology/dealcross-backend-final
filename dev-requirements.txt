@@ -1,0 +1,12 @@
+# Import base requirements
+-r requirements.txt
+
+# ─── Dev Tools ──────────────
+black==24.4.2
+ruff==0.4.4
+mypy==1.10.0
+pre-commit==3.7.0
+isort==5.13.2
+types-redis==4.6.0.20240516
+types-python-dotenv==0.21.0.20240417
+types-PyJWT==2.8.0.20240417
