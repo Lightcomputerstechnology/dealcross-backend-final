@@ -14,6 +14,7 @@ tomlkit
 python-jose
 PyJWT==2.8.0
 passlib[bcrypt]
+bcrypt==4.0.1
 python-multipart
 email-validator
 
