@@ -15,25 +15,27 @@ TORTOISE_ORM = {
     }
 }
 
+
 async def init_db():
     """
     Initialize the Tortoise ORM on startup.
-    Temporarily generate schemas to create missing tables like 'admins'.
-    Remove the schema generation line after confirming admin login works.
-    """
-    await Tortoise.init(config=TORTOISE_ORM)
 
-    # ⚠️ TEMPORARY:
-    # This will auto-create missing tables like 'admins' during your first deploy.
-    # ✅ REMOVE AFTER confirming admin login works to avoid conflicts in production.
+    🚫 Do NOT use generate_schemas() in production as it causes cyclic FK conflicts.
+    ✅ Use Aerich to handle migrations safely.
+    """
     try:
-        await Tortoise.generate_schemas()
-        print("✅ Tortoise schemas generated successfully (tables created if missing).")
+        await Tortoise.init(config=TORTOISE_ORM)
+        print("✅ Tortoise ORM initialized successfully.")
     except Exception as e:
-        print("❌ Schema generation failed:", e)
+        print("❌ Tortoise ORM initialization failed:", e)
+
 
 async def close_db():
     """
     Close all Tortoise ORM connections gracefully on shutdown.
     """
-    await Tortoise.close_connections()
+    try:
+        await Tortoise.close_connections()
+        print("✅ Tortoise connections closed successfully.")
+    except Exception as e:
+        print("❌ Failed to close Tortoise connections:", e)
