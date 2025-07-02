@@ -3,7 +3,7 @@
 import asyncio
 from tortoise import Tortoise
 from core.settings import settings
-from models.admin import Admin
+from models.admin import Admin  # adjust path if your admin model is elsewhere
 from core.security import get_password_hash
 
 async def create_admin():
@@ -12,8 +12,7 @@ async def create_admin():
         modules={"models": ["models"]},
     )
 
-    # ❌ Remove this now:
-    # await Tortoise.generate_schemas()
+    # ❌ Removed generate_schemas to avoid cyclic FK errors on existing DB
 
     email = "admin@dealcross.net"
     password = "ChangeMeSecurely@123"
@@ -23,7 +22,12 @@ async def create_admin():
     if existing:
         print(f"⚠️ Admin with email {email} already exists.")
     else:
-        await Admin.create(email=email, password=hashed_password, is_superuser=True, is_active=True)
+        await Admin.create(
+            email=email,
+            password=hashed_password,
+            is_superuser=True,
+            is_active=True
+        )
         print(f"✅ Admin created: {email} with password: {password}")
 
     await Tortoise.close_connections()
