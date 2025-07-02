@@ -18,8 +18,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy project files
 COPY . .
 
-# Expose port for Fly
-EXPOSE 8080
+# Expose the port Render expects
+EXPOSE 10000
 
-# Start FastAPI with uvicorn
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8080"]
+# Start FastAPI with uvicorn using the PORT Render provides
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "10000"]
