@@ -44,17 +44,11 @@ async def startup():
             modules={"models": ["models"]},
         )
         print("✅ Tortoise initialized successfully in admin_setup.")
-
-        # ⚠️ TEMPORARILY ENABLED:
-        # This will create missing tables including `admins` on your Postgres DB during first deploy.
-        # Remove or comment out after confirming the admin login works to avoid conflicts in production.
-        await Tortoise.generate_schemas()
-        print("✅ Tortoise schemas generated successfully (tables created if missing).")
     except Exception as e:
-        print("❌ Tortoise initialization or schema generation failed in admin_setup:", e)
+        print("❌ Tortoise initialization failed in admin_setup:", e)
 
     try:
-        # Configure FastAPI Admin
+        # Configure FastAPI Admin with auto-create patch
         await admin_app.configure(
             logo_url="https://dealcross.net/logo192.png",
             favicon_url="https://dealcross.net/favicon.ico",
@@ -68,7 +62,11 @@ async def startup():
                     username_field="email",
                 )
             ],
-            redis=redis_client
+            redis=redis_client,
+
+            # ✅ Auto-create `admins` table if missing (patch from updated FastAPIAdmin)
+            admin_model_str="models.admin.Admin",
+            create_admin_table=True,  # 🩹 REMOVE THIS AFTER CONFIRMING ADMIN LOGIN WORKS
         )
         print("✅ FastAPI Admin configured successfully.")
     except Exception as e:
