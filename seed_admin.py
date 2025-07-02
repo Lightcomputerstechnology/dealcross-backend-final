@@ -10,7 +10,9 @@ async def create_admin():
         db_url=settings.database_url,
         modules={"models": ["models"]},
     )
-    await Tortoise.generate_schemas()  # safe now for first seed if needed
+
+    # ⚠️ This is safe now but REMOVE after first deployment if using Aerich for migrations
+    await Tortoise.generate_schemas()
 
     email = "admin@dealcross.net"
     password = "ChangeMeSecurely@123"
@@ -20,7 +22,12 @@ async def create_admin():
     if existing:
         print(f"⚠️ Admin with email {email} already exists.")
     else:
-        await Admin.create(email=email, password=hashed_password, is_superuser=True, is_active=True)
+        await Admin.create(
+            email=email,
+            password=hashed_password,
+            is_superuser=True,
+            is_active=True
+        )
         print(f"✅ Admin created: {email} with password: {password}")
 
     await Tortoise.close_connections()
