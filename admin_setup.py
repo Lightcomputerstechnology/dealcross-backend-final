@@ -45,11 +45,13 @@ async def startup():
         )
         print("✅ Tortoise initialized successfully in admin_setup.")
 
-        # ⚠️ Schema generation removed to avoid cyclic FK errors during startup
-        # if settings.app_env != "production":
-        #     await Tortoise.generate_schemas()
+        # ⚠️ TEMPORARILY ENABLED:
+        # This will create missing tables including `admins` on your Postgres DB during first deploy.
+        # Remove or comment out after confirming the admin login works to avoid conflicts in production.
+        await Tortoise.generate_schemas()
+        print("✅ Tortoise schemas generated successfully (tables created if missing).")
     except Exception as e:
-        print("❌ Tortoise initialization failed in admin_setup:", e)
+        print("❌ Tortoise initialization or schema generation failed in admin_setup:", e)
 
     try:
         # Configure FastAPI Admin
