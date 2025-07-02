@@ -97,3 +97,13 @@ app.include_router(kyc_router, prefix="/kyc")
 app.include_router(admin_wallet_router, prefix="/admin-wallet")
 app.include_router(admin_referral_router, prefix="/admin-referral")
 app.include_router(admin_kyc_router, prefix="/admin/kyc")
+
+# ──────────────── Root Landing Route ────────────────
+@app.get("/")
+async def root():
+    return {
+        "message": "✅ Dealcross backend is live and working.",
+        "status": "ok",
+        "docs": "/docs",
+        "admin": "/admin"
+    }
