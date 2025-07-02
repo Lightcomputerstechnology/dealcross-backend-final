@@ -29,10 +29,9 @@ admin_app.add_middleware(
     allow_headers=["*"],
 )
 
-# Template & Static folders
+# Template folder setup
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 TEMPLATE_DIR = os.path.join(BASE_DIR, "templates")
-STATIC_DIR = os.path.join(BASE_DIR, "static")
 
 # Startup event for Admin
 @admin_app.on_event("startup")
@@ -48,7 +47,6 @@ async def startup():
         print("❌ Tortoise initialization failed in admin_setup:", e)
 
     try:
-        # Configure FastAPI Admin with auto-create patch
         await admin_app.configure(
             logo_url="https://dealcross.net/logo192.png",
             favicon_url="https://dealcross.net/favicon.ico",
@@ -62,15 +60,11 @@ async def startup():
                     username_field="email",
                 )
             ],
-            redis=redis_client,
-
-            # ✅ Auto-create `admins` table if missing (patch from updated FastAPIAdmin)
-            admin_model_str="models.admin.Admin",
-            create_admin_table=True,  # 🩹 REMOVE THIS AFTER CONFIRMING ADMIN LOGIN WORKS
+            redis=redis_client
         )
         print("✅ FastAPI Admin configured successfully.")
     except Exception as e:
         print("❌ FastAPI Admin configuration failed:", e)
 
-# ✅ Ensure change_password_view is mounted
+# Ensure change_password_view is mounted
 admin_app.include_router(change_password_view, prefix="/admin")
