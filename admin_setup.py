@@ -14,10 +14,10 @@ load_dotenv()
 print("✅ .env loaded successfully in admin_setup.")
 
 # Debug prints to verify REDIS_URL loading
-print("✅ ENV REDIS_URL:", os.getenv("REDIS_URL"))
-print("✅ settings.redis_url:", settings.redis_url)
+print(f"✅ ENV REDIS_URL: {os.getenv('REDIS_URL')}")
+print(f"✅ settings.redis_url: {settings.redis_url}")
 
-# Redis client for session backend
+# Redis client for FastAPI Admin session backend
 redis_client = redis.from_url(settings.redis_url, decode_responses=True)
 
 # CORS Middleware for Admin
@@ -33,18 +33,18 @@ admin_app.add_middleware(
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 TEMPLATE_DIR = os.path.join(BASE_DIR, "templates")
 
-# Startup event for Admin
+# ──────────────── Admin Startup ────────────────
 @admin_app.on_event("startup")
 async def startup():
-    print("🚀 Starting up FastAPI Admin... initializing Tortoise.")
+    print("🚀 Starting FastAPI Admin initialization...")
     try:
         await Tortoise.init(
             db_url=settings.database_url,
             modules={"models": ["models"]},
         )
-        print("✅ Tortoise initialized successfully in admin_setup.")
+        print("✅ Tortoise initialized successfully for FastAPI Admin.")
     except Exception as e:
-        print("❌ Tortoise initialization failed in admin_setup:", e)
+        print(f"❌ Tortoise initialization failed in admin_setup: {e}")
 
     try:
         await admin_app.configure(
@@ -64,7 +64,7 @@ async def startup():
         )
         print("✅ FastAPI Admin configured successfully.")
     except Exception as e:
-        print("❌ FastAPI Admin configuration failed:", e)
+        print(f"❌ FastAPI Admin configuration failed: {e}")
 
-# Ensure change_password_view is mounted
+# ──────────────── Mount Custom Admin Views ────────────────
 admin_app.include_router(change_password_view, prefix="/admin")
