@@ -1,5 +1,3 @@
-# File: admin_setup.py
-
 import os
 from fastapi_admin.app import app as admin_app
 from fastapi_admin.providers.login import UsernamePasswordProvider
@@ -12,7 +10,7 @@ import redis.asyncio as redis
 
 # Debug prints to verify REDIS_URL loading
 print("RENDER ENV REDIS_URL:", os.getenv("REDIS_URL"))
-print("settings.redis_url:", settings.redis_url)  # ✅ corrected reference
+print("settings.redis_url:", settings.redis_url)
 
 # Redis client for session backend
 redis_client = redis.from_url(settings.redis_url, decode_responses=True)
@@ -40,9 +38,9 @@ async def startup():
         modules={"models": ["models"]},
     )
 
-    # Only for local development
-    if settings.app_env != "production":
-        await Tortoise.generate_schemas()
+    # ⚠️ Remove automatic schema generation to avoid cyclic FK errors
+    # if settings.app_env != "production":
+    #     await Tortoise.generate_schemas()
 
     # Configure FastAPI Admin
     await admin_app.configure(
@@ -61,5 +59,5 @@ async def startup():
         redis=redis_client
     )
 
-# Custom Admin Routes
+# ✅ Corrected the split line
 admin_app.include_router(change_password_view, prefix="/admin")
