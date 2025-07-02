@@ -9,20 +9,24 @@ ENV PYTHONUNBUFFERED=1
 WORKDIR /usr/src/app
 
 # Install system dependencies
-RUN apt-get update && apt-get install -y build-essential git
+RUN apt-get update \
+    && apt-get install -y build-essential git \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
 
-# Install Python dependencies
+# Upgrade pip and install Python dependencies
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+RUN python -m pip install --upgrade pip \
+    && pip install --no-cache-dir -r requirements.txt
 
 # Copy all project files
 COPY . .
 
-# Ensure your .env file is copied and readable
+# Ensure .env is included
 COPY .env .env
 
-# Expose the correct port
+# Expose your FastAPI port
 EXPOSE 10000
 
-# Start FastAPI with uvicorn using detailed debug logs for clear visibility
+# Start FastAPI with uvicorn with correct port
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "10000", "--log-level", "debug"]
