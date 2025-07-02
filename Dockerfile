@@ -10,7 +10,7 @@ WORKDIR /usr/src/app
 
 # Install system dependencies
 RUN apt-get update \
-    && apt-get install -y build-essential git \
+    && apt-get install -y --no-install-recommends build-essential git curl \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
@@ -24,6 +24,10 @@ COPY . .
 
 # Ensure .env is included
 COPY .env .env
+
+# Healthcheck to restart container automatically if FastAPI dies silently
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
+  CMD curl -f http://localhost:10000/health || exit 1
 
 # Expose your FastAPI port
 EXPOSE 10000
