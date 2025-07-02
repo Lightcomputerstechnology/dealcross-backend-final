@@ -3,7 +3,7 @@
 import asyncio
 from tortoise import Tortoise
 from core.settings import settings
-from models.admin import Admin  # adjust path if needed
+from models.admin import Admin
 from core.security import get_password_hash
 
 async def create_admin():
@@ -11,7 +11,6 @@ async def create_admin():
         db_url=settings.database_url,
         modules={"models": ["models"]},
     )
-    await Tortoise.generate_schemas()  # safe for first seed
 
     email = "admin@dealcross.net"
     password = "ChangeMeSecurely@123"
@@ -23,7 +22,7 @@ async def create_admin():
     else:
         await Admin.create(
             email=email,
-            hashed_password=hashed_password,  # ✅ Corrected here
+            hashed_password=hashed_password,
             is_superuser=True,
             is_active=True
         )
