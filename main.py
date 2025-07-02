@@ -58,12 +58,42 @@ app = FastAPI(
     description="FastAPI backend for the Dealcross platform"
 )
 
+# ──────────────── Secure One-Time Admin Seeder ────────────────
+async def seed_admin_if_missing():
+    from tortoise.transactions import in_transaction
+    from models import admin as admin_model
+    from passlib.hash import bcrypt
+
+    admin_email = "admin@dealcross.com"
+    admin_password = "AdminPass123!"
+
+    async with in_transaction():
+        existing = await admin_model.Admin.get_or_none(email=admin_email)
+        if not existing:
+            print(f"✅ Seeding admin user {admin_email}...")
+            await admin_model.Admin.create(
+                email=admin_email,
+                hashed_password=bcrypt.hash(admin_password),
+                is_superuser=True,
+                is_active=True,
+                created_at=datetime.utcnow(),
+                updated_at=datetime.utcnow(),
+            )
+            print(f"✅ Admin created: {admin_email} / {admin_password}")
+        else:
+            print(f"✅ Admin user {admin_email} already exists, skipping seeding.")
+
 # ──────────────── Startup and Shutdown ────────────────
 @app.on_event("startup")
 async def on_startup():
     print("🚀 Starting up... initializing DB.")
     try:
         await init_db()
+        await seed_admin_if_missing()  # ✅ AUTO-SEED ADMIN ON FIRST DEPLOY
+
+        # ⚠️ REMOVE THIS CALL AFTER YOU HAVE LOGGED IN TO ADMIN PANEL TO TIGHTEN SECURITY:
+        # await seed_admin_if_missing()
+
         print("✅ DB initialized successfully.")
     except Exception as e:
         print("❌ DB initialization failed:", e)
@@ -97,6 +127,12 @@ app.include_router(kyc_router, prefix="/kyc")
 app.include_router(admin_wallet_router, prefix="/admin-wallet")
 app.include_router(admin_referral_router, prefix="/admin-referral")
 app.include_router(admin_kyc_router, prefix="/admin/kyc")
+app.include_router(chart_router, prefix="/chart")
+app.include_router(chat_router, prefix="/chat")
+app.include_router(health_router, prefix="/health")
+app.include_router(subscription_router, prefix="/subscription")
+app.include_router(api_router)
+app.include_router(payment_webhooks.router, prefix="/webhooks")
 
 # ──────────────── Root Landing Route ────────────────
 @app.get("/")
