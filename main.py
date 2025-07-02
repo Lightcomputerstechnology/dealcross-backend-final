@@ -1,5 +1,3 @@
-# File: main.py
-
 import os
 from fastapi import FastAPI, HTTPException, Depends, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -12,11 +10,10 @@ from datetime import datetime, timedelta
 from core.database import init_db, close_db
 from core.middleware import RateLimitMiddleware
 from core.security import get_password_hash, verify_password
-from project_config.dealcross_config import settings  # ✅ consistent import
+from project_config.dealcross_config import settings
 
 # ──────────────── Admin setup ────────────────
 from admin_setup import admin_app
-from admin_views.change_password_view import router as change_password_view
 
 # ──────────────── Redis setup ────────────────
 import redis.asyncio as redis
@@ -77,7 +74,8 @@ app.add_middleware(
 
 # ──────────────── Admin Mount ────────────────
 app.mount("/admin", admin_app)
-app.include_router(change_password_view, prefix="/admin")
+# ✅ Removed redundant:
+# app.include_router(change_password_view, prefix="/admin")
 
 # ──────────────── API Routers ────────────────
 app.include_router(user_2fa.router)
