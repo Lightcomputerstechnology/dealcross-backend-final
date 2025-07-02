@@ -8,18 +8,21 @@ ENV PYTHONUNBUFFERED=1
 # Set work directory
 WORKDIR /usr/src/app
 
-# Install system dependencies, including git for pip install of fastapi-admin-patched
+# Install system dependencies
 RUN apt-get update && apt-get install -y build-essential git
 
 # Install Python dependencies
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy project files
+# Copy all project files
 COPY . .
 
-# Expose the port Render expects
+# Ensure your .env file is copied and readable
+COPY .env .env
+
+# Expose the correct port
 EXPOSE 10000
 
-# Start FastAPI with uvicorn using the PORT Render provides
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "10000"]
+# Start FastAPI with uvicorn using detailed debug logs for clear visibility
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "10000", "--log-level", "debug"]
