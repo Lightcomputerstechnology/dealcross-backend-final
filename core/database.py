@@ -1,31 +1,37 @@
 # File: core/database.py
 
 from tortoise import Tortoise
-from core.settings import settings  # ✅ Use the unified settings import
+from core.settings import settings
 
-# ✅ Correct lowercase attribute usage
 DATABASE_URL = settings.database_url
 
-# === Tortoise ORM Configuration (Aerich Compatible) ===
 TORTOISE_ORM = {
     "connections": {"default": DATABASE_URL},
     "apps": {
         "models": {
-            "models": ["models", "aerich.models"],  # ✅ Match your project structure
+            "models": ["models", "aerich.models"],
             "default_connection": "default",
         }
     }
 }
 
-# === Initialize Tortoise ORM ===
 async def init_db():
     """
     Initialize the Tortoise ORM on startup.
-    Do not generate schemas here if using Aerich for migrations.
+    Temporarily generate schemas to create missing tables like 'admins'.
+    Remove the schema generation line after confirming admin login works.
     """
     await Tortoise.init(config=TORTOISE_ORM)
 
-# === Close Tortoise Connections on Shutdown ===
+    # ⚠️ TEMPORARY:
+    # This will auto-create missing tables like 'admins' during your first deploy.
+    # ✅ REMOVE AFTER confirming admin login works to avoid conflicts in production.
+    try:
+        await Tortoise.generate_schemas()
+        print("✅ Tortoise schemas generated successfully (tables created if missing).")
+    except Exception as e:
+        print("❌ Schema generation failed:", e)
+
 async def close_db():
     """
     Close all Tortoise ORM connections gracefully on shutdown.
