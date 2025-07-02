@@ -6,6 +6,11 @@ from fastapi.security import OAuth2PasswordBearer
 from jose import jwt, JWTError
 from datetime import datetime, timedelta
 
+# ──────────────── Load .env explicitly ────────────────
+from dotenv import load_dotenv
+load_dotenv()
+print("✅ .env loaded successfully.")
+
 # ──────────────── Core imports ────────────────
 from core.database import init_db, close_db
 from core.middleware import RateLimitMiddleware
@@ -56,11 +61,18 @@ app = FastAPI(
 # ──────────────── Startup and Shutdown ────────────────
 @app.on_event("startup")
 async def on_startup():
-    await init_db()
+    print("🚀 Starting up... initializing DB.")
+    try:
+        await init_db()
+        print("✅ DB initialized successfully.")
+    except Exception as e:
+        print("❌ DB initialization failed:", e)
 
 @app.on_event("shutdown")
 async def on_shutdown():
+    print("🛑 Shutting down... closing DB.")
     await close_db()
+    print("✅ DB closed successfully.")
 
 # ──────────────── Middleware ────────────────
 app.add_middleware(RateLimitMiddleware)
@@ -74,8 +86,6 @@ app.add_middleware(
 
 # ──────────────── Admin Mount ────────────────
 app.mount("/admin", admin_app)
-# ✅ Removed redundant:
-# app.include_router(change_password_view, prefix="/admin")
 
 # ──────────────── API Routers ────────────────
 app.include_router(user_2fa.router)
@@ -87,21 +97,4 @@ app.include_router(kyc_router, prefix="/kyc")
 app.include_router(admin_wallet_router, prefix="/admin-wallet")
 app.include_router(admin_referral_router, prefix="/admin-referral")
 app.include_router(admin_kyc_router, prefix="/admin/kyc")
-app.include_router(chart_router, prefix="/chart")
-app.include_router(chat_router, prefix="/chat")
-app.include_router(health_router, prefix="/health")
-app.include_router(subscription_router, prefix="/subscription")
-app.include_router(api_router)
-app.include_router(payment_webhooks.router, prefix="/webhooks")
-
-# ──────────────── Example Upgrade Plan Route ────────────────
-@app.post("/users/upgrade-plan")
-async def upgrade_plan(
-    request: Request,
-    plan: str,
-    payment_method: str,
-    token: str = Depends(oauth2_scheme)
-):
-    if plan not in ("pro", "business"):
-        raise HTTPException(status_code=400, detail="Invalid plan selected.")
-    return {"message": f"Upgraded to {plan} plan successfully."}
+a
