@@ -1,26 +1,25 @@
+# admin_setup.py
+
 import os
 from fastapi_admin.app import app as admin_app
 from fastapi_admin.providers.login import UsernamePasswordProvider
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from tortoise import Tortoise
 from project_config.dealcross_config import settings
 from core.security import verify_password
 from admin_views.change_password_view import router as change_password_view
 import redis.asyncio as redis
-
-# ──────────────── Load .env explicitly ────────────────
 from dotenv import load_dotenv
+
+# Load .env
 load_dotenv()
-print("✅ .env loaded successfully in admin_setup.")
+print("✅ .env loaded in admin_setup.")
 
-# Debug prints to verify REDIS_URL loading
-print(f"✅ ENV REDIS_URL: {os.getenv('REDIS_URL')}")
-print(f"✅ settings.redis_url: {settings.redis_url}")
-
-# Redis client for FastAPI Admin session backend
+# Redis client
 redis_client = redis.from_url(settings.redis_url, decode_responses=True)
 
-# CORS Middleware for Admin
+# CORS
 admin_app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -29,11 +28,15 @@ admin_app.add_middleware(
     allow_headers=["*"],
 )
 
-# Template folder setup
+# Directories
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 TEMPLATE_DIR = os.path.join(BASE_DIR, "templates")
+STATIC_DIR = os.path.join(BASE_DIR, "admin_static")
 
-# ──────────────── Admin Startup ────────────────
+# Mount static files for admin
+admin_app.mount("/admin/static", StaticFiles(directory=STATIC_DIR), name="static")
+
+# Startup event
 @admin_app.on_event("startup")
 async def startup():
     print("🚀 Starting FastAPI Admin initialization...")
@@ -42,9 +45,9 @@ async def startup():
             db_url=settings.database_url,
             modules={"models": ["models"]},
         )
-        print("✅ Tortoise initialized successfully for FastAPI Admin.")
+        print("✅ Tortoise initialized for FastAPI Admin.")
     except Exception as e:
-        print(f"❌ Tortoise initialization failed in admin_setup: {e}")
+        print(f"❌ Tortoise initialization failed: {e}")
 
     try:
         await admin_app.configure(
@@ -66,5 +69,5 @@ async def startup():
     except Exception as e:
         print(f"❌ FastAPI Admin configuration failed: {e}")
 
-# ──────────────── Mount Custom Admin Views ────────────────
+# Mount additional admin routes
 admin_app.include_router(change_password_view, prefix="/admin")
