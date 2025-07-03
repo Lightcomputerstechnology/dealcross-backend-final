@@ -143,3 +143,8 @@ async def root():
         "docs": "/docs",
         "admin": "/admin"
     }
+@app.on_event("startup")
+async def startup_admin_app():
+    print("🚀 Manually initializing FastAPI Admin...")
+    await admin_app.router.startup()
+    print("✅ FastAPI Admin initialized manually.")
