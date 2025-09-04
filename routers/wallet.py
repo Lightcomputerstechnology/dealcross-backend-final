@@ -2,9 +2,10 @@
 
 from decimal import Decimal
 from datetime import datetime, timedelta
+from typing import Dict, Any, Optional
 from fastapi import APIRouter, Depends, HTTPException, Request
 
-from core.security import get_current_user
+from core.security import get_current_user  # returns JWT claims (Supabase-aware)
 from utils.admin_wallet_logger import log_admin_wallet_activity
 
 # MODELS
@@ -31,6 +32,17 @@ from services.payment_gateways import (
 router = APIRouter(prefix="/wallet", tags=["Wallet Management"])
 
 
+# ─────────── MAP AUTH → DB USER ───────────
+async def resolve_db_user(claims: Dict[str, Any] = Depends(get_current_user)) -> User:
+    email: Optional[str] = claims.get("email")
+    if not email:
+        raise HTTPException(status_code=401, detail="Authenticated token missing email claim")
+    user = await User.get_or_none(email=email)
+    if not user:
+        raise HTTPException(status_code=404, detail="User record not found for this account")
+    return user
+
+
 # ─────────── FRAUD ALERT HELPER ───────────
 async def trigger_fraud_alert(user: User, alert_type: str, description: str):
     await FraudAlert.create(user=user, alert_type=alert_type, description=description)
@@ -38,7 +50,7 @@ async def trigger_fraud_alert(user: User, alert_type: str, description: str):
 
 # ─────────── GET WALLET SUMMARY ───────────
 @router.get("/my-wallet", summary="Retrieve user's wallet balance and recent transactions")
-async def get_my_wallet_summary(current_user: User = Depends(get_current_user)):
+async def get_my_wallet_summary(current_user: User = Depends(resolve_db_user)):
     wallet = await Wallet.get_or_none(user=current_user)
     if not wallet:
         raise HTTPException(status_code=404, detail="Wallet not found.")
@@ -82,7 +94,7 @@ async def get_my_wallet_summary(current_user: User = Depends(get_current_user)):
 
 # ─────────── FUND WALLET (INTERNAL LOGIC ONLY) ───────────
 @router.post("/fund", summary="Fund user's wallet (fee applies)")
-async def fund_wallet(fund: FundWallet, current_user: User = Depends(get_current_user)):
+async def fund_wallet(fund: FundWallet, current_user: User = Depends(resolve_db_user)):
     base_amount = Decimal(fund.amount)
     fee = Decimal(calculate_fee(current_user, "funding", float(base_amount)))
     net_amount = base_amount - fee
@@ -128,7 +140,7 @@ async def fund_wallet(fund: FundWallet, current_user: User = Depends(get_current
 
 # ─────────── GET ALL TRANSACTIONS ───────────
 @router.get("/transactions", summary="Retrieve all wallet transactions for the current user")
-async def get_all_transactions(current_user: User = Depends(get_current_user)):
+async def get_all_transactions(current_user: User = Depends(resolve_db_user)):
     transactions = await WalletTransaction.filter(user=current_user).order_by("-timestamp")
     return [TransactionOut.model_validate(tx) for tx in transactions]
 
@@ -136,7 +148,7 @@ async def get_all_transactions(current_user: User = Depends(get_current_user)):
 # ─────────── EXTERNAL FUNDING ROUTES ───────────
 
 @router.post("/fund/card", summary="Fund wallet via Card (Paystack)")
-async def fund_wallet_card(request: Request, amount: float, current_user: User = Depends(get_current_user)):
+async def fund_wallet_card(request: Request, amount: float, current_user: User = Depends(resolve_db_user)):
     if amount <= 0:
         raise HTTPException(status_code=400, detail="Invalid amount.")
     payment_url = await initiate_paystack_payment(current_user, amount)
@@ -144,7 +156,7 @@ async def fund_wallet_card(request: Request, amount: float, current_user: User =
 
 
 @router.post("/fund/bank", summary="Fund wallet via Bank Transfer (Flutterwave)")
-async def fund_wallet_bank(request: Request, amount: float, current_user: User = Depends(get_current_user)):
+async def fund_wallet_bank(request: Request, amount: float, current_user: User = Depends(resolve_db_user)):
     if amount <= 0:
         raise HTTPException(status_code=400, detail="Invalid amount.")
     payment_url = await initiate_flutterwave_payment(current_user, amount, payment_type="bank")
@@ -152,7 +164,7 @@ async def fund_wallet_bank(request: Request, amount: float, current_user: User =
 
 
 @router.post("/fund/crypto", summary="Fund wallet via Crypto (NowPayments)")
-async def fund_wallet_crypto(request: Request, amount: float, crypto: str, current_user: User = Depends(get_current_user)):
+async def fund_wallet_crypto(request: Request, amount: float, crypto: str, current_user: User = Depends(resolve_db_user)):
     if amount <= 0:
         raise HTTPException(status_code=400, detail="Invalid amount.")
     invoice_data = await initiate_nowpayments_crypto(current_user, amount, crypto)
