@@ -1,9 +1,10 @@
 # File: routers/deals.py
 
+from typing import Dict, Any, Optional
 from fastapi import APIRouter, Depends, HTTPException
 from decimal import Decimal
-from core.security import get_current_user
 
+from core.security import get_current_user  # returns JWT claims
 # MODELS
 from models.deal import Deal
 from models.user import User
@@ -12,7 +13,7 @@ from models.wallet_transaction import WalletTransaction
 from models.admin_wallet import AdminWallet
 from models.platform_earnings import PlatformEarnings
 from models.referral_reward import ReferralReward
-from models.admin_wallet_log import AdminWalletLog  # ✅ NEW
+from models.admin_wallet_log import AdminWalletLog
 
 # SCHEMAS
 from schemas.deal import DealCreate, DealOut
@@ -20,11 +21,23 @@ from services.fee_logic import calculate_fee
 
 router = APIRouter(prefix="/deals", tags=["Deals"])
 
+
+# ─────────── MAP AUTH → DB USER ───────────
+async def resolve_db_user(claims: Dict[str, Any] = Depends(get_current_user)) -> User:
+    email: Optional[str] = claims.get("email")
+    if not email:
+        raise HTTPException(status_code=401, detail="Authenticated token missing email claim")
+    user = await User.get_or_none(email=email)
+    if not user:
+        raise HTTPException(status_code=404, detail="User record not found for this account")
+    return user
+
+
 # ─────────── CREATE DEAL ───────────
 @router.post("/", response_model=DealOut, summary="Create a new deal")
 async def create_deal(
     deal: DealCreate,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(resolve_db_user),
 ) -> DealOut:
     new_deal = await Deal.create(
         **deal.dict(),
@@ -35,7 +48,7 @@ async def create_deal(
 
 # ─────────── GET PENDING PAIRINGS ───────────
 @router.get("/pairing/pending", summary="Fetch pending pairings for user")
-async def get_pending_pairings(current_user: User = Depends(get_current_user)):
+async def get_pending_pairings(current_user: User = Depends(resolve_db_user)):
     pairings = await Deal.filter(counterparty=None).exclude(creator=current_user)
     return [DealOut.model_validate(p) for p in pairings]
 
@@ -43,7 +56,7 @@ async def get_pending_pairings(current_user: User = Depends(get_current_user)):
 @router.post("/pairing/confirm/{deal_id}", summary="Confirm and pair a deal")
 async def confirm_pairing(
     deal_id: int,
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(resolve_db_user)
 ):
     deal = await Deal.get_or_none(id=deal_id, counterparty=None)
     if not deal or deal.creator_id == current_user.id:
@@ -59,7 +72,7 @@ async def confirm_pairing(
 @router.post("/{deal_id}/fund", summary="Fund a deal (escrow fee + referral bonus)")
 async def fund_deal(
     deal_id: int,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(resolve_db_user),
 ):
     deal = await Deal.get_or_none(id=deal_id, creator=current_user)
     if not deal or deal.status != "paired":
@@ -94,7 +107,7 @@ async def fund_deal(
     admin_wallet.balance += fee
     await admin_wallet.save()
 
-    await PlatformEarning.create(
+    await PlatformEarnings.create(
         user=current_user,
         source="escrow",
         amount=fee
@@ -110,7 +123,7 @@ async def fund_deal(
     )
 
     # ───── Referral Bonus on First Deal ─────
-    if current_user.referred_by:
+    if getattr(current_user, "referred_by", None):
         deal_fund_count = await WalletTransaction.filter(
             user=current_user,
             transaction_type="escrow_fund"
@@ -149,7 +162,7 @@ async def fund_deal(
 @router.post("/{deal_id}/deliver", summary="Mark a deal as delivered")
 async def mark_delivered(
     deal_id: int,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(resolve_db_user),
 ):
     deal = await Deal.get_or_none(id=deal_id, counterparty=current_user)
     if not deal or deal.status != "active":
@@ -164,7 +177,7 @@ async def mark_delivered(
 @router.post("/{deal_id}/release", summary="Release funds for a completed deal")
 async def release_funds(
     deal_id: int,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(resolve_db_user),
 ):
     deal = await Deal.get_or_none(id=deal_id, creator=current_user)
     if not deal or deal.status != "completed":
@@ -188,7 +201,7 @@ async def release_funds(
 @router.post("/{deal_id}/dispute", summary="Raise a dispute on a deal")
 async def raise_dispute(
     deal_id: int,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(resolve_db_user),
 ):
     deal = await Deal.get_or_none(id=deal_id)
     if (
