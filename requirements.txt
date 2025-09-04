@@ -1,6 +1,6 @@
 # ─── Core Framework ─────────────────────
-fastapi
-uvicorn
+fastapi>=0.110
+uvicorn[standard]>=0.24
 
 # ─── ORM & DB Tools ─────────────────────
 tortoise-orm
@@ -11,7 +11,7 @@ aioredis>=2.0.1  # ✅ Added to silence warnings and ensure backward compatibili
 tomlkit
 
 # ─── Security & Auth ────────────────────
-python-jose
+python-jose[cryptography]>=3.3  # ✅ JWKS + RSA verification for Supabase JWTs
 PyJWT==2.8.0
 passlib[bcrypt]
 bcrypt==4.0.1
@@ -24,7 +24,7 @@ pydantic
 pydantic-settings
 
 # ─── HTTP Client ────────────────────────
-httpx>=0.23.0
+httpx>=0.27.0  # ✅ Ensure compatible client for JWKS fetch
 
 # ─── Admin Interface (Custom Patched Version) ─────────────
 git+https://github.com/Lightcomputerstechnology/fastapi-admin-patched@main#egg=fastapi-admin[tortoise]
@@ -39,3 +39,4 @@ pytest-asyncio
 
 # ─── TOTP / 2FA ─────────────────────────
 pyotp>=2.8.0
+```0
