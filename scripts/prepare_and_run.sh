@@ -1,50 +1,26 @@
-#!/bin/bash
-
-set -e  # Exit immediately on any error
+#!/usr/bin/env bash
+set -euo pipefail
 
 export PYTHONPATH=.
 
-echo "=== 🚀 Starting Dealcross Smart Boot Script ==="
+echo "=== Dealcross Boot ==="
 
-# Show environment info for debug
-python --version
-pip --version
+# Clean stale bytecode
+find . -type d -name "__pycache__" -exec rm -rf {} + 2>/dev/null || true
+find . -type f -name "*.pyc" -delete 2>/dev/null || true
 
-# Clean .pyc and __pycache__ to avoid stale bytecode issues
-echo "🧹 Cleaning .pyc and __pycache__..."
-find . -type d -name "__pycache__" -exec rm -rf {} +
-find . -type f -name "*.pyc" -delete
+# Optional: ensure old aioredis isn't present (you use redis.asyncio)
+pip uninstall -y aioredis >/dev/null 2>&1 || true
 
-# Force uninstall deprecated aioredis if present
-echo "🩹 Checking and removing deprecated aioredis if present..."
-pip uninstall -y aioredis || echo "✅ aioredis not found or already removed."
-
-# Run Aerich migrations smartly
-echo "🛠️ Running Aerich migration steps..."
-
+# Run DB migrations (upgrade only; no init/migrate in prod)
 if [ -f "aerich.ini" ]; then
-    echo "✅ Found aerich.ini"
-
-    if [ ! -d "migrations/models" ]; then
-        echo "📂 Migrations folder not found, initializing Aerich..."
-        aerich init -t core.config.TORTOISE_ORM || echo "✅ Aerich init already done."
-        aerich init-db || echo "✅ Aerich init-db already done or schema already exists."
-    else
-        echo "✅ Migrations folder found, skipping init."
-    fi
-
-    echo "⚙️ Attempting Aerich upgrade..."
-    aerich upgrade || echo "✅ Aerich upgrade failed or already up-to-date."
+  echo "Running aerich upgrade…"
+  aerich upgrade || echo "aerich already up-to-date."
 else
-    echo "⚠️ No aerich.ini found. Skipping Aerich migrations."
+  echo "No aerich.ini found. Skipping migrations."
 fi
 
-# Show critical environment variables for verification
-echo "✅ Environment variables in use:"
-env | grep -E 'DATABASE_URL|DB_|REDIS_URL|JWT_SECRET|APP_ENV|PORT'
-
-# Determine port to use (Render/Fly/Heroku use $PORT, fallback to 10000)
-PORT=${PORT:-10000}
-
-echo "🚀 Starting FastAPI app on port ${PORT}..."
-uvicorn main:app --host 0.0.0.0 --port "${PORT}"
+# Respect provider PORT, default to 10000 locally
+PORT="${PORT:-10000}"
+echo "Starting uvicorn on :${PORT}"
+exec uvicorn main:app --host 0.0.0.0 --port "${PORT}"
