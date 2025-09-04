@@ -40,4 +40,4 @@ async def credit_referral_bonus(
     return {
         "message": f"Referral bonus of ${data.amount} credited manually.",
         "id": reward.id
-    }
+        }
