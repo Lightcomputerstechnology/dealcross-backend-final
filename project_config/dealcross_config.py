@@ -1,5 +1,3 @@
-# File: project_config/dealcross_config.py
-
 from pydantic_settings import BaseSettings
 from pydantic import Field, model_validator
 import logging
@@ -7,10 +5,11 @@ import logging
 logger = logging.getLogger("dealcross.settings")
 logging.basicConfig(level=logging.INFO)
 
+
 class DealcrossSettings(BaseSettings):
     """
-    DealcrossSettings handles environment configuration
-    using pydantic_settings for type-safe .env loading.
+    Single source of truth for all environment configuration.
+    Safe logging (no secret values).
     """
 
     # ─── GENERAL ─────────────────────────────
@@ -18,13 +17,26 @@ class DealcrossSettings(BaseSettings):
     app_env: str = Field(..., alias="APP_ENV")
     app_port: int = Field(..., alias="APP_PORT")
 
-    # ─── DATABASE CONFIG ─────────────────────
+    # ─── DATABASE ────────────────────────────
     database_url: str = Field(..., alias="DATABASE_URL")
 
-    # ─── SECURITY KEYS ───────────────────────
+    # ─── REDIS ───────────────────────────────
+    redis_url: str = Field(..., alias="REDIS_URL")
+
+    # ─── SECURITY / JWT (legacy local use) ───
     jwt_secret: str = Field(..., alias="JWT_SECRET")
     algorithm: str = Field(..., alias="ALGORITHM")
     access_token_expire_minutes: int = Field(60, alias="ACCESS_TOKEN_EXPIRE_MINUTES")
+
+    # ─── FRONTEND ────────────────────────────
+    frontend_url: str = Field(..., alias="FRONTEND_URL")
+
+    # ─── SUPABASE AUTH ───────────────────────
+    supabase_url: str = Field(..., alias="SUPABASE_URL")
+    supabase_jwks_url: str = Field(..., alias="SUPABASE_JWKS_URL")
+    supabase_service_role: str = Field(..., alias="SUPABASE_SERVICE_ROLE")
+    # Optional for backend (frontend must use anon). Keep for rare server calls if needed.
+    supabase_anon_key: str | None = Field(None, alias="SUPABASE_ANON_KEY")
 
     # ─── PAYMENT GATEWAYS ────────────────────
     paystack_secret: str = Field(..., alias="PAYSTACK_SECRET")
@@ -37,55 +49,59 @@ class DealcrossSettings(BaseSettings):
     email_user: str = Field(..., alias="EMAIL_USER")
     email_password: str = Field(..., alias="EMAIL_PASSWORD")
     email_from_name: str = Field("Dealcross", alias="EMAIL_FROM_NAME")
+    otp_issuer_name: str = Field("Dealcross", alias="OTP_ISSUER_NAME")
 
     # ─── RATE LIMIT ──────────────────────────
     rate_limit_max_requests: int = Field(100, alias="RATE_LIMIT_MAX_REQUESTS")
     rate_limit_time_window: int = Field(60, alias="RATE_LIMIT_TIME_WINDOW")
 
-    # ─── FRONTEND DOMAIN ─────────────────────
-    frontend_url: str = Field(..., alias="FRONTEND_URL")
-
-    # ─── CALLBACK/WEBHOOK URLs ───────────────
+    # ─── CALLBACK / WEBHOOKS ─────────────────
     paystack_callback: str = Field(..., alias="PAYSTACK_CALLBACK")
     flutterwave_callback: str = Field(..., alias="FLUTTERWAVE_CALLBACK")
     nowpay_callback: str = Field(..., alias="NOWPAY_CALLBACK")
 
-    # ─── REDIS URL ───────────────────────────
-    redis_url: str = Field(..., alias="REDIS_URL")
-
-    # ─── CONFIGURATION ───────────────────────
+    # ─── Pydantic Settings Config ────────────
     model_config = {
         "env_file": ".env",
         "env_file_encoding": "utf-8",
-        "extra": "allow"
+        "extra": "allow",
     }
 
     @model_validator(mode="after")
-    def check_critical(self):
-        """
-        Validates critical environment configurations are present.
-        """
-        critical_fields = ["database_url", "jwt_secret", "redis_url"]
-        for field in critical_fields:
-            if not getattr(self, field, None):
-                raise ValueError(f"{field} is required in environment configuration")
+    def _critical_checks(self):
+        # Minimal hard guards
+        critical = [
+            "database_url",
+            "redis_url",
+            "jwt_secret",
+            "supabase_url",
+            "supabase_jwks_url",
+            "supabase_service_role",
+        ]
+        for f in critical:
+            if not getattr(self, f, None):
+                raise ValueError(f"{f} is required in environment configuration")
         return self
 
     def get_effective_database_url(self) -> str:
         """
-        Returns the effective database URL for Tortoise ORM.
-        Handles scheme correction if needed.
+        Tortoise expects 'postgres://'. Normalize if 'postgresql://' is provided.
         """
         url = self.database_url
         if url.startswith("postgresql://"):
-            # Tortoise requires 'postgres://' instead of 'postgresql://'
             return url.replace("postgresql://", "postgres://", 1)
         return url
 
-# ✅ Instantiate global settings for app-wide usage
+
+# Instantiate once for app-wide usage
 settings = DealcrossSettings()
 
-# ✅ Logging for debugging
-logger.info("✅ Dealcross settings loaded successfully.")
-logger.info(f"✅ REDIS_URL: {settings.redis_url}")
-logger.info(f"✅ DATABASE_URL (effective): {settings.get_effective_database_url()}")
+# Safe, non-secret logs
+logger.info("✅ Settings loaded")
+logger.info(f"• App: {settings.app_name} [{settings.app_env}]")
+logger.info("• DATABASE_URL loaded")
+logger.info("• REDIS_URL loaded")
+logger.info("• SUPABASE_URL loaded")
+logger.info("• SUPABASE_JWKS_URL loaded")
+logger.info("• SUPABASE_SERVICE_ROLE loaded")
+logger.info("• Email/Payment configuration loaded")
