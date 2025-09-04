@@ -58,6 +58,9 @@ app = FastAPI(
     description="FastAPI backend for the Dealcross platform"
 )
 
+# make redis available to routers if needed
+app.state.redis = redis_client  # ✅ expose redis client
+
 # ──────────────── Secure One-Time Admin Seeder ────────────────
 async def seed_admin_if_missing():
     from tortoise.transactions import in_transaction
@@ -106,9 +109,21 @@ async def on_shutdown():
 
 # ──────────────── Middleware ────────────────
 app.add_middleware(RateLimitMiddleware)
+
+# ✅ Tighten CORS to your real frontend + local dev
+FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:5173")
+print("✅ FRONTEND_URL:", FRONTEND_URL)
+
+allow_origins = list({
+    FRONTEND_URL,
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+    "https://dealcross.net",  # keep your prod domain explicit
+})
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=allow_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -143,6 +158,7 @@ async def root():
         "docs": "/docs",
         "admin": "/admin"
     }
+
 @app.on_event("startup")
 async def startup_admin_app():
     print("🚀 Manually initializing FastAPI Admin...")
