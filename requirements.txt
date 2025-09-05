@@ -27,7 +27,7 @@ pydantic-settings
 httpx>=0.27.0  # ✅ Ensure compatible client for JWKS fetch
 
 # ─── Admin Interface (Custom Patched Version) ─────────────
-git+https://github.com/Lightcomputerstechnology/fastapi-admin-patched@main#egg=fastapi-admin[tortoise]
+fastapi-admin[tortoise] @ git+https://github.com/Lightcomputerstechnology/fastapi-admin-patched@main
 
 # ─── Optional Analytics / Monitoring ───
 sentry-sdk[fastapi]  # Optional: Sentry crash monitoring
@@ -39,4 +39,3 @@ pytest-asyncio
 
 # ─── TOTP / 2FA ─────────────────────────
 pyotp>=2.8.0
-```0
