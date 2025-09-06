@@ -2,21 +2,22 @@
 
 from datetime import datetime
 from enum import Enum
-from tortoise import fields
-from tortoise.models import Model
-
+from tortoise import fields, models
 
 class ApprovalStatus(str, Enum):
     PENDING = "pending"
     APPROVED = "approved"
     REJECTED = "rejected"
 
-
-class PendingApproval(Model):
+class PendingApproval(models.Model):
     id = fields.IntField(pk=True)
 
     # Who made the request
-    user = fields.ForeignKeyField("models.User", related_name="pending_approvals")
+    user = fields.ForeignKeyField(
+        "models.User",
+        related_name="pending_approvals",
+        on_delete=fields.CASCADE,
+    )
 
     # What is being reviewed (e.g., KYC, Deal)
     approval_type = fields.CharField(max_length=50)
@@ -27,7 +28,12 @@ class PendingApproval(Model):
     reason = fields.TextField(null=True)
 
     # Admin reviewing it
-    reviewed_by = fields.ForeignKeyField("models.User", null=True, related_name="reviewed_approvals")
+    reviewed_by = fields.ForeignKeyField(
+        "models.User",
+        null=True,
+        related_name="reviewed_approvals",
+        on_delete=fields.SET_NULL,
+    )
     reviewed_at = fields.DatetimeField(null=True)
 
     # Audit trail
@@ -39,5 +45,5 @@ class PendingApproval(Model):
         ordering = ["-created_at"]
         indexes = [("approval_type", "status")]
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"{self.approval_type.upper()} Request by User {self.user_id} - {self.status}"
