@@ -1,7 +1,7 @@
 # File: core/database.py
 
 from tortoise import Tortoise
-from core.settings import settings
+from project_config.dealcross_config import settings
 
 DATABASE_URL = settings.database_url
 
