@@ -1,50 +1,21 @@
+# File: core/config.py
 """
 Central Tortoise ORM config.
-
-- Loads settings from project_config/dealcross_config.py
-- Lists ONLY existing model modules.
-- Keeps Aerich’s internal model at the end.
+Uses project_config/dealcross_config.py for DB URL.
+Relies on models/__init__.py exports for discovery.
 """
 
 from project_config.dealcross_config import settings
 
+DATABASE_URL = settings.get_effective_database_url()
+
 TORTOISE_ORM = {
-    "connections": {
-        "default": settings.get_effective_database_url(),
-    },
+    "connections": {"default": DATABASE_URL},
     "apps": {
         "models": {
             "models": [
-                # ---- Core / Auth / Admin ----
-                "models.user",
-                "models.admin",
-                "models.audit",       # ✅ your audit.py
-                "models.audit_log",   # ✅ your audit_log.py
-
-                # ---- Wallet & Platform earnings ----
-                "models.wallet",
-                "models.wallet_transaction",
-                "models.fee_transaction",
-                "models.platform_earnings",
-                "models.admin_wallet",
-                "models.admin_wallet_log",
-
-                # ---- Deals / Disputes ----
-                "models.deal",             # contains Deal, EscrowTracker, Pairing
-                "models.dispute",
-                "models.pending_approval",
-
-                # ---- KYC ----
-                "models.kyc",
-
-                # ---- Messaging / Referrals / Fraud / Charts ----
-                "models.chat",
-                "models.referral_reward",
-                "models.fraud",
-                "models.chart",
-
-                # ---- Aerich internal model (must be included) ----
-                "aerich.models",
+                "models",          # auto-discover all exported models
+                "aerich.models",   # aerich metadata
             ],
             "default_connection": "default",
         }
