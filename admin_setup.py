@@ -8,6 +8,7 @@ from tortoise import Tortoise
 from project_config.dealcross_config import settings
 from core.security import verify_password
 from admin_views.change_password_view import router as change_password_view
+from fastapi.responses import RedirectResponse
 import redis.asyncio as redis
 from dotenv import load_dotenv
 
@@ -73,3 +74,9 @@ async def admin_ping():
 
 # Extra routes
 admin_app.include_router(change_password_view, prefix="/admin")
+
+
+@admin_app.get("/")
+async def admin_index():
+    # Redirect to the login page
+    return RedirectResponse(url="/admin/login")
