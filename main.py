@@ -10,22 +10,16 @@ from dotenv import load_dotenv
 load_dotenv()
 print("✅ .env loaded successfully.")
 
-# ───────── Core / Settings ─────────
 from core.database import init_db, close_db
 from core.middleware import RateLimitMiddleware
 from project_config.dealcross_config import settings
-
-# Admin UI (configured in admin_setup.py)
 from admin_setup import admin_app
 
-# Redis
 import redis.asyncio as redis
-
 print("✅ ENV REDIS_URL:", os.getenv("REDIS_URL"))
 print("✅ settings.redis_url:", settings.redis_url)
 redis_client = redis.from_url(settings.redis_url, decode_responses=True)
 
-# Routers
 from routers import user_2fa, contact, payment_webhooks
 from routers.user import router as user_router
 from routers.wallet import router as wallet_router
@@ -40,33 +34,20 @@ from routers.health import router as health_router
 from routers.subscription import router as subscription_router
 from app.api.routes import router as api_router
 
-# OAuth2 (legacy token endpoint for compatibility)
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
 
-# FastAPI app
-app = FastAPI(
-    title="Dealcross Backend",
-    version="1.0.0",
-    description="FastAPI backend for the Dealcross platform"
-)
+app = FastAPI(title="Dealcross Backend", version="1.0.0",
+              description="FastAPI backend for the Dealcross platform")
 
-# Make Redis available
 app.state.redis = redis_client
 
-# ───────── One-time Admin Seeder (optional; requires Admin table to EXIST) ─────────
 async def seed_admin_if_missing():
-    """
-    Seeds a default admin if none exists.
-    Only works if the 'admins' table already exists.
-    """
     try:
         from tortoise.transactions import in_transaction
         from models import admin as admin_model
         from passlib.hash import bcrypt
-
         admin_email = "admin@dealcross.com"
         admin_password = "AdminPass123!"
-
         async with in_transaction():
             existing = await admin_model.Admin.get_or_none(email=admin_email)
             if not existing:
@@ -82,23 +63,15 @@ async def seed_admin_if_missing():
             else:
                 print(f"✅ Admin user {admin_email} already exists, skipping seeding.")
     except Exception as e:
-        # If the table doesn't exist yet, skip silently
+        # If table not present, or any other issue, just skip silently.
         print(f"ℹ️ seed_admin_if_missing skipped: {e}")
 
-# ───────── Startup / Shutdown ─────────
 @app.on_event("startup")
 async def on_startup():
     print("🚀 Starting up... initializing DB.")
     try:
-        # Initialize connections ONLY (no schema creation here)
-        await init_db()
-
-        # If your tables already exist in Supabase, this will pass.
-        # If they don't, create them in Supabase first (next section).
-
-        # Optional seeding (will skip if 'admins' table doesn't exist yet)
+        await init_db()              # <-- ONLY init connections. No schema creation.
         await seed_admin_if_missing()
-
         print("✅ DB initialized successfully.")
     except Exception as e:
         print("❌ DB initialization failed:", e)
@@ -109,7 +82,6 @@ async def on_shutdown():
     await close_db()
     print("✅ DB closed successfully.")
 
-# ───────── Middleware ─────────
 app.add_middleware(RateLimitMiddleware)
 
 FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:5173")
@@ -128,10 +100,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# ───────── Admin mount ─────────
 app.mount("/admin", admin_app)
 
-# ───────── Routers ─────────
 app.include_router(user_2fa.router)
 app.include_router(contact.router)
 app.include_router(user_router, prefix="/user")
@@ -139,7 +109,7 @@ app.include_router(wallet_router, prefix="/wallet")
 app.include_router(deals_router, prefix="/deals")
 app.include_router(kyc_router, prefix="/kyc")
 app.include_router(admin_wallet_router, prefix="/admin-wallet")
-app.include_router(admin_referrals_router)              # has its own prefix (/admin/referrals)
+app.include_router(admin_referrals_router)
 app.include_router(admin_kyc_router, prefix="/admin/kyc")
 app.include_router(chart_router, prefix="/chart")
 app.include_router(chat_router, prefix="/chat")
@@ -148,17 +118,11 @@ app.include_router(subscription_router, prefix="/subscription")
 app.include_router(api_router)
 app.include_router(payment_webhooks.router, prefix="/webhooks")
 
-# Root
 @app.get("/")
 async def root():
-    return {
-        "message": "✅ Dealcross backend is live and working.",
-        "status": "ok",
-        "docs": "/docs",
-        "admin": "/admin"
-    }
+    return {"message": "✅ Dealcross backend is live and working.",
+            "status": "ok", "docs": "/docs", "admin": "/admin"}
 
-# Optional: some FastAPI Admin packages need manual router startup
 @app.on_event("startup")
 async def startup_admin_app():
     try:
