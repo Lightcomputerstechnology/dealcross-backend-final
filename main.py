@@ -53,11 +53,12 @@ app = FastAPI(
 # Make Redis available
 app.state.redis = redis_client
 
-# ───────── One-time Admin Seeder (after schemas exist) ─────────
+
+# ───────── One-time Admin Seeder (call only when SEED_ADMIN=1) ─────────
 async def seed_admin_if_missing():
     """
     Seeds a default admin if none exists.
-    Safe to call repeatedly—only creates if missing.
+    Runs ONLY when SEED_ADMIN=1 to avoid touching schema on every boot.
     """
     from tortoise.transactions import in_transaction
     from models import admin as admin_model
@@ -76,36 +77,46 @@ async def seed_admin_if_missing():
                 is_superuser=True,
                 is_active=True,
                 created_at=datetime.utcnow(),
-                updated_at=datetime.utcnow(),
             )
             print(f"✅ Admin created: {admin_email} / {admin_password}")
         else:
             print(f"✅ Admin user {admin_email} already exists, skipping seeding.")
+
 
 # ───────── Startup / Shutdown ─────────
 @app.on_event("startup")
 async def on_startup():
     print("🚀 Starting up... initializing DB.")
     try:
-        # Initialize Tortoise and connections
+        # Initialize Tortoise and connections (NO schema creation here)
         await init_db()
 
-        # Ensure all tables exist (first boot safety net)
-        from tortoise import Tortoise
-        await Tortoise.generate_schemas(safe=True)
+        # Optional safety net: only generate schemas if you explicitly enable it
+        # Set AUTO_SCHEMA=1 in Render env if you *really* want this.
+        if os.getenv("AUTO_SCHEMA", "0") in ("1", "true", "True", "yes", "on"):
+            from tortoise import Tortoise
+            try:
+                print("🛠️ AUTO_SCHEMA enabled → generating schemas (safe=True)…")
+                await Tortoise.generate_schemas(safe=True)
+                print("✅ Schemas verified/created.")
+            except Exception as e:
+                print("❌ generate_schemas failed (skipping):", e)
 
-        # Seed default admin (only creates if missing)
-        await seed_admin_if_missing()
+        # Seed default admin only when SEED_ADMIN=1
+        if os.getenv("SEED_ADMIN", "0") == "1":
+            await seed_admin_if_missing()
 
         print("✅ DB initialized successfully.")
     except Exception as e:
         print("❌ DB initialization failed:", e)
+
 
 @app.on_event("shutdown")
 async def on_shutdown():
     print("🛑 Shutting down... closing DB.")
     await close_db()
     print("✅ DB closed successfully.")
+
 
 # ───────── Middleware ─────────
 app.add_middleware(RateLimitMiddleware)
@@ -155,6 +166,7 @@ async def root():
         "docs": "/docs",
         "admin": "/admin"
     }
+
 
 # Optional: some FastAPI Admin packages need manual router startup
 @app.on_event("startup")
