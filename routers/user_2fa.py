@@ -2,7 +2,7 @@ from typing import Dict, Any, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query
 
 from core.security import get_current_user  # Supabase-aware claims
-from core.settings import settings          # has OTP_ISSUER_NAME via env (fallback handled)
+from project_config.dealcross_config import settings          # has OTP_ISSUER_NAME via env (fallback handled)
 from models.user import User
 from utils.otp import generate_totp_secret, generate_totp_uri, verify_totp_code
 
