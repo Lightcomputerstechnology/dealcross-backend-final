@@ -1,12 +1,12 @@
-from tortoise import Model, fields
+from tortoise import fields, models
 
-class EscrowTracker(Model):
+class EscrowTracker(models.Model):
     id = fields.IntField(pk=True)
 
     deal = fields.ForeignKeyField(
-        "models.Deal",  # ✅ Correct format: "app_label.ModelName"
+        "models.Deal",
         related_name="escrow_trackers",
-        on_delete=fields.CASCADE
+        on_delete=fields.CASCADE,
     )
 
     amount = fields.DecimalField(max_digits=12, decimal_places=2)
@@ -16,5 +16,5 @@ class EscrowTracker(Model):
     class Meta:
         table = "escrow_trackers"
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"EscrowTracker(deal_id={self.deal_id}, status={self.status}, amount={self.amount})"
