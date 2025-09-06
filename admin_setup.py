@@ -67,6 +67,9 @@ async def startup():
         print("✅ FastAPI Admin configured successfully.")
     except Exception as e:
         print(f"❌ FastAPI Admin configuration failed: {e}")
+@admin_app.get("/ping")
+async def admin_ping():
+    return {"ok": True}
 
 # Extra routes
 admin_app.include_router(change_password_view, prefix="/admin")
