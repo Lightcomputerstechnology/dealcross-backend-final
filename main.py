@@ -1,34 +1,31 @@
+# File: main.py
 import os
-from fastapi import FastAPI, HTTPException, Depends, Request
+from datetime import datetime
+
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordBearer
 
-from jose import jwt, JWTError
-from datetime import datetime, timedelta
-
-# ──────────────── Load .env explicitly ────────────────
 from dotenv import load_dotenv
 load_dotenv()
 print("✅ .env loaded successfully.")
 
-# ──────────────── Core imports ────────────────
+# ───────── Core / Settings ─────────
 from core.database import init_db, close_db
 from core.middleware import RateLimitMiddleware
-from core.security import get_password_hash, verify_password
 from project_config.dealcross_config import settings
 
-# ──────────────── Admin setup ────────────────
+# Admin UI (configured in admin_setup.py)
 from admin_setup import admin_app
 
-# ──────────────── Redis setup ────────────────
+# Redis
 import redis.asyncio as redis
 
 print("✅ ENV REDIS_URL:", os.getenv("REDIS_URL"))
 print("✅ settings.redis_url:", settings.redis_url)
-
 redis_client = redis.from_url(settings.redis_url, decode_responses=True)
 
-# ──────────────── Routers ────────────────
+# Routers
 from routers import user_2fa, contact, payment_webhooks
 from routers.user import router as user_router
 from routers.wallet import router as wallet_router
@@ -43,26 +40,25 @@ from routers.health import router as health_router
 from routers.subscription import router as subscription_router
 from app.api.routes import router as api_router
 
-# ──────────────── Utils ────────────────
-from utils import otp as otp_utils
-from utils import email_otp as email_otp_utils
-from utils import send_email
-
-# ──────────────── OAuth2 ────────────────
+# OAuth2 (legacy token endpoint for compatibility)
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
 
-# ──────────────── FastAPI initialization ────────────────
+# FastAPI app
 app = FastAPI(
     title="Dealcross Backend",
     version="1.0.0",
     description="FastAPI backend for the Dealcross platform"
 )
 
-# make redis available to routers if needed
-app.state.redis = redis_client  # ✅ expose redis client
+# Make Redis available
+app.state.redis = redis_client
 
-# ──────────────── Secure One-Time Admin Seeder ────────────────
+# ───────── One-time Admin Seeder (after schemas exist) ─────────
 async def seed_admin_if_missing():
+    """
+    Seeds a default admin if none exists.
+    Safe to call repeatedly—only creates if missing.
+    """
     from tortoise.transactions import in_transaction
     from models import admin as admin_model
     from passlib.hash import bcrypt
@@ -86,16 +82,20 @@ async def seed_admin_if_missing():
         else:
             print(f"✅ Admin user {admin_email} already exists, skipping seeding.")
 
-# ──────────────── Startup and Shutdown ────────────────
+# ───────── Startup / Shutdown ─────────
 @app.on_event("startup")
 async def on_startup():
     print("🚀 Starting up... initializing DB.")
     try:
+        # Initialize Tortoise and connections
         await init_db()
-        await seed_admin_if_missing()  # ✅ AUTO-SEED ADMIN ON FIRST DEPLOY
 
-        # ⚠️ REMOVE THIS CALL AFTER YOU HAVE LOGGED IN TO ADMIN PANEL TO TIGHTEN SECURITY:
-        # await seed_admin_if_missing()
+        # Ensure all tables exist (first boot safety net)
+        from tortoise import Tortoise
+        await Tortoise.generate_schemas(safe=True)
+
+        # Seed default admin (only creates if missing)
+        await seed_admin_if_missing()
 
         print("✅ DB initialized successfully.")
     except Exception as e:
@@ -107,20 +107,17 @@ async def on_shutdown():
     await close_db()
     print("✅ DB closed successfully.")
 
-# ──────────────── Middleware ────────────────
+# ───────── Middleware ─────────
 app.add_middleware(RateLimitMiddleware)
 
-# ✅ Tighten CORS to your real frontend + local dev
 FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:5173")
 print("✅ FRONTEND_URL:", FRONTEND_URL)
-
 allow_origins = list({
     FRONTEND_URL,
     "http://localhost:5173",
     "http://127.0.0.1:5173",
-    "https://dealcross.net",  # keep your prod domain explicit
+    "https://dealcross.net",
 })
-
 app.add_middleware(
     CORSMiddleware,
     allow_origins=allow_origins,
@@ -129,10 +126,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# ──────────────── Admin Mount ────────────────
+# ───────── Admin mount ─────────
 app.mount("/admin", admin_app)
 
-# ──────────────── API Routers ────────────────
+# ───────── Routers ─────────
 app.include_router(user_2fa.router)
 app.include_router(contact.router)
 app.include_router(user_router, prefix="/user")
@@ -140,7 +137,7 @@ app.include_router(wallet_router, prefix="/wallet")
 app.include_router(deals_router, prefix="/deals")
 app.include_router(kyc_router, prefix="/kyc")
 app.include_router(admin_wallet_router, prefix="/admin-wallet")
-app.include_router(admin_referrals_router)
+app.include_router(admin_referrals_router)              # has its own prefix (/admin/referrals)
 app.include_router(admin_kyc_router, prefix="/admin/kyc")
 app.include_router(chart_router, prefix="/chart")
 app.include_router(chat_router, prefix="/chat")
@@ -149,7 +146,7 @@ app.include_router(subscription_router, prefix="/subscription")
 app.include_router(api_router)
 app.include_router(payment_webhooks.router, prefix="/webhooks")
 
-# ──────────────── Root Landing Route ────────────────
+# Root
 @app.get("/")
 async def root():
     return {
@@ -159,8 +156,12 @@ async def root():
         "admin": "/admin"
     }
 
+# Optional: some FastAPI Admin packages need manual router startup
 @app.on_event("startup")
 async def startup_admin_app():
-    print("🚀 Manually initializing FastAPI Admin...")
-    await admin_app.router.startup()
-    print("✅ FastAPI Admin initialized manually.")
+    try:
+        print("🚀 Manually initializing FastAPI Admin...")
+        await admin_app.router.startup()
+        print("✅ FastAPI Admin initialized manually.")
+    except Exception as e:
+        print("⚠️ Admin manual init skipped/failed:", e)
