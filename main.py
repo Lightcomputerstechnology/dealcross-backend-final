@@ -35,7 +35,7 @@ from routers.wallet import router as wallet_router
 from routers.deals import router as deals_router
 from routers.kyc import router as kyc_router
 from routers.admin_wallet import router as admin_wallet_router
-from routers.admin_referral import router as admin_referral_router
+from routers.admin_referrals import router as admin_referrals_router
 from routers.admin_kyc import router as admin_kyc_router
 from routers.chart import router as chart_router
 from routers.chat import router as chat_router
@@ -140,7 +140,7 @@ app.include_router(wallet_router, prefix="/wallet")
 app.include_router(deals_router, prefix="/deals")
 app.include_router(kyc_router, prefix="/kyc")
 app.include_router(admin_wallet_router, prefix="/admin-wallet")
-app.include_router(admin_referral_router, prefix="/admin-referral")
+app.include_router(admin_referrals_router)
 app.include_router(admin_kyc_router, prefix="/admin/kyc")
 app.include_router(chart_router, prefix="/chart")
 app.include_router(chat_router, prefix="/chat")
