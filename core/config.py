@@ -2,7 +2,7 @@
 Central Tortoise ORM config.
 
 - Loads settings from project_config/dealcross_config.py
-- Lists ONLY model modules that actually exist right now.
+- Lists ONLY existing model modules.
 - Keeps Aerich’s internal model at the end.
 """
 
@@ -10,7 +10,6 @@ from project_config.dealcross_config import settings
 
 TORTOISE_ORM = {
     "connections": {
-        # settings.get_effective_database_url() converts postgresql:// → postgres:// for Tortoise
         "default": settings.get_effective_database_url(),
     },
     "apps": {
@@ -18,8 +17,9 @@ TORTOISE_ORM = {
             "models": [
                 # ---- Core / Auth / Admin ----
                 "models.user",
-                "models.admin",            # you shared this file
-                "models.auditlog",         # earlier code referenced 'models.auditlog'
+                "models.admin",
+                "models.audit",       # ✅ your audit.py
+                "models.audit_log",   # ✅ your audit_log.py
 
                 # ---- Wallet & Platform earnings ----
                 "models.wallet",
@@ -30,15 +30,12 @@ TORTOISE_ORM = {
                 "models.admin_wallet_log",
 
                 # ---- Deals / Disputes ----
-                "models.deal",             # currently also contains EscrowTracker & Pairing classes
-                # DO NOT include "models.escrow_tracker" or "models.pairing"
-                # unless you have split them into separate files.
-
+                "models.deal",             # contains Deal, EscrowTracker, Pairing
                 "models.dispute",
-                "models.pending_approval", # you shared this file
+                "models.pending_approval",
 
                 # ---- KYC ----
-                "models.kyc",              # keep this (you referenced it across routers)
+                "models.kyc",
 
                 # ---- Messaging / Referrals / Fraud / Charts ----
                 "models.chat",
