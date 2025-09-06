@@ -2,32 +2,26 @@
 Central Tortoise ORM config.
 
 - Loads settings from project_config/dealcross_config.py
-- Explicitly lists ALL model modules that exist in your /models folder
-  so Aerich can detect them reliably (no implicit discovery).
+- Lists ONLY model modules that actually exist right now.
+- Keeps Aerich’s internal model at the end.
 """
 
 from project_config.dealcross_config import settings
 
 TORTOISE_ORM = {
     "connections": {
-        # Make sure postgresql:// is converted to postgres:// inside settings
+        # settings.get_effective_database_url() converts postgresql:// → postgres:// for Tortoise
         "default": settings.get_effective_database_url(),
     },
     "apps": {
         "models": {
             "models": [
-                # ---- Core auth / users / roles ----
+                # ---- Core / Auth / Admin ----
                 "models.user",
-                "models.role",
-                "models.role_permission",
-                "models.login_attempt",
+                "models.admin",            # you shared this file
+                "models.auditlog",         # earlier code referenced 'models.auditlog'
 
-                # ---- Admin & audit ----
-                "models.admin",
-                "models.audit",          # audit model(s)
-                "models.audit_log",      # audit log entries
-
-                # ---- Wallet & fees / platform ----
+                # ---- Wallet & Platform earnings ----
                 "models.wallet",
                 "models.wallet_transaction",
                 "models.fee_transaction",
@@ -35,40 +29,24 @@ TORTOISE_ORM = {
                 "models.admin_wallet",
                 "models.admin_wallet_log",
 
-                # ---- Deals / escrow / disputes / pairing / approvals ----
-                "models.deal",
-                "models.escrow_tracker",
+                # ---- Deals / Disputes ----
+                "models.deal",             # currently also contains EscrowTracker & Pairing classes
+                # DO NOT include "models.escrow_tracker" or "models.pairing"
+                # unless you have split them into separate files.
+
                 "models.dispute",
-                "models.pairing",
-                "models.pending_approval",
+                "models.pending_approval", # you shared this file
 
                 # ---- KYC ----
-                "models.kyc",
-                "models.kyc_request",
+                "models.kyc",              # keep this (you referenced it across routers)
 
-                # ---- Referrals ----
-                "models.referral_reward",
-
-                # ---- Notifications / support ----
-                "models.notification",
-                "models.support",
-
-                # ---- Content / reporting / misc ----
-                "models.blog",
-                "models.banner",
-                "models.investor_report",
-                "models.share",
-                "models.chart",
-                "models.metric",
-                "models.webhook",
-                "models.config",         # project settings stored in DB
-                "models.settings",       # (exists in your repo)
-                "models.fraud",
+                # ---- Messaging / Referrals / Fraud / Charts ----
                 "models.chat",
-                "models.logs",           # generic logs
-                "models.aiinsight",      # AI insight module
+                "models.referral_reward",
+                "models.fraud",
+                "models.chart",
 
-                # ---- Aerich internal model (required) ----
+                # ---- Aerich internal model (must be included) ----
                 "aerich.models",
             ],
             "default_connection": "default",
