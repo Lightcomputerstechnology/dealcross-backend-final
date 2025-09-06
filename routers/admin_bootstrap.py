@@ -1,61 +1,32 @@
 # routers/admin_bootstrap.py
-from fastapi import APIRouter, HTTPException
-from pydantic import BaseModel, EmailStr, constr
-from os import getenv
-from passlib.hash import bcrypt
-from tortoise.exceptions import IntegrityError, OperationalError
-from tortoise import Tortoise
-
-# Import your Admin model (table = "admins")
+from fastapi import APIRouter, Header, HTTPException
+from tortoise.transactions import in_transaction
 from models.admin import Admin
+from passlib.hash import bcrypt
+import os
 
-router = APIRouter(prefix="/_bootstrap", tags=["bootstrap"])
+router = APIRouter(prefix="/admin", tags=["Admin Bootstrap"])
 
-class SeedAdminIn(BaseModel):
-    email: EmailStr
-    password: constr(min_length=8)
-    token: str
+BOOT_TOKEN = os.getenv("ADMIN_BOOTSTRAP_TOKEN")  # set this in Render env
 
-@router.get("/ping")
-async def ping():
-    """Quick health for the bootstrap router."""
-    try:
-        # verify Tortoise is up and the DB responds
-        await Tortoise.get_connection("default").execute_query("SELECT 1;")
-        return {"ok": True, "db": "up"}
-    except Exception as e:
-        return {"ok": False, "db": "down", "error": str(e)}
-
-@router.post("/seed-admin")
-async def seed_admin(payload: SeedAdminIn):
-    # 1) Token check (403 on bad token)
-    expected = getenv("BOOTSTRAP_TOKEN")
-    if not expected:
-        # Misconfiguration – tell you clearly
-        raise HTTPException(status_code=500, detail="BOOTSTRAP_TOKEN not set on server")
-    if payload.token.strip() != expected.strip():
+@router.post("/bootstrap")
+async def bootstrap_admin(x_bootstrap_token: str = Header(None)):
+    # Simple guard
+    if not BOOT_TOKEN or x_bootstrap_token != BOOT_TOKEN:
         raise HTTPException(status_code=403, detail="Forbidden")
 
-    # 2) Try to create (idempotent)
-    try:
-        existing = await Admin.get_or_none(email=payload.email)
-        if existing:
-            return {"ok": True, "message": "already_exists"}
+    admin_email = "admin@dealcross.com"
+    admin_password = "AdminPass123!"
 
-        admin = await Admin.create(
-            email=payload.email,
-            hashed_password=bcrypt.hash(payload.password),
+    async with in_transaction():
+        existing = await Admin.get_or_none(email=admin_email)
+        if existing:
+            return {"ok": True, "detail": "Admin already exists"}
+
+        await Admin.create(
+            email=admin_email,
+            hashed_password=bcrypt.hash(admin_password),
             is_superuser=True,
             is_active=True,
         )
-        return {"ok": True, "message": "created", "id": admin.id}
-
-    except IntegrityError as e:
-        # Unique constraint, etc.
-        return {"ok": True, "message": "already_exists", "info": "integrity_error"}
-    except OperationalError as e:
-        # Table missing or DB not reachable
-        raise HTTPException(status_code=500, detail=f"DB error: {str(e)}")
-    except Exception as e:
-        # Anything else → show the reason instead of a blank 500
-        raise HTTPException(status_code=500, detail=f"Unexpected error: {str(e)}")
+        return {"ok": True, "detail": f"Admin created: {admin_email} / {admin_password}"}
