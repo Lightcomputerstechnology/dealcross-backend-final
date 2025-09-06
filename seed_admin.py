@@ -2,7 +2,7 @@
 
 import asyncio
 from tortoise import Tortoise
-from core.settings import settings
+from project_config.dealcross_config import settings
 from models.admin import Admin
 from core.security import get_password_hash
 
