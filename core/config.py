@@ -31,7 +31,7 @@ TORTOISE_ORM = {
                 "models.referral_reward",
                 "models.auditlog",
                 "models.chart",
-                "models.admin",          # ✅ add admin model explicitly if it exists
+                "models.admin",          # ✅ Admin model included here
 
                 # Aerich migration history (must be last or included)
                 "aerich.models",
