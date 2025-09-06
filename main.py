@@ -13,6 +13,7 @@ print("✅ .env loaded successfully.")
 from core.database import init_db, close_db
 from core.middleware import RateLimitMiddleware
 from project_config.dealcross_config import settings
+from routers.admin_bootstrap import router as admin_bootstrap_router
 from admin_setup import admin_app
 
 import redis.asyncio as redis
@@ -116,6 +117,7 @@ app.include_router(chat_router, prefix="/chat")
 app.include_router(health_router, prefix="/health")
 app.include_router(subscription_router, prefix="/subscription")
 app.include_router(api_router)
+app.include_router(admin_bootstrap_router)
 app.include_router(payment_webhooks.router, prefix="/webhooks")
 
 @app.get("/")
