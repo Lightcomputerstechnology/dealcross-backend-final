@@ -11,7 +11,7 @@ from jose import jwt, JWTError
 from passlib.context import CryptContext
 
 # Uses the unified settings (your core/settings.py supports extra="allow")
-from core.settings import settings  # needs: jwt_secret, algorithm, access_token_expire_minutes, SUPABASE_JWKS_URL
+from project_config.dealcross_config import settings  # needs: jwt_secret, algorithm, access_token_expire_minutes, SUPABASE_JWKS_URL
 
 # ───────────────── OAuth2 (legacy token endpoint used by your existing flow) ─────────────────
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
