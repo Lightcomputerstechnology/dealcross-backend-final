@@ -1,4 +1,4 @@
-# core/config.py
+# File: core/config.py
 
 """
 Central Tortoise ORM config.
@@ -10,13 +10,13 @@ from project_config.dealcross_config import settings
 
 TORTOISE_ORM = {
     "connections": {
-        # Ensure 'postgresql://' is converted to 'postgres://' inside settings
+        # Uses effective DB URL (fixes postgresql:// → postgres://)
         "default": settings.get_effective_database_url(),
     },
     "apps": {
         "models": {
             "models": [
-                # ---- List ALL model modules explicitly ----
+                # ---- Explicit model modules ----
                 "models.user",
                 "models.wallet",
                 "models.wallet_transaction",
@@ -31,8 +31,9 @@ TORTOISE_ORM = {
                 "models.referral_reward",
                 "models.auditlog",
                 "models.chart",
+                "models.admin",          # ✅ add admin model explicitly if it exists
 
-                # Aerich internal model (must be last or included)
+                # Aerich migration history (must be last or included)
                 "aerich.models",
             ],
             "default_connection": "default",
