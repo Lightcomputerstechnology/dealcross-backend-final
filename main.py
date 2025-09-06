@@ -53,70 +53,61 @@ app = FastAPI(
 # Make Redis available
 app.state.redis = redis_client
 
-
-# ───────── One-time Admin Seeder (call only when SEED_ADMIN=1) ─────────
+# ───────── One-time Admin Seeder (optional; requires Admin table to EXIST) ─────────
 async def seed_admin_if_missing():
     """
     Seeds a default admin if none exists.
-    Runs ONLY when SEED_ADMIN=1 to avoid touching schema on every boot.
+    Only works if the 'admins' table already exists.
     """
-    from tortoise.transactions import in_transaction
-    from models import admin as admin_model
-    from passlib.hash import bcrypt
+    try:
+        from tortoise.transactions import in_transaction
+        from models import admin as admin_model
+        from passlib.hash import bcrypt
 
-    admin_email = "admin@dealcross.com"
-    admin_password = "AdminPass123!"
+        admin_email = "admin@dealcross.com"
+        admin_password = "AdminPass123!"
 
-    async with in_transaction():
-        existing = await admin_model.Admin.get_or_none(email=admin_email)
-        if not existing:
-            print(f"✅ Seeding admin user {admin_email}...")
-            await admin_model.Admin.create(
-                email=admin_email,
-                hashed_password=bcrypt.hash(admin_password),
-                is_superuser=True,
-                is_active=True,
-                created_at=datetime.utcnow(),
-            )
-            print(f"✅ Admin created: {admin_email} / {admin_password}")
-        else:
-            print(f"✅ Admin user {admin_email} already exists, skipping seeding.")
-
+        async with in_transaction():
+            existing = await admin_model.Admin.get_or_none(email=admin_email)
+            if not existing:
+                print(f"✅ Seeding admin user {admin_email}...")
+                await admin_model.Admin.create(
+                    email=admin_email,
+                    hashed_password=bcrypt.hash(admin_password),
+                    is_superuser=True,
+                    is_active=True,
+                    created_at=datetime.utcnow(),
+                )
+                print(f"✅ Admin created: {admin_email} / {admin_password}")
+            else:
+                print(f"✅ Admin user {admin_email} already exists, skipping seeding.")
+    except Exception as e:
+        # If the table doesn't exist yet, skip silently
+        print(f"ℹ️ seed_admin_if_missing skipped: {e}")
 
 # ───────── Startup / Shutdown ─────────
 @app.on_event("startup")
 async def on_startup():
     print("🚀 Starting up... initializing DB.")
     try:
-        # Initialize Tortoise and connections (NO schema creation here)
+        # Initialize connections ONLY (no schema creation here)
         await init_db()
 
-        # Optional safety net: only generate schemas if you explicitly enable it
-        # Set AUTO_SCHEMA=1 in Render env if you *really* want this.
-        if os.getenv("AUTO_SCHEMA", "0") in ("1", "true", "True", "yes", "on"):
-            from tortoise import Tortoise
-            try:
-                print("🛠️ AUTO_SCHEMA enabled → generating schemas (safe=True)…")
-                await Tortoise.generate_schemas(safe=True)
-                print("✅ Schemas verified/created.")
-            except Exception as e:
-                print("❌ generate_schemas failed (skipping):", e)
+        # If your tables already exist in Supabase, this will pass.
+        # If they don't, create them in Supabase first (next section).
 
-        # Seed default admin only when SEED_ADMIN=1
-        if os.getenv("SEED_ADMIN", "0") == "1":
-            await seed_admin_if_missing()
+        # Optional seeding (will skip if 'admins' table doesn't exist yet)
+        await seed_admin_if_missing()
 
         print("✅ DB initialized successfully.")
     except Exception as e:
         print("❌ DB initialization failed:", e)
-
 
 @app.on_event("shutdown")
 async def on_shutdown():
     print("🛑 Shutting down... closing DB.")
     await close_db()
     print("✅ DB closed successfully.")
-
 
 # ───────── Middleware ─────────
 app.add_middleware(RateLimitMiddleware)
@@ -166,7 +157,6 @@ async def root():
         "docs": "/docs",
         "admin": "/admin"
     }
-
 
 # Optional: some FastAPI Admin packages need manual router startup
 @app.on_event("startup")
