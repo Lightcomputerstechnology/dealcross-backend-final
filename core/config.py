@@ -1,33 +1,33 @@
 """
 Central Tortoise ORM config.
 
-- Pulls settings from project_config/dealcross_config.py
-- Explicitly lists ALL model modules in your repo so Aerich can detect them.
-  (If a module doesn't define a Tortoise model, it won't break anything.)
+- Loads settings from project_config/dealcross_config.py
+- Explicitly lists ALL model modules that exist in your /models folder
+  so Aerich can detect them reliably (no implicit discovery).
 """
 
 from project_config.dealcross_config import settings
 
 TORTOISE_ORM = {
     "connections": {
-        # Ensures postgresql:// → postgres:// for Tortoise
+        # Make sure postgresql:// is converted to postgres:// inside settings
         "default": settings.get_effective_database_url(),
     },
     "apps": {
         "models": {
             "models": [
-                # ---- Core users/roles/permissions ----
+                # ---- Core auth / users / roles ----
                 "models.user",
                 "models.role",
                 "models.role_permission",
                 "models.login_attempt",
 
                 # ---- Admin & audit ----
-                "models.admin",                # ✅ your Admin table
-                "models.audit",               # (if this defines models)
-                "models.audit_log",           # audit logs
+                "models.admin",
+                "models.audit",          # audit model(s)
+                "models.audit_log",      # audit log entries
 
-                # ---- Wallet & fees/earnings ----
+                # ---- Wallet & fees / platform ----
                 "models.wallet",
                 "models.wallet_transaction",
                 "models.fee_transaction",
@@ -61,12 +61,12 @@ TORTOISE_ORM = {
                 "models.chart",
                 "models.metric",
                 "models.webhook",
-                "models.config",              # project settings in DB (if used)
-                "models.settings",            # if this also defines models
+                "models.config",         # project settings stored in DB
+                "models.settings",       # (exists in your repo)
                 "models.fraud",
                 "models.chat",
-                "models.logs",                # generic logs
-                "models.aiinsight",           # your AI insight module
+                "models.logs",           # generic logs
+                "models.aiinsight",      # AI insight module
 
                 # ---- Aerich internal model (required) ----
                 "aerich.models",
