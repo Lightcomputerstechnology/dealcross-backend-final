@@ -1,17 +1,16 @@
 # routers/admin_bootstrap.py
 from fastapi import APIRouter, Header, HTTPException
 from tortoise.transactions import in_transaction
-from models.admin import Admin
 from passlib.hash import bcrypt
+from models.admin import Admin
 import os
 
-router = APIRouter(prefix="/admin", tags=["Admin Bootstrap"])
+router = APIRouter(tags=["Admin Bootstrap"])
 
-BOOT_TOKEN = os.getenv("ADMIN_BOOTSTRAP_TOKEN")  # set this in Render env
+BOOT_TOKEN = os.getenv("ADMIN_BOOTSTRAP_TOKEN")
 
-@router.post("/bootstrap")
+@router.post("/bootstrap-admin")
 async def bootstrap_admin(x_bootstrap_token: str = Header(None)):
-    # Simple guard
     if not BOOT_TOKEN or x_bootstrap_token != BOOT_TOKEN:
         raise HTTPException(status_code=403, detail="Forbidden")
 
