@@ -11,27 +11,40 @@ from admin_views.change_password_view import router as change_password_view
 import redis.asyncio as redis
 from dotenv import load_dotenv
 
+# Load .env
 load_dotenv()
 print("✅ .env loaded in admin_setup.")
 
+# Redis client
 redis_client = redis.from_url(settings.redis_url, decode_responses=True)
 
+# CORS
 admin_app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"], allow_credentials=True,
-    allow_methods=["*"], allow_headers=["*"],
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
+# Directories
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 TEMPLATE_DIR = os.path.join(BASE_DIR, "templates")
 STATIC_DIR = os.path.join(BASE_DIR, "admin_static")
+
+# Mount static files for admin
 admin_app.mount("/admin/static", StaticFiles(directory=STATIC_DIR), name="static")
 
+# Startup event
 @admin_app.on_event("startup")
 async def startup():
     print("🚀 Starting FastAPI Admin initialization...")
     try:
-        await Tortoise.init(db_url=settings.database_url, modules={"models": ["models"]})
+        # ✅ Use get_effective_database_url() to normalize postgres:// scheme
+        await Tortoise.init(
+            db_url=settings.get_effective_database_url(),
+            modules={"models": ["models"]},
+        )
         print("✅ Tortoise initialized for FastAPI Admin.")
     except Exception as e:
         print(f"❌ Tortoise initialization failed: {e}")
@@ -55,4 +68,5 @@ async def startup():
     except Exception as e:
         print(f"❌ FastAPI Admin configuration failed: {e}")
 
+# Extra routes
 admin_app.include_router(change_password_view, prefix="/admin")
