@@ -1,112 +1,120 @@
-import os
-import sys
+"""
+check_models.py
+Verifies that all Tortoise ORM models load correctly and checks for cyclic foreign key references.
+"""
+
 import asyncio
 import logging
 from tortoise import Tortoise
-from tortoise.exceptions import ConfigurationError
+from project_config.dealcross_config import settings
 
-# --------------------------------------------------------------------------
-# ✅ Ensure the project root is on the Python path
-# --------------------------------------------------------------------------
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-sys.path.append(BASE_DIR)
-
-# --------------------------------------------------------------------------
-# ✅ Load your settings properly from the existing config
-# --------------------------------------------------------------------------
-try:
-    from project_config.dealcross_config import settings
-    logging.info("✅ Settings loaded successfully from project_config.dealcross_config")
-except ModuleNotFoundError as e:
-    logging.error(f"❌ Could not import settings: {e}")
-    sys.exit(1)
-
-logging.basicConfig(level=logging.INFO, format="%(levelname)s:%(name)s:%(message)s")
+logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("check_models")
 
-# --------------------------------------------------------------------------
-# ✅ Main function to initialize and verify models
-# --------------------------------------------------------------------------
 async def check_models():
+    logger.info("✅ Settings loaded successfully from project_config.dealcross_config")
     logger.info("Initializing Tortoise ORM...")
 
+    # 🔧 Detect correct database URL dynamically
+    if hasattr(settings, "DATABASE_URL"):
+        db_url = settings.DATABASE_URL
+    elif hasattr(settings, "get_effective_database_url"):
+        db_url = settings.get_effective_database_url()
+    elif hasattr(settings, "database_url"):
+        db_url = settings.database_url
+    else:
+        raise AttributeError("⚠️ Settings object has no database URL defined")
+
+    # ✅ Initialize Tortoise ORM
     try:
         await Tortoise.init(
-            db_url=settings.DATABASE_URL,
+            db_url=db_url,
             modules={
                 "models": [
                     "models.user",
-                    "models.wallets",
-                    "models.deals",
-                    "models.transactions",
+                    "models.wallet",
+                    "models.wallet_transaction",
                     "models.admin_wallet",
+                    "models.admin_wallet_log",
                     "models.kyc",
+                    "models.deal",
+                    "models.dispute",
+                    "models.fraud",
                     "models.audit",
-                    "models.support",
+                    "models.audit_log",
+                    "models.metric",
+                    "models.chart",
                     "models.chat",
-                    "models.notification",
-                    "models.pending_approvals",
-                    "models.pairings",
+                    "models.login_attempt",
                     "models.platform_earnings",
+                    "models.referral_reward",
+                    "models.support",
+                    "models.share",
+                    "models.settings",
+                    "models.pending_approval",
+                    "models.banner",
+                    "models.role_permission",
+                    "models.webhook",
+                    "models.notification",
+                    "models.investor_report",
+                    "models.escrow_tracker",
+                    "models.fee_transaction",
+                    "models.pairing",
+                    "models.blog",
+                    "models.config",
+                    "models.logs",
+                    "models.aiinsight",
+                    "models.admin",
+                    "aerich.models",
                 ]
             },
         )
-        logger.info("✅ Models loaded successfully!")
-    except ConfigurationError as e:
-        logger.error(f"Configuration error: {e}")
-        sys.exit(1)
     except Exception as e:
         logger.error(f"Unexpected error while initializing ORM: {e}")
-        sys.exit(1)
+        return
 
-    # ----------------------------------------------------------------------
-    # ✅ Build relationship graph for cycle detection
-    # ----------------------------------------------------------------------
-    models = Tortoise.apps.get("models").values()
+    # ✅ Load all models
+    models = list(Tortoise.apps.get("models", {}).values())
+    logger.info("✅ Models loaded successfully!\n")
+
+    # 🔍 Collect relationships
     relations = []
     for model in models:
-        for fk_field in model._meta.fk_fields:
-            fk_model = model._meta.fields_map[fk_field].related_model
-            relations.append((model._meta.db_table, fk_model._meta.db_table))
+        for field_name, field in model._meta.fields_map.items():
+            if hasattr(field, "related_model") and field.related_model:
+                relations.append((model._meta.db_table, field.related_model._meta.db_table))
+                print(f"{model._meta.db_table}  ->  {field.related_model._meta.db_table}")
 
-    logger.info("\nDetected relationships (foreign keys):")
-    for a, b in relations:
-        logger.info(f"{a}  ->  {b}")
+    print("\n🔍 Checking for cycles...\n")
 
-    # ----------------------------------------------------------------------
-    # ✅ Check for cyclic dependencies (causes Aerich “cyclic fk” error)
-    # ----------------------------------------------------------------------
-    logger.info("\n🔍 Checking for cyclic foreign key references...")
-
+    # Build dependency graph
     graph = {}
     for a, b in relations:
         graph.setdefault(a, set()).add(b)
-        graph.setdefault(b, set())
 
+    # DFS-based cycle detection
     visited = set()
-    rec_stack = set()
+    stack = set()
 
     def dfs(node):
-        if node not in visited:
-            visited.add(node)
-            rec_stack.add(node)
-            for neighbor in graph.get(node, []):
-                if neighbor not in visited and dfs(neighbor):
-                    return True
-                elif neighbor in rec_stack:
-                    return True
-        rec_stack.remove(node)
+        visited.add(node)
+        stack.add(node)
+        for neighbor in graph.get(node, []):
+            if neighbor not in visited and dfs(neighbor):
+                return True
+            elif neighbor in stack:
+                return True
+        stack.remove(node)
         return False
 
-    has_cycle = any(dfs(n) for n in list(graph.keys()))
+    has_cycle = any(dfs(node) for node in list(graph))
 
     if has_cycle:
-        logger.error("❌ Cycle detected in model foreign key relationships!")
+        print("❌ Cyclic foreign key reference(s) detected!")
     else:
-        logger.info("✅ No cycles detected — schema creation should work fine!")
+        print("✅ No cycles found! Safe schema.")
 
     await Tortoise.close_connections()
-
 
 if __name__ == "__main__":
     asyncio.run(check_models())
