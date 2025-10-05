@@ -1,5 +1,20 @@
 # File: models/__init__.py
+"""
+Central model loader for Tortoise ORM.
 
+⚙️ IMPORTANT:
+Do NOT directly import one model inside another.
+Instead, always reference other models as "models.<ModelName>" (string references).
+
+Example:
+    creator = fields.ForeignKeyField("models.User", related_name="deals")
+
+This avoids circular import issues when Tortoise loads all models dynamically.
+"""
+
+from tortoise import Tortoise
+
+# --- Import all model files explicitly for Tortoise to register ---
 from .user import User
 from .wallet import Wallet
 from .wallet_transaction import WalletTransaction
@@ -22,7 +37,7 @@ from .share import Share
 from .settings import AppSetting
 from .pending_approval import PendingApproval
 from .banner import Banner
-from .role_permission import RolePermission   # ✅ keep this import
+from .role_permission import RolePermission
 from .webhook import WebhookLog
 from .notification import Notification
 from .investor_report import InvestorReport
@@ -58,7 +73,7 @@ __all__ = [
     "AppSetting",
     "PendingApproval",
     "Banner",
-    "RolePermission",          # ✅ ensure present once
+    "RolePermission",
     "WebhookLog",
     "Notification",
     "InvestorReport",
